@@ -1,6 +1,3 @@
-import NotImplementedType
-
-
 class FuzzySubset:
     """ This class represents a membership function for a given Fuzzy Subset.
     Fuzzy. Therefore, this can be seen as the Fuzzy Subset itself, since
@@ -14,6 +11,7 @@ class FuzzySubset:
 
     def __init__(self):
         """Does nothing"""
+        self.name = 'Abstract Fuzzy Subset'
         pass
 
     def membershipValue(self, value):
@@ -27,6 +25,6 @@ class FuzzySubset:
         value -- the membership value of the element
 
         Raise:
-        NotImplementedType -- if the subclass has not implemented this method.
+        NotImplementedError -- if the subclass has not implemented this method.
         """
-        raise NotImplementedType()
+        raise NotImplementedError()
