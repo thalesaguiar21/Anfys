@@ -16,7 +16,7 @@ class FuzzySubset:
 
     def membershipValue(self, value):
         """ This method is reponsible to calculate the membership of a given
-        value. Here is where a partially diferentiable function must be used.
+        value. Here is where a piecewise diferentiable function must be used.
 
         Keyword arguments:
         value -- the element of a given set
