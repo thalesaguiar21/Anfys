@@ -1,4 +1,4 @@
-from random import random
+# from random import random
 from sys import exit
 
 
@@ -12,25 +12,21 @@ class Anfis():
     """
     MIN_SIZE = 2
 
-    def __init__(self, pre, size, rules, consequents, inference):
+    def __init__(self, pre, numOfLabels, consequents, inference):
         """ This method initialize a new instance of an ANFIS.
+
         Keyword arguments:
         pre -- The precedent fuzzy subsets of the Inference System
-        size -- Number of neurons in the second and third layers
-        rules -- The IF-THEN rules for the inference system
+        numOfLabels -- Number of neurons in the second and third layers
         consequents -- The consequent parameters set fo the inference system
         inference -- The inference strategy of the system
         """
         self.precedents = pre
         self.consequents = consequents
+        print consequents
         self.inference = inference
-        self.size = size if size > 0 else Anfis.MIN_SIZE
-        self.map12 = []
-        self.w23 = [size][size]
-        self.w34 = [size][size]
-        self.w45 = [len(rules)]
         self.eta = 0.002
-        self.numOfLabels = 3
+        self.numOfLabels = numOfLabels
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
@@ -46,10 +42,10 @@ class Anfis():
         numOfParams = len(self.consequents[0])
         for conSet in self.consequents:
             if len(conSet) != numOfParams:
-                errorList.add(diffParams)
+                errorList.append(diffParams)
                 break
             elif len(conSet) != self.numOfLabels + 1:
-                errorList.add(nonLinParams)
+                errorList.append(nonLinParams)
 
         if len(errorList) > 0:
             for error in errorList:
@@ -63,34 +59,69 @@ class Anfis():
         Keyword arguments:
         inputs -- A feature vector to feed the network
         """
-        x = 10
+        print 'Inputs are: ' + str(inputs)
         precOutput = []
 
         # Layer 1
-        for precedent in self.precedents:
-            precOutput.append(precedent.membershipValue(x))
+        print 'Calculating output for layer 1...'
+        j = 0   # Input index
+        for fuzz in self.precedents:
+            for node in fuzz:
+                precOutput.append(node.membershipValue(inputs[j]))
+            j += 1
+        print 'Finished!'
+        print 'L1: ' + str(precOutput)
+        print
 
         # Layer 2 input -> output
-        layerTwo = [1 for i in range(self.numOfLabels)]
-        for i in range(self.precedents):
-            node = (i + 1) % self.numOfLabels
+        print 'Calculating output for layer 2...'
+        layerTwo = [1.0 for i in range(self.numOfLabels)]
+        for i in range(len(precOutput)):
+            node = i % self.numOfLabels
             layerTwo[node] *= precOutput[i]
+        print 'Finished!'
+        print 'L2: ' + str(layerTwo)
+        print
 
         # Layer 3 input -> output
+        print 'Calculating output for layer 3...'
         layerTwoSummation = sum(layerTwo)
+        print 'Sum of layer 2 is: ' + str(layerTwoSummation)
         layerThree = [0 for i in range(self.numOfLabels)]
         for node in range(self.numOfLabels):
             layerThree[node] = layerTwo[node] / layerTwoSummation
+        print 'Finished!'
+        print 'L3: ' + str(layerThree)
+        print
 
         # Layer 4 input -> output
+        print 'Calculating output for layer 4...'
         layerFour = [0 for i in range(self.numOfLabels)]
-        linFunc = 1
+        linFunc = 0
         for node in range(self.numOfLabels):
-            for param in range(self.numOfLabels - 1):
-                linFunc += param * inputs[param]
+            for param in range(self.numOfLabels):
+                linFunc += self.consequents[node][param] * inputs[param]
             linFunc += self.consequents[node][self.numOfLabels]
             layerFour[node] = layerTwo[node] + layerThree[node] * linFunc
+            linFunc = 0
+        print 'Finished!'
+        print layerFour
+        print
 
         # Layer 5
-        result = self.inference(layerFour, layerThree)
+        print 'Defuzzying values...'
+        result = self.inference.infer(layerFour)
+        print 'Finished'
         print result
+        print
+
+    def backwardPass(self, error, inputs):
+        """ This method is a application of the Hybrid Learning Algorithm
+        proposed by Jang (1993) for an Adaptive Neural Fuzzy Inference System.
+
+        Keyword arguments:
+        error -- The error obtained from the forward pass
+        inputs -- The set of input variables
+        """
+
+        pass

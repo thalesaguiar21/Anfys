@@ -1,14 +1,18 @@
 from MembershipFunctions.GaussianFuzzySubset import GaussianFuzzySubset
-from MembershipFunctions.AbsoluteFuzzySubset import AbsoluteFuzzySubset
-# from InferenceFunctions.CentroidStrategy import CentroidStrategy
-from math import sqrt
+from InferenceFunctions.CentroidStrategy import CentroidStrategy
+from random import random
+from Anfis import Anfis
 
+precedents = []
+for i in range(2):
+    precedents.append([GaussianFuzzySubset() for j in range(2)])
 
-value = 0.3
-gauss = GaussianFuzzySubset(begin=1, end=2, mean=0, dev=sqrt(0.2))
-print('Created a {0}'.format(gauss.name))
-absolute = AbsoluteFuzzySubset(begin=-0.2, end=0.8)
-print('Created a {0}'.format(absolute.name))
+consequents = []
+for i in range(2):
+    consequents.append([random() for i in range(3)])
 
-v = absolute.membershipValue(value)
-print('The membership value for {0} is {1}'.format(value, v))
+inference = CentroidStrategy()
+
+anfis = Anfis(precedents, 2, consequents, inference)
+anfis.fowardPass([random() for i in range(2)])
+print 'Success!'
