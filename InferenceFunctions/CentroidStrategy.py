@@ -8,12 +8,6 @@ class CentroidStrategy(InferenceStrategy):
     def __init__(self):
         pass
 
-    def infer(self, inputs, weights):
+    def infer(self, inputs):
         """Find the centroid from the given set of values"""
-        totalWeight = 0.0
-        totalStrength = 0.0
-        for w in weights:
-            totalWeight += w
-        for strength in inputs:
-            totalStrength += strength
-        return totalStrength / totalWeight
+        return sum(inputs)
