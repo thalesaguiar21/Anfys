@@ -10,15 +10,16 @@ class GaussianFuzzySubset(FuzzySubset):
         membership function as a Normal Distribution over the parameters
         given in initialization.
 
+
         Keyword arguments:
-        begin   -- The X value where the function starts, default is 0
-        end     -- The X value where the function ends, default is 1
-        mean    -- Mean of the distribution, default is 100
-        dev     -- Standard deviation of the distribution, default is 12
+        begin -- The X value where the function starts, default is 0
+        end -- The X value where the function ends, default is 1
+        mean -- Mean of the distribution, default is 100
+        dev -- Standard deviation of the distribution, default is 12
         """
         self.name = 'Gaussian Fuzzy Subset'
-        self.begin = begin if begin > 0 else 0
-        self.end = end if end > 0 else 1
+        self.begin = begin
+        self.end = end
         self.mean = mean
         self.dev = dev if dev > 0 else 0
 
