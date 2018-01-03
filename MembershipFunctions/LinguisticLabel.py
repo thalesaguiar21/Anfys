@@ -1,13 +1,5 @@
 class LinguisticLabel:
-    """ This class represents a membership function for a given Fuzzy Subset.
-    Fuzzy. Therefore, this can be seen as the Fuzzy Subset itself, since
-    that is represented by how much an element belongs to a set. Usually
-    this is implemented by using an bell shaped function (e.g. Gaussian
-    function) for simplicity. However, any partially diferentiable function
-    can be used as a membership function.
-
-    You can inherit this class and overwrite the method membershipValue
-    """
+    """This class represents a Linguistic Label for a Fuzzy Subset."""
 
     def __init__(self):
         """Does nothing"""
@@ -30,4 +22,12 @@ class LinguisticLabel:
         raise NotImplementedError()
 
     def derivativeAt(self, value):
+        """ Calculate the derivative of this function at the given point.
+
+        Keyword arguments:
+        value -- Point to compute the derivative.
+
+        Raise:
+        NotImplementedError -- If the subclass has not implemented this method.
+        """
         raise NotImplementedError()

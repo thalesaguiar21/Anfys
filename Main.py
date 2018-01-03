@@ -1,18 +1,11 @@
-from MembershipFunctions.GaussianFuzzySubset import GaussianFuzzySubset
-from InferenceFunctions.CentroidStrategy import CentroidStrategy
+from MembershipFunctions.GaussianTwo import GaussianTwo
 from random import random
-from Anfis import Anfis
 
-precedents = []
-for i in range(2):
-    precedents.append([GaussianFuzzySubset() for j in range(2)])
 
-consequents = []
-for i in range(2):
-    consequents.append([random() for i in range(3)])
+value = random()
+premiseParams = [random() for i in range(3)]
+gaussTwo = GaussianTwo()
 
-inference = CentroidStrategy()
-
-anfis = Anfis(precedents, 2, consequents, inference, 0.002)
-anfis.fowardPass([random() for i in range(2)])
-print 'Success!'
+rs = gaussTwo.membershipValue(value, premiseParams)
+print premiseParams
+print 'g({0}) = {1}'.format(value, rs)

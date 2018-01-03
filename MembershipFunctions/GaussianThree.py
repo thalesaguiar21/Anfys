@@ -15,13 +15,8 @@ class GaussianThree(LinguisticLabel):
         """ Computes the Probability Density Function for a given value. This
         method also shifts the function to the specified values in the object
         construction.
-
-
-        Keyword arguments:
-        value -- Value for calculate the membership
-        premiseParams -- Array of premise parameters
+        (1 / ((x-ci)/ai)^2)^bi
         """
-        # (1 / ((x-ci)/ai)^2)^bi
         denom = 1 + ((
             (value - premiseParams[2]) /
             premiseParams[0]) ** 2) ** premiseParams[1]
