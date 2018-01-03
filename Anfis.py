@@ -1,4 +1,5 @@
 from __future__ import print_function
+from Errors import err
 from exceptions import AttributeError, IndexError
 
 
@@ -38,26 +39,19 @@ class Anfis():
         Keyword arguments:
         inputs -- the data to feed in the network
         """
-        DIFF_LABELS = 'Different number of labels in precedents subsets'
-        NO_PRECEDENTS = 'Empty precedents set'
-        NO_CONSEQUENTS = 'Empty consequents set'
-        NO_INFERENCE = 'Empty inference strategy'
-        INPUT_SIZE = '''Number of inputs is different of the number of
-         Fuzzy subsets'''
-
         if self.precedents is None:
-            raise AttributeError(NO_PRECEDENTS)
+            raise AttributeError(err['NO_PRECEDENTS'])
         if self.consequents is None:
-            raise AttributeError(NO_CONSEQUENTS)
+            raise AttributeError(err['NO_CONSEQUENTS'])
         if self.inference is None:
-            raise AttributeError(NO_INFERENCE)
+            raise AttributeError(err['NO_INFERENCE'])
         elif len(inputs) != len(self.precedents):
-            raise IndexError(INPUT_SIZE)
+            raise IndexError(err['INPUT_SIZE'])
         else:
             numOfLabels = self.precedents[0]
             for i in range(1, len(self.precedents)):
                 if len(self.precedents[i]) != numOfLabels:
-                    raise IndexError(DIFF_LABELS)
+                    raise IndexError(err['DIFF_LABELS'])
 
     def fowardPass(self, inputs):
         """ This will feed the network with the given inputs, that is, will
