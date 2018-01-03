@@ -1,4 +1,4 @@
-# from random import random
+from __future__ import print_function
 from sys import exit
 
 
@@ -16,15 +16,18 @@ class Anfis():
         """ This method initialize a new instance of an ANFIS.
 
         Keyword arguments:
+        inputParams -- The set of input parameters
+        consParams -- The set of consequent Parameters
         pre -- The precedent fuzzy subsets of the Inference System
         numOfLabels -- Number of neurons in the second and third layers
         consequents -- The consequent parameters set fo the inference system
         inference -- The inference strategy of the system
         eta -- Learning rate
         """
+        self.inputParams = []
+        self.consParams = []
         self.precedents = pre
         self.consequents = consequents
-        print consequents
         self.inference = inference
         self.eta = eta
         self.numOfLabels = numOfLabels
@@ -50,7 +53,7 @@ class Anfis():
 
         if len(errorList) > 0:
             for error in errorList:
-                print error
+                print(error)
             exit()
 
     def fowardPass(self, inputs):
@@ -64,7 +67,7 @@ class Anfis():
         double -- A duffuzified value representing the inference strategy
         result
         """
-        print 'Initiating forward pass...'
+        print ('Initiating forward pass...', end='')
         precOutput = []
 
         # Layer 1
@@ -98,6 +101,7 @@ class Anfis():
 
         # Layer 5
         result = self.inference.infer(layerFour)
+        print('Done!')
         return result
 
     def backwardPass(self, error, inputs):
@@ -108,5 +112,6 @@ class Anfis():
         error -- The error obtained from the forward pass
         inputs -- The set of input variables
         """
-
+        print('Initializing backward pass...', end='')
+        print('Done!')
         pass
