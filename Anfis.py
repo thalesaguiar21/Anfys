@@ -25,7 +25,6 @@ class Anfis():
         inference -- The inference strategy of the system
         eta -- Learning rate
         """
-        self.inputParams = []
         self.consParams = []
         self.precedents = pre
         self.consequents = consequents
@@ -73,10 +72,10 @@ class Anfis():
             precOutput.append(fuzz.evaluate(inputs[j]))
 
         # Layer 2 input -> output
-        layerTwo = [1.0 for i in range(self.numOfLabels)]
-        for i in range(len(precOutput)):
-            node = i % self.numOfLabels
-            layerTwo[node] *= precOutput[i]
+        layerTwo = [1.0 for i in range(len(self.precedents))]
+        for i in range(len(self.precedents)):
+            for prec in self.precedents:
+                layerTwo[i] *= prec[i]
 
         # Layer 3 input -> output
         layerTwoSummation = sum(layerTwo)
@@ -87,7 +86,7 @@ class Anfis():
         # Layer 4 input -> output
         layerFour = [0 for i in range(self.numOfLabels)]
         linFunc = 0
-        for node in range(self.numOfLabels):
+        for node in range(len(self.precedents)):
             for param in range(self.numOfLabels):
                 linFunc += self.consequents[node][param] * inputs[param]
             linFunc += self.consequents[node][self.numOfLabels]
@@ -109,4 +108,3 @@ class Anfis():
         """
         print('Initializing backward pass...', end='')
         print('Done!')
-        pass
