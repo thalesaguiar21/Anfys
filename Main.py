@@ -13,6 +13,6 @@ for i in range(2):
 
 inference = CentroidStrategy()
 
-anfis = Anfis(precedents, 2, consequents, inference)
+anfis = Anfis(precedents, 2, consequents, inference, 0.002)
 anfis.fowardPass([random() for i in range(2)])
 print 'Success!'

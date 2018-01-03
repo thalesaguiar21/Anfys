@@ -12,7 +12,7 @@ class Anfis():
     """
     MIN_SIZE = 2
 
-    def __init__(self, pre, numOfLabels, consequents, inference):
+    def __init__(self, pre, numOfLabels, consequents, inference, eta):
         """ This method initialize a new instance of an ANFIS.
 
         Keyword arguments:
@@ -20,12 +20,13 @@ class Anfis():
         numOfLabels -- Number of neurons in the second and third layers
         consequents -- The consequent parameters set fo the inference system
         inference -- The inference strategy of the system
+        eta -- Learning rate
         """
         self.precedents = pre
         self.consequents = consequents
         print consequents
         self.inference = inference
-        self.eta = 0.002
+        self.eta = eta
         self.numOfLabels = numOfLabels
 
     def validate(self, inputs):
@@ -58,44 +59,34 @@ class Anfis():
 
         Keyword arguments:
         inputs -- A feature vector to feed the network
+
+        Return:
+        double -- A duffuzified value representing the inference strategy
+        result
         """
-        print 'Inputs are: ' + str(inputs)
+        print 'Initiating forward pass...'
         precOutput = []
 
         # Layer 1
-        print 'Calculating output for layer 1...'
         j = 0   # Input index
         for fuzz in self.precedents:
             for node in fuzz:
                 precOutput.append(node.membershipValue(inputs[j]))
             j += 1
-        print 'Finished!'
-        print 'L1: ' + str(precOutput)
-        print
 
         # Layer 2 input -> output
-        print 'Calculating output for layer 2...'
         layerTwo = [1.0 for i in range(self.numOfLabels)]
         for i in range(len(precOutput)):
             node = i % self.numOfLabels
             layerTwo[node] *= precOutput[i]
-        print 'Finished!'
-        print 'L2: ' + str(layerTwo)
-        print
 
         # Layer 3 input -> output
-        print 'Calculating output for layer 3...'
         layerTwoSummation = sum(layerTwo)
-        print 'Sum of layer 2 is: ' + str(layerTwoSummation)
         layerThree = [0 for i in range(self.numOfLabels)]
         for node in range(self.numOfLabels):
             layerThree[node] = layerTwo[node] / layerTwoSummation
-        print 'Finished!'
-        print 'L3: ' + str(layerThree)
-        print
 
         # Layer 4 input -> output
-        print 'Calculating output for layer 4...'
         layerFour = [0 for i in range(self.numOfLabels)]
         linFunc = 0
         for node in range(self.numOfLabels):
@@ -104,16 +95,10 @@ class Anfis():
             linFunc += self.consequents[node][self.numOfLabels]
             layerFour[node] = layerTwo[node] + layerThree[node] * linFunc
             linFunc = 0
-        print 'Finished!'
-        print layerFour
-        print
 
         # Layer 5
-        print 'Defuzzying values...'
         result = self.inference.infer(layerFour)
-        print 'Finished'
-        print result
-        print
+        return result
 
     def backwardPass(self, error, inputs):
         """ This method is a application of the Hybrid Learning Algorithm
