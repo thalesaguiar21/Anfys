@@ -1,5 +1,5 @@
 from __future__ import print_function
-from sys import exit
+from exceptions import AttributeError, IndexError
 
 
 class Anfis():
@@ -30,7 +30,7 @@ class Anfis():
         self.consequents = consequents
         self.inference = inference
         self.eta = eta
-        self.numOfLabels = numOfLabels
+        self.numOfLabels = 0
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
@@ -38,23 +38,26 @@ class Anfis():
         Keyword arguments:
         inputs -- the data to feed in the network
         """
-        errorList = []
-        diffParams = '''[ERROR] The number of consequent parameters must
-        be homogeneous'''
-        nonLinParams = '''[ERROR] The number of consequent parameters must be
-        equal to the number of linguistic labels plus 1'''
-        numOfParams = len(self.consequents[0])
-        for conSet in self.consequents:
-            if len(conSet) != numOfParams:
-                errorList.append(diffParams)
-                break
-            elif len(conSet) != self.numOfLabels + 1:
-                errorList.append(nonLinParams)
+        DIFF_LABELS = 'Different number of labels in precedents subsets'
+        NO_PRECEDENTS = 'Empty precedents set'
+        NO_CONSEQUENTS = 'Empty consequents set'
+        NO_INFERENCE = 'Empty inference strategy'
+        INPUT_SIZE = '''Number of inputs is different of the number of
+         Fuzzy subsets'''
 
-        if len(errorList) > 0:
-            for error in errorList:
-                print(error)
-            exit()
+        if self.precedents is None:
+            raise AttributeError(NO_PRECEDENTS)
+        if self.consequents is None:
+            raise AttributeError(NO_CONSEQUENTS)
+        if self.inference is None:
+            raise AttributeError(NO_INFERENCE)
+        elif len(inputs) != len(self.precedents):
+            raise IndexError(INPUT_SIZE)
+        else:
+            numOfLabels = self.precedents[0]
+            for i in range(1, len(self.precedents)):
+                if len(self.precedents[i]) != numOfLabels:
+                    raise IndexError(DIFF_LABELS)
 
     def fowardPass(self, inputs):
         """ This will feed the network with the given inputs, that is, will
@@ -73,9 +76,7 @@ class Anfis():
         # Layer 1
         j = 0   # Input index
         for fuzz in self.precedents:
-            for node in fuzz:
-                precOutput.append(node.membershipValue(inputs[j]))
-            j += 1
+            precOutput.append(fuzz.evaluate(inputs[j]))
 
         # Layer 2 input -> output
         layerTwo = [1.0 for i in range(self.numOfLabels)]
