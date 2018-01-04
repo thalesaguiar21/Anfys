@@ -5,13 +5,13 @@ class LinguisticLabel:
         """Does nothing"""
         self.name = 'Linguistic Label Subset'
 
-    def membershipValue(self, value, premiseParams):
+    def membershipValue(self, value, params):
         """ This method is reponsible to calculate the membership of a given
         value. Here is where a piecewise diferentiable function must be used.
 
         Keyword arguments:
         value -- the element of a given set
-        premiseParams -- Set of premise parameters
+        params -- Set of parameters
 
         Return:
         value -- the membership value of the element
