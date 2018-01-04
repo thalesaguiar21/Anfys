@@ -21,4 +21,9 @@ class FuzzySubset():
         A list with the membership of value for each Linguistic Label of this
         Fuzzy Subset.
         """
-        return [self.labels.membershipValue(value, par) for par in self.params]
+        result = []
+        for i in range(len(self.labels)):
+            result.append(
+                self.labels[i].membershipValue(value, self.params[i])
+            )
+        return result
