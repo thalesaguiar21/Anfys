@@ -21,11 +21,12 @@ class LinguisticLabel:
         """
         raise NotImplementedError()
 
-    def derivativeAt(self, value):
+    def derivativeAt(self, value, var):
         """ Calculate the derivative of this function at the given point.
 
         Keyword arguments:
         value -- Point to compute the derivative.
+        var -- The partial derivative with respect to this argument
 
         Raise:
         NotImplementedError -- If the subclass has not implemented this method.
