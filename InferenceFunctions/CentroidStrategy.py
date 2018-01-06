@@ -1,4 +1,4 @@
-from InferenceFunctions.InferenceStrategy import InferenceStrategy
+from InferenceFunctions import InferenceStrategy
 
 
 class CentroidStrategy(InferenceStrategy):

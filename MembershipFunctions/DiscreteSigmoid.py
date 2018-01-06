@@ -2,7 +2,9 @@ from MembershipFunctions.LinguisticLabel import LinguisticLabel
 
 
 class DiscreteSigmoid(LinguisticLabel):
-    """
+    """ This class implements a discrete Sigmoid function, where two
+    parameters (p, q) are used as a linear function for approximate the
+    sigmoid curve.
     """
 
     def __init__(self):
