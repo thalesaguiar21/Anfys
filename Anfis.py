@@ -18,9 +18,9 @@ class Anfis():
 
         Parameters
         ----------
-        pre : [FuzzySubset]
+        pre : list of FuzzySubset
             The first layer, or precedent membership functions
-        consequents : [LinguisticLabel]
+        consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
         inference : InferenceStrategy
             The inference strategy, or the fifth layer
@@ -67,7 +67,7 @@ class Anfis():
                     raise IndexError(err['DIFF_LABELS'])
             self.numOfLabels = numOfLabels
 
-    def forwardPass(self, inputs):
+    def forward_pass(self, inputs):
         """ This will feed the network with the given inputs, that is, will
         feed the network until layer 5
 
@@ -118,7 +118,7 @@ class Anfis():
         print('Done!')
         return result, layerFour
 
-    def backwardPass(self, error, inputs):
+    def backward_pass(self, layerFour):
         """ This method is a application of the Hybrid Learning Algorithm
         proposed by Jang (1993) for an Adaptive Neural Fuzzy Inference System.
         """

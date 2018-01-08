@@ -12,7 +12,7 @@ class DiscreteSigmoid(LinguisticLabel):
         self.a = 1
         self.b = 0
 
-    def membershipDegree(self, value, params):
+    def membership_degree(self, value, params):
         """ Computes the memebership degree of the given value for an
         discrete sigmoid function, described by two parameters.
         """
@@ -28,7 +28,7 @@ class DiscreteSigmoid(LinguisticLabel):
 
         return result
 
-    def derivativeAt(self, value, var):
+    def derivative_at(self, value, var):
         """ Computes the derivative with respect to one of the params, for this
         function at the given value.
 

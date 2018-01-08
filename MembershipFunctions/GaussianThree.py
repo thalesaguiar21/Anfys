@@ -14,7 +14,7 @@ class GaussianThree(LinguisticLabel):
         self.name = 'Gaussian Fuzzy Subset'
         self.params = []
 
-    def membershipDegree(self, value, premiseParams):
+    def membership_degree(self, value, premiseParams):
         """ Computes the Probability Density Function for a given value. This
         method also shifts the function to the specified values in the object
         construction.
@@ -26,7 +26,7 @@ class GaussianThree(LinguisticLabel):
             premiseParams[0]) ** 2) ** premiseParams[1]
         return 1 / denom
 
-    def derivativeAt(self, value, var):
+    def derivative_at(self, value, var):
         result = 0
         k = (value - self.params[2]) ** 2 / self.params[0] ** 2
         if var == 'a':

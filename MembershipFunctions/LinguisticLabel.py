@@ -5,7 +5,7 @@ class LinguisticLabel:
         """Does nothing"""
         self.name = 'Linguistic Label Subset'
 
-    def membershipDegree(self, value, params):
+    def membership_degree(self, value, params):
         """ This method is reponsible to calculate the membership of a given
         value. Here is where a piecewise diferentiable function must be used.
 
@@ -28,7 +28,7 @@ class LinguisticLabel:
         """
         raise NotImplementedError()
 
-    def derivativeAt(self, value, var):
+    def derivative_at(self, value, var):
         """ Calculate the derivative of this function at the given point.
 
         Parameters
