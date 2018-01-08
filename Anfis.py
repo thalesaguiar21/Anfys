@@ -13,29 +13,44 @@ class Anfis():
     """
     MIN_SIZE = 2
 
-    def __init__(self, pre, consequents, inference, eta):
+    def __init__(self, pre, consequents, inference):
         """ This method initialize a new instance of an ANFIS.
 
-        Keyword arguments:
-        inputParams -- The set of input parameters
-        consParams -- The set of consequent Parameters
-        pre -- The precedent fuzzy subsets of the Inference System
-        consequents -- The consequent parameters set fo the inference system
-        inference -- The inference strategy of the system
-        eta -- Learning rate
+        Parameters
+        ----------
+        pre : [FuzzySubset]
+            The first layer, or precedent membership functions
+        consequents : [LinguisticLabel]
+            The fourth layer, or the consequent membership functions
+        inference : InferenceStrategy
+            The inference strategy, or the fifth layer
         """
         self.consParams = []
         self.precedents = pre
         self.consequents = consequents
         self.inference = inference
-        self.eta = eta
+        self.eta = 0.002
         self.numOfLabels = len(pre[0].labels)
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
 
-        Keyword arguments:
-        inputs -- the data to feed in the network
+        Parameters
+        ----------
+        inputs : list
+            The data to feed in the network
+
+        Returns
+        -------
+        valid : bool
+            True if the ANFIS object satisfies the constraints, Flase otherwise
+
+        Raises
+        ------
+        AttributeError
+            If any of the given layers are None
+        IndexError
+            If the number of precedents is different of the number of inputs
         """
         if self.precedents is None:
             raise AttributeError(err['NO_PRECEDENTS'])
@@ -54,73 +69,58 @@ class Anfis():
 
     def forwardPass(self, inputs):
         """ This will feed the network with the given inputs, that is, will
-        run one epoch with the inputs.
+        feed the network until layer 5
 
-        Keyword arguments:
-        inputs -- A feature vector to feed the network
+        Parameters
+        ----------
+        inputs : list
+            A feature vector to feed the network
 
-        Return:
-        double -- A duffuzified value representing the inference strategy
-        result
+        Returns
+        -------
+        infered : double
+            A duffuzified value representing the inference strategy
+            result.
+        outputVector : [double]
+            A list with the output from the fourth layer
         """
-        print('Initiating forward pass...')
-        print('\n' * 2)
+        print('Initiating forward pass...', end='')
         precOutput = []
-        times = 50
 
         # Layer 1
-        print('Calculating layer one...')
         j = 0   # Input index
         for fuzz in self.precedents:
             precOutput.append(fuzz.evaluate(inputs[j]))
-        print(precOutput)
-        print('-' * times)
 
         # Layer 2 input -> output
-        print('Calculating layer two...')
         layerTwo = [1.0 for i in range(self.numOfLabels)]
         for i in range(self.numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
-        print(layerTwo)
-        print('-' * times)
 
         # Layer 3 input -> output
-        print('Calculating layer three...')
         layerTwoSummation = sum(layerTwo)
         layerThree = [0 for i in range(self.numOfLabels)]
         for node in range(self.numOfLabels):
             layerThree[node] = layerTwo[node] / layerTwoSummation
-        print(layerThree)
-        print('-' * times)
 
         # Layer 4 input -> output
-        print('Calculating layer four...')
         layerFour = []
         for i in range(self.numOfLabels):
-            fi = self.consequents[i].membershipValue(
+            fi = self.consequents[i].membershipDegree(
                 layerTwo[i],
                 self.consParams[i]
             )
             layerFour.append(fi * layerThree[i])
-        print(layerFour)
-        print('-' * times)
 
         # Layer 5
-        print('Calculating layer 5...')
         result = self.inference.infer(layerFour)
-        print(result)
-        print('-' * 10)
-        print('\n\nDone!')
-        return result
+        print('Done!')
+        return result, layerFour
 
     def backwardPass(self, error, inputs):
         """ This method is a application of the Hybrid Learning Algorithm
         proposed by Jang (1993) for an Adaptive Neural Fuzzy Inference System.
-
-        Keyword arguments:
-        error -- The error obtained from the forward pass
-        inputs -- The set of input variables
         """
         print('Initializing backward pass...', end='')
         print('Done!')

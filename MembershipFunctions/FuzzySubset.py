@@ -32,6 +32,6 @@ class FuzzySubset():
         mem_degree = []
         for i in range(len(self.labels)):
             mem_degree.append(
-                self.labels[i].membershipValue(value, self.params[i])
+                self.labels[i].membershipDegree(value, self.params[i])
             )
         return mem_degree
