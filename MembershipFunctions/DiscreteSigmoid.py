@@ -1,4 +1,5 @@
 from MembershipFunctions.LinguisticLabel import LinguisticLabel
+from Errors import err
 
 
 class DiscreteSigmoid(LinguisticLabel):
@@ -43,4 +44,11 @@ class DiscreteSigmoid(LinguisticLabel):
         value : float
             The value of the derivative with respect to var at the given value.
         """
-        return 1 / self.a
+        dF_dAlpha = 0
+        if var == 'a':
+            dF_dAlpha = 1 / self.a
+        elif var == 'b':
+            dF_dAlpha = 1
+        else:
+            print err['INVALID_DERIV_ARG'].format(var)
+        return dF_dAlpha
