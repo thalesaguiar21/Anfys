@@ -11,13 +11,20 @@ class InferenceStrategy:
         and select some of its data to infer something about the fire strength
         from the rules.
 
-        Keyword arguments:
-        inputs -- A list of incoming inputs from the previous layer.
+        Parameters
+        ----------
+        inputs : list
+            Incoming inputs from the previous layer.
 
-        Raise:
-        NotImplementedError -- If the subclass has not implemented this method.
+        Return
+        ------
+        value : float
+            A crisp value representing an 'clip', or centroid, of the
+            incoming inputs
 
-        Return:
-        A value representing a valid conclusion for the problem.
+        Raises
+        ------
+        NotImplementedError
+            If the subclass has not implemented this method.
         """
         raise NotImplementedError()

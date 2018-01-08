@@ -14,8 +14,9 @@ class GaussianTwo(LinguisticLabel):
         self.name = 'Gaussian Linguistic Label'
         self.params = []
 
-    def membershipValue(self, value, premiseParams):
-        """
+    def membershipDegree(self, value, premiseParams):
+        """ Compute the membership degree for the following bellshaped function:
+        B(x) = exp(((x - c) / a)^2)
         """
         self.params = premiseParams
         p = - ((value - premiseParams[2]) / premiseParams[0]) ** 2

@@ -5,5 +5,6 @@ err = {
     'NO_INFERENCE': 'Empty inference strategy',
     'INPUT_SIZE': '''Number of inputs is different of the number of
          Fuzzy subsets''',
-    'INVALID_DERIV_ARG': 'No variable with name {0} is avaiable!'
+    'INVALID_DERIV_ARG': 'No variable with name {0} is avaiable!',
+    'NO_PHONEME': 'The current dictionary does not contain the phoneme {}'
 }

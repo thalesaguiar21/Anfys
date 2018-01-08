@@ -14,7 +14,7 @@ class GaussianThree(LinguisticLabel):
         self.name = 'Gaussian Fuzzy Subset'
         self.params = []
 
-    def membershipValue(self, value, premiseParams):
+    def membershipDegree(self, value, premiseParams):
         """ Computes the Probability Density Function for a given value. This
         method also shifts the function to the specified values in the object
         construction.
