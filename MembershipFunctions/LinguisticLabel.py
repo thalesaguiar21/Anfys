@@ -13,7 +13,7 @@ class LinguisticLabel:
         ----------
         value : float
             The element of a given set
-        params : List
+        params : list of double
             An list of float parameters
 
         Return

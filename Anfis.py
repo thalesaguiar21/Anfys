@@ -73,7 +73,7 @@ class Anfis():
 
         Parameters
         ----------
-        inputs : list
+        inputs : list of double
             A feature vector to feed the network
 
         Returns
@@ -81,7 +81,7 @@ class Anfis():
         infered : double
             A duffuzified value representing the inference strategy
             result.
-        outputVector : [double]
+        outputVector : list of double
             A list with the output from the fourth layer
         """
         print('Initiating forward pass...', end='')

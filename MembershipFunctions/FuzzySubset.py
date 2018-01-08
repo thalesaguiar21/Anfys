@@ -6,9 +6,9 @@ class FuzzySubset():
 
         Parameters
         ----------
-        labels : [LinguistcLabel]
+        labels : list of LinguistcLabel
             A list of Linguistic Labels
-        Params : 2D array
+        Params : 2D list of double
             A 2D array of dimension Nx3, where N is the number of Labels
         """
         self.labels = labels
@@ -25,7 +25,7 @@ class FuzzySubset():
 
         Returns
         -------
-        mem_degree : [float]
+        mem_degree : list of double
             A list with the membership of value for each Linguistic Label of
             this Fuzzy Subset.
         """
