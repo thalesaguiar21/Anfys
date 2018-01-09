@@ -1,6 +1,9 @@
 from __future__ import print_function
-from Errors import err
+from Errors import err, log_print
 from exceptions import AttributeError, IndexError
+from SpeechUtils import lse, index
+from numpy import array
+from random import random
 
 
 class Anfis():
@@ -31,13 +34,16 @@ class Anfis():
         self.inference = inference
         self.eta = 0.002
         self.numOfLabels = len(pre[0].labels)
+        self.steps = [random()]
+        for i in range(1, self.numOfLabels):
+            self.steps[i] = self.steps[i - 1] + random()
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
 
         Parameters
         ----------
-        inputs : list
+        inputs : list of double
             The data to feed in the network
 
         Returns
@@ -67,7 +73,7 @@ class Anfis():
                     raise IndexError(err['DIFF_LABELS'])
             self.numOfLabels = numOfLabels
 
-    def forward_pass(self, inputs):
+    def forward_pass(self, inputs, expected):
         """ This will feed the network with the given inputs, that is, will
         feed the network until layer 5
 
@@ -75,6 +81,8 @@ class Anfis():
         ----------
         inputs : list of double
             A feature vector to feed the network
+        expected : str
+            The string correponding to the phoneme
 
         Returns
         -------
@@ -84,43 +92,103 @@ class Anfis():
         outputVector : list of double
             A list with the output from the fourth layer
         """
-        print('Initiating forward pass...', end='')
+        log_print('Initiating forward pass...')
         precOutput = []
 
         # Layer 1
         j = 0   # Input index
         for fuzz in self.precedents:
             precOutput.append(fuzz.evaluate(inputs[j]))
+            j += 1
+        log_print('Layer 1 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(array(precOutput))
+        log_print('=' * 100)
 
         # Layer 2 input -> output
         layerTwo = [1.0 for i in range(self.numOfLabels)]
         for i in range(self.numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
+        log_print('Layer 2 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(layerTwo)
+        log_print('=' * 100)
 
         # Layer 3 input -> output
-        layerTwoSummation = sum(layerTwo)
-        layerThree = [0 for i in range(self.numOfLabels)]
-        for node in range(self.numOfLabels):
-            layerThree[node] = layerTwo[node] / layerTwoSummation
+        l2_Sum = sum(layerTwo)
+        layerThree = [float(x) / l2_Sum for x in layerTwo]
+        log_print('Layer 3 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(layerThree)
+        log_print('=' * 100)
 
         # Layer 4 input -> output
         layerFour = []
         for i in range(self.numOfLabels):
-            fi = self.consequents[i].membershipDegree(
+            fi = self.consequents[i].membership_degree(
                 layerTwo[i],
                 self.consParams[i]
             )
             layerFour.append(fi * layerThree[i])
+        log_print('Layer 4 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(layerFour)
+        log_print('=' * 100)
+
+        log_print('Updating consequent parameters...')
+        coefMatrix = [[layerTwo[i]] * 2 for i in range(len(self.consParams))]
+        log_print('Coefficient matrix is...\n{}\n'.format(array(coefMatrix)))
+
+        rsMatrix = [[0] * len(self.consParams) for i in range(len(layerFour))]
+        for i in range(len(layerFour)):
+            if i == index(expected):
+                rsMatrix[i][i] = layerFour[i] + 0.002
+            else:
+                rsMatrix[i][i] = layerFour[i] - 0.002
+
+        log_print('Result matrix is\n{}'.format(array(rsMatrix)))
+        log_print('Running LSE...', end_='')
+
+        self.consParams = lse(self.consParams, rsMatrix, lamb=0.03)
+        self.consParams = self.consParams.tolist()
+        self.consParams = [[x, y] for (x, y) in zip(*self.consParams)]
+        log_print(
+            'Done!\nNew parameters are...\n{}'.format(array(self.consParams))
+        )
 
         # Layer 5
         result = self.inference.infer(layerFour)
-        print('Done!')
+        log_print('Done!')
         return result, layerFour
 
-    def backward_pass(self, layerFour):
+    def backward_pass(self, layerFour, target, threshold):
         """ This method is a application of the Hybrid Learning Algorithm
         proposed by Jang (1993) for an Adaptive Neural Fuzzy Inference System.
+        For each Backward pass, the consequent parameters are updated by one
+        run os Least Square Estimation, while the premise parameters are
+        updated by Backpropagation.
+
+        Parameters
+        ----------
+        layerFour : list of double
+            The output vector of layer four
+        threshold : double
+            The error tolerance
+
+        Returns
+        -------
+
+        Raises
+        ------
         """
-        print('Initializing backward pass...', end='')
-        print('Done!')
+        log_print('Initializing backward pass...')
+        error = random()
+        convergence = error <= threshold
+        if convergence is True:
+            log_print('The system has converged!')
+        else:
+            pass
+
+        log_print('Error is ' + str(error))
+        log_print('Finished an epoch!')

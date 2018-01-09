@@ -2,28 +2,41 @@ from MembershipFunctions import FuzzySubset
 from MembershipFunctions import GaussianTwo
 from MembershipFunctions import DiscreteSigmoid
 from InferenceFunctions import CentroidStrategy
-from random import random
+from SpeechUtils import phoneme
+from random import random, randint
 from Anfis import Anfis
+from numpy import array
 
-inputs = [random() for i in range(2)]
+
+INPUT_SIZE = 6
+LABELS = 39
+CON_PARAMS_SIZE = 2
+PRE_PARAMS_SIZE = 3
+
+inputs = [random() for i in range(INPUT_SIZE)]
 
 precedents = [
     FuzzySubset(
-        [GaussianTwo() for i in range(2)],
-        [[random() for i in range(3)] for i in range(2)]
-    ) for i in range(2)
+        [GaussianTwo() for i in range(LABELS)],
+        [[random() for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)]
+    ) for i in range(INPUT_SIZE)
 ]
 
 consequents = [
-    DiscreteSigmoid() for i in range(2)
+    DiscreteSigmoid() for i in range(LABELS)
 ]
 
 consParams = [
-    [random() for i in range(2)] for j in range(2)
+    [random() for i in range(CON_PARAMS_SIZE)] for j in range(LABELS)
 ]
+# print('Consequent paramaters are \n{}'.format(array(consParams)))
 
 anfis = Anfis(precedents, consequents, CentroidStrategy())
 anfis.consParams = consParams
 
-rs, out_vec = anfis.forwardPass(inputs)
-print 'Inferred value is {} for the output vector: {}'.format(rs, out_vec)
+rs, out_vec = anfis.forward_pass(inputs, phoneme(randint(0, 39)))
+anfis.backward_pass(out_vec)
+'''print 'Inferred value is {} for the output vector: \n{}'.format(
+    rs,
+    array(out_vec)
+)'''
