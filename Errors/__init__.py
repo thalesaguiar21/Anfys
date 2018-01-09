@@ -1,3 +1,6 @@
+from Debug import log_print
+
+
 err = {
     'DIFF_LABELS': 'Different number of labels in precedents subsets',
     'NO_PRECEDENTS': 'Empty precedents set',
