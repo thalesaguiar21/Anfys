@@ -49,6 +49,8 @@ class DiscreteSigmoid(LinguisticLabel):
             dF_dAlpha = 1 / self.a
         elif var == 'b':
             dF_dAlpha = 1
+        elif var == 'c':
+            dF_dAlpha = 0
         else:
             print err['INVALID_DERIV_ARG'].format(var)
         return dF_dAlpha

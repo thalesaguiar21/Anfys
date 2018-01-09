@@ -29,6 +29,8 @@ class GaussianTwo(LinguisticLabel):
         result = 2 * (value - self.params[2]) * exp(-k)
         if var == 'a':
             denom = self.params[0] ** 3
+        elif var == 'b':
+            result = 0
         elif var == 'c':
             denom = self.params[0] ** 2
         else:
