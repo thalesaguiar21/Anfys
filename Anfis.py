@@ -1,7 +1,7 @@
 from __future__ import print_function
 from Errors import err, log_print
 from exceptions import AttributeError, IndexError
-from SpeechUtils import lse, index
+from SpeechUtils import lse, index, step
 from numpy import array
 from random import random
 
@@ -34,9 +34,6 @@ class Anfis():
         self.inference = inference
         self.eta = 0.002
         self.numOfLabels = len(pre[0].labels)
-        self.steps = [random()]
-        for i in range(1, self.numOfLabels):
-            self.steps[i] = self.steps[i - 1] + random()
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
@@ -160,6 +157,10 @@ class Anfis():
         # Layer 5
         result = self.inference.infer(layerFour)
         log_print('Done!')
+        log_print('Inferred phoneme is {}, target was {}'.format(
+            step(result),
+            expected)
+        )
         return result, layerFour
 
     def backward_pass(self, layerFour, target, threshold):

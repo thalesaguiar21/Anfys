@@ -35,7 +35,7 @@ anfis = Anfis(precedents, consequents, CentroidStrategy())
 anfis.consParams = consParams
 
 rs, out_vec = anfis.forward_pass(inputs, phoneme(randint(0, 39)))
-anfis.backward_pass(out_vec)
+anfis.backward_pass(out_vec, [0] * 10, 1e-10)
 '''print 'Inferred value is {} for the output vector: \n{}'.format(
     rs,
     array(out_vec)
