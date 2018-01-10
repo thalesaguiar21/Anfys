@@ -133,16 +133,42 @@ class Anfis():
         log_print(layerFour)
         log_print('=' * 100)
 
+        self.update_consequents(layerTwo, layerFour, expected, 2e-5)
+
+        # Layer 5
+        result = self.inference.infer(layerFour)
+        log_print('Done!')
+        log_print('Inferred phoneme is {}, target was {}'.format(
+            step(result),
+            expected)
+        )
+        return result, layerFour
+
+    def update_consequents(self, l2Output, l4Output, expected, zeta):
+        """ Update the consequent parameters with a Least Square Estimation
+
+        Parameters
+        ----------
+        l2Output : list of double
+            The output from the second layer
+        l4Output : list of double
+            The output
+        expected : str
+            The expected phoneme
+        zeta : double
+            A small double value to create a desired output. This will be used
+            to update the outputs.
+        """
         log_print('Updating consequent parameters...')
-        coefMatrix = [[layerTwo[i]] * 2 for i in range(len(self.consParams))]
+        coefMatrix = [[l2Output[i]] * 2 for i in range(len(self.consParams))]
         log_print('Coefficient matrix is...\n{}\n'.format(array(coefMatrix)))
 
-        rsMatrix = [[0] * len(self.consParams) for i in range(len(layerFour))]
-        for i in range(len(layerFour)):
+        rsMatrix = [[0] * len(self.consParams) for i in range(len(l4Output))]
+        for i in range(len(l4Output)):
             if i == index(expected):
-                rsMatrix[i][i] = layerFour[i] + 0.002
+                rsMatrix[i][i] = l4Output[i] + zeta
             else:
-                rsMatrix[i][i] = layerFour[i] - 0.002
+                rsMatrix[i][i] = l4Output[i] - zeta
 
         log_print('Result matrix is\n{}'.format(array(rsMatrix)))
         log_print('Running LSE...', end_='')
@@ -154,28 +180,19 @@ class Anfis():
             'Done!\nNew parameters are...\n{}'.format(array(self.consParams))
         )
 
-        # Layer 5
-        result = self.inference.infer(layerFour)
-        log_print('Done!')
-        log_print('Inferred phoneme is {}, target was {}'.format(
-            step(result),
-            expected)
-        )
-        return result, layerFour
-
-    def backward_pass(self, layerFour, target, threshold):
-        """ This method is a application of the Hybrid Learning Algorithm
-        proposed by Jang (1993) for an Adaptive Neural Fuzzy Inference System.
-        For each Backward pass, the consequent parameters are updated by one
-        run os Least Square Estimation, while the premise parameters are
-        updated by Backpropagation.
+    def backward_pass(self, inputs, layerFour, target):
+        """ Implements the backward pass of the neural network. In this case,
+        the backward pass for an ANFIS consider that the consequent parameters
+        are optimal, and therefore they are fixed in this stage.
 
         Parameters
         ----------
+        inputs : list of double
+            The input feeded to neural network
         layerFour : list of double
             The output vector of layer four
-        threshold : double
-            The error tolerance
+        target : list of double
+            A target output vector
 
         Returns
         -------
@@ -185,11 +202,6 @@ class Anfis():
         """
         log_print('Initializing backward pass...')
         error = random()
-        convergence = error <= threshold
-        if convergence is True:
-            log_print('The system has converged!')
-        else:
-            pass
 
         log_print('Error is ' + str(error))
         log_print('Finished an epoch!')
