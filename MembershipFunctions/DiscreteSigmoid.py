@@ -8,7 +8,8 @@ class DiscreteSigmoid(LinguisticLabel):
     sigmoid curve.
     """
 
-    def __init__(self):
+    def __init__(self, name='Discrete Sigmoid'):
+        LinguisticLabel.__init__(self)
         self.a = 1
         self.b = 0
 

@@ -6,12 +6,13 @@ from Errors import err
 class GaussianThree(LinguisticLabel):
     """This class implements a Gaussian Density Distribu Fuzzy Subset"""
 
-    def __init__(self):
+    def __init__(self, name='Gaussian Fuzzy Subset'):
         """ Initializes a new Gaussian Fuzzy Subset with corresponding
         membership function as a Normal Distribution over the parameters
         given in initialization.
         """
-        self.name = 'Gaussian Fuzzy Subset'
+        LinguisticLabel.__init__(self)
+        self.name = name
         self.params = []
 
     def membership_degree(self, value, premiseParams):

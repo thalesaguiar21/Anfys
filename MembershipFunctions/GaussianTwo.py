@@ -11,6 +11,7 @@ class GaussianTwo(LinguisticLabel):
         membership function as a Normal Distribution over the parameters
         given in initialization.
         """
+        LinguisticLabel.__init__(self)
         self.name = 'Gaussian Linguistic Label'
         self.params = []
 
