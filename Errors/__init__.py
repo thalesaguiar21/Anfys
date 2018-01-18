@@ -1,5 +1,5 @@
 from Debug import log_print
-
+from Exceptions import SizeMismatchError
 
 err = {
     'DIFF_LABELS': 'Different number of labels in precedents subsets',
