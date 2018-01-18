@@ -10,6 +10,7 @@ class DiscreteSigmoid(LinguisticLabel):
 
     def __init__(self, name='Discrete Sigmoid'):
         LinguisticLabel.__init__(self)
+        self.name = name
         self.a = 1
         self.b = 0
 
@@ -17,17 +18,17 @@ class DiscreteSigmoid(LinguisticLabel):
         """ Computes the memebership degree of the given value for an
         discrete sigmoid function, described by two parameters.
         """
-        self.a = 1 / (params[1] - params[0])
-        self.b = 1 - (params[1] * self.a)
-        result = 0
-        if value >= 1:
-            result = params[1]
-        elif value < 1 and value > 0:
-            result = (value - self.b) / self.a
+        memDegree = 0
+        if value <= params[0]:
+            memDegree = 0.001
+        elif params[0] < value and params[1] > value:
+            a = 0.999 / params[1] - params[0]
+            b = 0.001 - a * value
+            memDegree = a * value + b
         else:
-            result = params[0]
+            memDegree = 1.0
 
-        return result
+        return memDegree
 
     def derivative_at(self, value, var):
         """ Computes the derivative with respect to one of the params, for this
