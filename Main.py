@@ -1,7 +1,6 @@
 from MembershipFunctions import FuzzySubset
 from MembershipFunctions import GaussianThree
 from MembershipFunctions import Logit
-from InferenceFunctions import CentroidStrategy
 from SpeechUtils import MappedAlphabet
 from random import random, randint
 from Anfis import Anfis
@@ -32,7 +31,7 @@ inputs = [
     (
         [random() for i in range(INPUT_SIZE)],
         alph.symbol(randint(0, phnNum - 1))
-    ) for i in range(10)
+    ) for i in range(2)
 ]
 
 precedents = [
@@ -55,7 +54,7 @@ for params in consParams:
         params[0] += 0.1
 # print('Consequent paramaters are \n{}'.format(array(consParams)))
 
-anfis = Anfis(precedents, consequents, CentroidStrategy(), alph)
+anfis = Anfis(precedents, consequents, alph)
 anfis.consParams = consParams
 
 anfis.train_by_hybrid_online(6, 3e-3, inputs)

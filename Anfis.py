@@ -1,7 +1,7 @@
 from Errors import err, log_print
 from exceptions import AttributeError, IndexError
 from SpeechUtils import lse
-from numpy import array, zeros, eye, matrix, dot
+from numpy import array, zeros
 
 
 class Anfis():
@@ -14,7 +14,7 @@ class Anfis():
     """
     __MIN_SIZE = 2
 
-    def __init__(self, pre, consequents, inference, alph):
+    def __init__(self, pre, consequents, alph):
         """ This method initialize a new instance of an ANFIS.
 
         Parameters
@@ -23,8 +23,6 @@ class Anfis():
             The first layer, or precedent membership functions
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
-        inference : InferenceStrategy
-            The inference strategy, or the fifth layer
         alph : MappedAlphabet
             The alphabet that will be used for phoneme recognition
         """
@@ -32,7 +30,6 @@ class Anfis():
         self.consParams = []
         self.precedents = pre
         self.consequents = consequents
-        self.inference = inference
         self.numOfLabels = len(pre[0].labels)
         self.alph = alph
 
@@ -84,15 +81,12 @@ class Anfis():
 
         Returns
         -------
-        layerFour : list of double
-            A duffuzified value representing the inference strategy
-            result.
-        outputVector : list of double
-            A list with the output from the fourth layer
         layerTwo : list of double
-            The outputs from the second layer
-        layerThree : list of double
-            Outputs from layer three
+            The outputs from the second layer, using product
+        layerFour : list of double
+            The output of the layer four, that is, each element is an the crisp
+            value of a consequent membership function multiplied by the
+            normalized value of each rule's firing strength.
         """
         log_print('Initiating forward pass...', end_='')
         precOutput = []
@@ -131,7 +125,7 @@ class Anfis():
                 layerTwo[i],
                 self.consParams[i]
             )
-            layerFour.append(fi)
+            layerFour.append(fi * layerThree[i])
         # log_print('Layer 4 output')
         # log_print('-' * len('Layer 1 output'))
         # log_print(layerFour)
@@ -142,7 +136,7 @@ class Anfis():
         #    step(result),
         #    expected)
         # )
-        return layerFour, layerTwo, layerThree
+        return layerTwo, layerFour
 
     def update_consequents(self, l4Input, rsMatx, expected, zeta):
         """ Update the consequent parameters with a Least Square Estimation
@@ -245,9 +239,9 @@ class Anfis():
             epoch = 0
             converged = False
             while epoch < nEpochs and not converged:
-                l4, l2, l3 = self.forward_pass(feature, expected)
+                l2, l4 = self.forward_pass(feature, expected)
                 self.update_consequents(l2, l4, expected, 1e-5)
-                inference = self.inference.infer(l2, l4)
+                inference = sum(l4)
                 pred_phn = self.alph.step(inference)
                 error = (inference - self.alph.value(expected)) ** 2
                 converged = pred_phn == expected or error <= errTolerance
