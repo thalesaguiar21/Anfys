@@ -21,9 +21,9 @@ class MappedAlphabet:
         """
         if(len(symbols) != len(thresholds)):
             raise SizeMismatchError('Number of symbols and values differ!')
-        self.symbols = symbols
-        self.thresholds = thresholds
-        self.size = len(symbols)
+        self.__symbols = symbols
+        self.__thresholds = thresholds
+        self.__size = len(symbols)
 
     def add(self, symbol, value):
         """ Insert the given symbol and value in the alphabet, preserving the
@@ -35,15 +35,15 @@ class MappedAlphabet:
         value : Object
             The value associated with the symbol
         """
-        for i in range(self.size):
-            if value < self.thresholds[i]:
-                self.symbols.insert(i, symbol)
-                self.thresholds.insert(i, value)
+        for i in range(self.__size):
+            if value < self.__thresholds[i]:
+                self.__symbols.insert(i, symbol)
+                self.__thresholds.insert(i, value)
                 break
         else:
-            self.symbols.insert(i, symbol)
-            self.thresholds.insert(i, value)
-        self.size += 1
+            self.__symbols.insert(i, symbol)
+            self.__thresholds.insert(i, value)
+        self.__size += 1
 
     def select(self, pos):
         """ Select the pair symbol -> value at a position
@@ -63,9 +63,9 @@ class MappedAlphabet:
             if the position is not in range.
         """
         symbol, value = None, None
-        if pos < self.size and pos > -1:
-            symbol = self.symbols[pos]
-            value = self.thresholds[pos]
+        if pos < self.__size and pos > -1:
+            symbol = self.__symbols[pos]
+            value = self.__thresholds[pos]
         return symbol, value
 
     def remove(self, symbol):
@@ -80,9 +80,9 @@ class MappedAlphabet:
         print 'Found symbol \'{}\' at position {}'.format(symbol, idx)
         if idx is not None:
             print 'Removing element at index ' + str(idx)
-            del self.symbols[idx]
-            del self.thresholds[idx]
-            self.size -= 1
+            del self.__symbols[idx]
+            del self.__thresholds[idx]
+            self.__size -= 1
 
     def index(self, symbol):
         """ The index of a given symbol
@@ -99,8 +99,8 @@ class MappedAlphabet:
             symbols does not belong to it.
         """
         index = None
-        if symbol in self.symbols:
-            index = self.symbols.index(symbol)
+        if symbol in self.__symbols:
+            index = self.__symbols.index(symbol)
         return index
 
     def value(self, symbol):
@@ -118,8 +118,8 @@ class MappedAlphabet:
             does not belong to the alphabet.
         """
         value = None
-        if symbol in self.symbols:
-            value = self.thresholds[self.index(symbol)]
+        if symbol in self.__symbols:
+            value = self.__thresholds[self.index(symbol)]
         return value
 
     def symbol(self, pos):
@@ -136,8 +136,8 @@ class MappedAlphabet:
 
         """
         symb = None
-        if pos < self.size and pos >= 0:
-            symb = self.symbols[pos]
+        if pos < self.__size and pos >= 0:
+            symb = self.__symbols[pos]
         return symb
 
     def step(self, value):
@@ -162,8 +162,8 @@ class MappedAlphabet:
 
         """
         symb = None
-        for i in range(self.size):
-            if value <= self.thresholds[i]:
-                symb = self.symbols[i]
+        for i in range(self.__size):
+            if value <= self.__thresholds[i]:
+                symb = self.__symbols[i]
                 break
         return symb
