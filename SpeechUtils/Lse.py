@@ -1,7 +1,7 @@
 from numpy import eye, dot, array, zeros, matrix
 
 
-def lse(coefMatrix, rsMatrix, lamb=0.2):
+def lse(coefMatrix, rsMatrix, lamb=0.2, gamma=1000):
     """ Computes the Least Square Estimation for the matrices AX = B
 
     Parameters
@@ -19,7 +19,7 @@ def lse(coefMatrix, rsMatrix, lamb=0.2):
         An approximation of X, the unknown vector
     """
     A = array(coefMatrix)
-    S = eye(len(coefMatrix[0]))
+    S = eye(len(coefMatrix[0])) * gamma
     X = zeros((A.shape[1], A.shape[0]))
     for i in range(len(A[:, 0])):
         a_i = A[i, :]
