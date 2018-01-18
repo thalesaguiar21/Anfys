@@ -14,7 +14,7 @@ class Anfis():
     """
     __MIN_SIZE = 2
 
-    def __init__(self, pre, consequents, alph):
+    def __init__(self, pre, consequents, cons_params, alph):
         """ This method initialize a new instance of an ANFIS.
 
         Parameters
@@ -23,14 +23,16 @@ class Anfis():
             The first layer, or precedent membership functions
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
+        cons_params : 2D list of double
+            The parameters p and q of each consequent memebership function
         alph : MappedAlphabet
             The alphabet that will be used for phoneme recognition
         """
         self.__eta = 0.002
-        self.consParams = []
+        self.__numOfLabels = len(pre[0].labels)
+        self.cons_params = cons_params
         self.precedents = pre
         self.consequents = consequents
-        self.numOfLabels = len(pre[0].labels)
         self.alph = alph
 
     def validate(self, inputs):
@@ -66,7 +68,7 @@ class Anfis():
             for i in range(1, len(self.precedents)):
                 if len(self.precedents[i]) != numOfLabels:
                     raise IndexError(err['DIFF_LABELS'])
-            self.numOfLabels = numOfLabels
+            self.__numOfLabels = numOfLabels
 
     def forward_pass(self, inputs, expected):
         """ This will feed the network with the given inputs, that is, will
@@ -100,8 +102,8 @@ class Anfis():
         # log_print('=' * 100)
 
         # Layer 2 input -> output
-        layerTwo = [1.0 for i in range(self.numOfLabels)]
-        for i in range(self.numOfLabels):
+        layerTwo = [1.0 for i in range(self.__numOfLabels)]
+        for i in range(self.__numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
 
@@ -120,10 +122,10 @@ class Anfis():
 
         # Layer 4 input -> output
         layerFour = []
-        for i in range(self.numOfLabels):
+        for i in range(self.__numOfLabels):
             fi = self.consequents[i].membership_degree(
                 layerTwo[i],
-                self.consParams[i]
+                self.cons_params[i]
             )
             layerFour.append(fi * layerThree[i])
         # log_print('Layer 4 output')
@@ -158,7 +160,7 @@ class Anfis():
         inference : double
             The crisp value of the output nodes, or the 'clip' operation.
         """
-        layerSize = len(self.consParams)
+        layerSize = len(self.cons_params)
         log_print('Updating consequent parameters...', end_='')
         # Coeficient matrix
         # Ones are at the second column because we are using a linear
@@ -170,12 +172,12 @@ class Anfis():
         rsMatrix = [rsMatx for i in range(layerSize)]
         # log_print('Coefficient matrix is...\n{}\n'.format(array(coefMatrix)))
 
-        self.consParams = lse(coefMatrix, rsMatrix, lamb=0.03)
-        self.consParams = self.consParams.tolist()
-        self.consParams = [[x, y] for (x, y) in zip(*self.consParams)]
+        self.cons_params = lse(coefMatrix, rsMatrix, lamb=0.03)
+        self.cons_params = self.cons_params.tolist()
+        self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
         log_print('Done!')
         # log_print(
-        #    'Done!\nNew parameters are...\n{}'.format(array(self.consParams))
+        #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
         # )
 
     def backward_pass(self, err, inputs, layerFour, target):
@@ -203,7 +205,7 @@ class Anfis():
 
         # Computing the derivative of each label
         derivatives = zeros(
-            (self.numOfLabels, len(self.precedents[0].params[0]))
+            (self.__numOfLabels, len(self.precedents[0].params[0]))
         )
         fuzzSetDerivs = []
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
@@ -248,7 +250,7 @@ class Anfis():
                 if not converged:
                     self.backward_pass(error, feature, l4, [])
                 log_print(
-                    'Error for {}-th epoch is {}'.format(epoch + 1, error)
+                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error)
                 )
                 epoch += 1
             log_print('Convergence occurred at epoch {}'.format(epoch))

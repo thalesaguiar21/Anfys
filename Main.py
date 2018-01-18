@@ -54,8 +54,7 @@ for params in consParams:
         params[0] += 0.1
 # print('Consequent paramaters are \n{}'.format(array(consParams)))
 
-anfis = Anfis(precedents, consequents, alph)
-anfis.consParams = consParams
+anfis = Anfis(precedents, consequents, consParams, alph)
 
 anfis.train_by_hybrid_online(6, 3e-3, inputs)
 '''print 'Inferred value is {} for the output vector: \n{}'.format(
