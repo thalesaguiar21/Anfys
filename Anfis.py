@@ -12,7 +12,7 @@ class Anfis():
     Inference system follows the basic IF-THEN rule system from Takagi and
     Sugeno.
     """
-    MIN_SIZE = 2
+    __MIN_SIZE = 2
 
     def __init__(self, pre, consequents, inference, alph):
         """ This method initialize a new instance of an ANFIS.
