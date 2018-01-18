@@ -7,8 +7,7 @@ class CentroidStrategy(InferenceStrategy):
 
     def __init__(self):
         InferenceStrategy.__init__(self)
-        pass
 
-    def infer(self, inputs):
+    def infer(self, weights, values):
         """Find the centroid from the given set of values"""
-        return sum(inputs)
+        return sum(values)

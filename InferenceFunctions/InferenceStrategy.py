@@ -5,7 +5,7 @@ class InferenceStrategy:
     def __init__(self):
         pass
 
-    def infer(self, inputs):
+    def infer(self, weights, values):
         """ This method is used to infer a a result from a given set of data.of
         In this case, for the ANFIS, this method will receive a list of inputs
         and select some of its data to infer something about the fire strength
@@ -13,11 +13,14 @@ class InferenceStrategy:
 
         Parameters
         ----------
-        inputs : list
+        weights : list of double
+            The weights associated with the inputs
+        values : list of double
             Incoming inputs from the previous layer.
 
-        Return
-        ------
+
+        Returns
+        -------
         value : float
             A crisp value representing an 'clip', or centroid, of the
             incoming inputs
