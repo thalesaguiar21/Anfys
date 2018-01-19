@@ -12,6 +12,15 @@ For extracting the features from the uttrances, I reccomend the code in the this
 	<li>Numpy 1.13.3</li>
     <li>SciPy 1.0.0</li>
 </ol>
+##### References
+<ul>
+	<li>
+    <a href=http://ieeexplore.ieee.org/abstract/document/256541>Jang, J-SR. "ANFIS: adaptive-network-based fuzzy inference system." IEEE transactions on systems, man, and cybernetics 23.3 (1993): 665-685</a>
+    </li>
+    <li>
+    <a href=https://www.amazon.com.br/Neuro-Fuzzy-Soft-Computing-Computational-Intelligence/dp/0132610663>Jang, Jyh-Shing Roger, Chuen-Tsai Sun, and Eiji Mizutani. "Neuro-fuzzy and soft computing: a computational approach to learning and machine intelligence." (1997)</a>
+    </li>
+</ul>
 
 ###### Note
 <i>This project is in work, and may not be suitable for generic purposes. Right now this is being designed for Speech Recognition, more specifically for phoneme classification.</i>
