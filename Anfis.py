@@ -28,7 +28,6 @@ class Anfis():
         alph : MappedAlphabet
             The alphabet that will be used for phoneme recognition
         """
-        self.__eta = 0.002
         self.__numOfLabels = len(pre[0].labels)
         self.cons_params = cons_params
         self.precedents = pre
@@ -120,6 +119,8 @@ class Anfis():
         # log_print(layerThree)
         # log_print('=' * 100)
 
+        self.update_consequents(layerTwo, layerThree)
+
         # Layer 4 input -> output
         layerFour = []
         for i in range(self.__numOfLabels):
@@ -140,20 +141,15 @@ class Anfis():
         # )
         return layerTwo, layerFour
 
-    def update_consequents(self, l4Input, rsMatx, expected, zeta):
+    def update_consequents(self, layer2, layer3, lamb=0.03):
         """ Update the consequent parameters with a Least Square Estimation
 
         Parameters
         ----------
-        l4Input : list of double
+        layer2 : list of double
             The output from the second layer
         rsMatx : list of double
             The output
-        expected : str
-            The expected phoneme
-        zeta : double
-            A small double value to create a desired output. This will be used
-            to update the outputs.
 
         Returns
         -------
@@ -166,21 +162,18 @@ class Anfis():
         # Ones are at the second column because we are using a linear
         #
         coefMatrix = [
-            [l4Input[i], 1] for i in range(layerSize)
+            [layer2[i] * layer3[i], layer3[i]] for i in range(layerSize)
         ]
-
-        rsMatrix = [rsMatx for i in range(layerSize)]
         # log_print('Coefficient matrix is...\n{}\n'.format(array(coefMatrix)))
 
-        self.cons_params = lse(coefMatrix, rsMatrix, lamb=0.03)
+        self.cons_params = lse(coefMatrix, self.alph._values, lamb)
         self.cons_params = self.cons_params.tolist()
         self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
-        log_print('Done!')
         # log_print(
         #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
         # )
 
-    def backward_pass(self, err, inputs, layerFour, target):
+    def backward_pass(self, err, inputs, layerFour, step_size=0.01):
         """ Implements the backward pass of the neural network. In this case,
         the backward pass for an ANFIS consider that the consequent parameters
         are optimal, and therefore they are fixed in this stage.
@@ -217,10 +210,21 @@ class Anfis():
             fuzzSetDerivs.append(derivatives)
 
         fuzzSetDerivs = array(fuzzSetDerivs)
-        # for i in range(fuzzSetDerivs.shape[0]):
-        #     fuzzSetDerivs[i] = fuzzSetDerivs[i] * error
+        for i in range(fuzzSetDerivs.shape[0]):
+            fuzzSetDerivs[i] = fuzzSetDerivs[i] * err
 
         log_print('Finished backward pass!')
+
+    def __predict(self, crisp_value):
+        smallest = abs(self.alph._values[0][0] - crisp_value)
+        idx = 0
+        valuesLen = len(self.alph._values)
+        for i in range(1, valuesLen):
+            tmp = abs(self.alph._values[i][i] - crisp_value)
+            if tmp < smallest:
+                smallest = tmp
+                idx = i
+        return self.alph._symbols[idx]
 
     def train_by_hybrid_online(self, nEpochs, errTolerance, trainingData):
         """ Train the ANFIS with the training data. Each (input, output) pair
@@ -236,17 +240,20 @@ class Anfis():
         traningData : duple
         """
         for (feature, expected) in trainingData:
-            log_print('\n\nTraining for data \n{}'.format(feature))
+            log_print('\n\nTraining for data \n{}'.format((feature, expected)))
             log_print('=' * 150)
             epoch = 0
             converged = False
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                self.update_consequents(l2, l4, expected, 1e-5)
-                inference = sum(l4)
-                pred_phn = self.alph.step(inference)
-                error = (inference - self.alph.value(expected)) ** 2
+                pred_phn = self.__predict(sum(l4))
+                error = 0
+                for (target, output) in zip(self.alph[pred_phn], l4):
+                    error += (target - output) ** 2
                 converged = pred_phn == expected or error <= errTolerance
+                log_print(
+                    'Predicted {} and expected {}'.format(pred_phn, expected)
+                )
                 if not converged:
                     self.backward_pass(error, feature, l4, [])
                 log_print(
