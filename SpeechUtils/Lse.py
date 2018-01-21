@@ -11,26 +11,25 @@ def lse(coefMatrix, rsMatrix, lamb=0.2, gamma=1000):
     rsMatrix : 2D list of double
         The result matrix, or B
     lamb : double
-        An positive real value
+        An real value between 0 and 1. Defaults to 0.2
 
     Returns
     -------
     X : numpy array
         An approximation of X, the unknown vector
     """
-    A = array(coefMatrix)
-    S = eye(len(coefMatrix[0])) * gamma
-    X = zeros((A.shape[1], A.shape[0]))
+    A = matrix(coefMatrix)
+    S = eye(len(coefMatrix)) * gamma
+    X = zeros((A.shape[1], 1))  # Change for ANFIS with more than 1 output
     for i in range(len(A[:, 0])):
         a_i = A[i, :]
-        b_i = array(rsMatrix[i])
+        b_i = array(rsMatrix)  # For Online Batch, the b_i will be a double
         S = S - (
             array(
-                dot(dot(dot(S, matrix(a_i).T), matrix(a_i)), S))) \
-            / (lamb + (dot(dot(S, a_i), a_i)))
-        S *= 1 / lamb
-        X = X + (dot(
-            S,
-            dot(matrix(a_i).T, (matrix(b_i) - dot(matrix(a_i), X))))
+                dot(S, dot(a_i.T, dot(a_i, S))) /
+                (lamb + dot(a_i, dot(S, a_i.T)))
+            )
         )
+        S *= 1 / lamb
+        X = X + (dot(S, dot(a_i.T, (b_i - dot(a_i, X)))))
     return X

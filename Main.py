@@ -2,7 +2,7 @@ from MembershipFunctions import FuzzySubset
 from MembershipFunctions import GaussianThree
 from MembershipFunctions import Logit
 from SpeechUtils import Alphabet
-from random import random, randint
+from random import random
 from Anfis import Anfis
 
 
@@ -19,15 +19,14 @@ phonemes = [
     'ZH'
 ]
 phnNum = len(phonemes)
-values = [[randint(0, 10) for i in range(phnNum)] for i in range(phnNum)]
+values = [[random() for i in range(phnNum)] for i in range(phnNum)]
 
+for i in range(1, phnNum):
+    values[i][i] = values[i - 1][i - 1] + random()
 alph = Alphabet(phonemes, values)
 
 inputs = [
-    (
-        [random() for i in range(INPUT_SIZE)],
-        alph._symbols[randint(0, phnNum - 1)]
-    ) for i in range(1)
+    ([random() for i in range(INPUT_SIZE)], random()) for i in range(1)
 ]
 
 precedents = [
@@ -50,6 +49,6 @@ for params in consParams:
         params[0] += 0.1
 # print('Consequent paramaters are \n{}'.format(array(consParams)))
 
-anfis = Anfis(precedents, consequents, consParams, alph)
+anfis = Anfis(precedents, consequents, consParams)
 
 anfis.train_by_hybrid_online(6, 1e-8, inputs)

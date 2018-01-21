@@ -14,7 +14,7 @@ class Anfis():
     """
     __MIN_SIZE = 2
 
-    def __init__(self, pre, consequents, cons_params, alph):
+    def __init__(self, pre, consequents, cons_params):
         """ This method initialize a new instance of an ANFIS.
 
         Parameters
@@ -25,14 +25,11 @@ class Anfis():
             The fourth layer, or the consequent membership functions
         cons_params : 2D list of double
             The parameters p and q of each consequent memebership function
-        alph : MappedAlphabet
-            The alphabet that will be used for phoneme recognition
         """
         self.__numOfLabels = len(pre[0].labels)
         self.cons_params = cons_params
         self.precedents = pre
         self.consequents = consequents
-        self.alph = alph
 
     def validate(self, inputs):
         """ Verify the ANFIS before the foward pass.
@@ -105,7 +102,6 @@ class Anfis():
         for i in range(self.__numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
-
         # log_print('Layer 2 output')
         # log_print('-' * len('Layer 1 output'))
         # log_print(layerTwo)
@@ -119,7 +115,7 @@ class Anfis():
         # log_print(layerThree)
         # log_print('=' * 100)
 
-        self.update_consequents(layerTwo, layerThree)
+        self.update_consequents(layerTwo, layerThree, expected)
 
         # Layer 4 input -> output
         layerFour = []
@@ -141,34 +137,40 @@ class Anfis():
         # )
         return layerTwo, layerFour
 
-    def update_consequents(self, layer2, layer3, lamb=0.03):
+    def update_consequents(self, layer2, layer3, expected, lamb=0.03):
         """ Update the consequent parameters with a Least Square Estimation
 
         Parameters
         ----------
         layer2 : list of double
             The output from the second layer
-        rsMatx : list of double
-            The output
-
-        Returns
-        -------
-        inference : double
-            The crisp value of the output nodes, or the 'clip' operation.
+        layer3 : list of double
+            The output from the third layer
+        expected : list of double or double
+            The expected value for the current input
+        lamb : double
+            THe forgetting factor, usually a small number between 0 and 1.
+            Defaults to 0.03
         """
-        layerSize = len(self.cons_params)
+        layerSize = 2 * len(self.cons_params)
         log_print('Updating consequent parameters...', end_='')
-        # Coeficient matrix
-        # Ones are at the second column because we are using a linear
-        #
-        coefMatrix = [
-            [layer2[i] * layer3[i], layer3[i]] for i in range(layerSize)
-        ]
-        # log_print('Coefficient matrix is...\n{}\n'.format(array(coefMatrix)))
 
-        self.cons_params = lse(coefMatrix, self.alph._values, lamb)
-        self.cons_params = self.cons_params.tolist()
-        self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
+        coefMatrix = []
+        for i in range(layerSize):
+            idx = i / 2
+            if i % 2 == 0:
+                coefMatrix.append(layer3[idx] * layer2[idx])
+            else:
+                coefMatrix.append(layer3[idx])
+
+        self.cons_params = lse(coefMatrix, expected, lamb=lamb)
+        tmp_params = []
+        for i in range(layerSize / 2):
+            tmp_params.append(
+                [self.cons_params[i, 0], self.cons_params[i + 1, 0]]
+            )
+        self.cons_params = tmp_params
+        # self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
         # log_print(
         #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
         # )
@@ -215,17 +217,6 @@ class Anfis():
 
         log_print('Finished backward pass!')
 
-    def __predict(self, crisp_value):
-        smallest = abs(self.alph._values[0][0] - crisp_value)
-        idx = 0
-        valuesLen = len(self.alph._values)
-        for i in range(1, valuesLen):
-            tmp = abs(self.alph._values[i][i] - crisp_value)
-            if tmp < smallest:
-                smallest = tmp
-                idx = i
-        return self.alph._symbols[idx]
-
     def train_by_hybrid_online(self, nEpochs, errTolerance, trainingData):
         """ Train the ANFIS with the training data. Each (input, output) pair
         will run until a given number of epochs or the data loss (error)
@@ -246,16 +237,16 @@ class Anfis():
             converged = False
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                pred_phn = self.__predict(sum(l4))
-                error = 0
-                for (target, output) in zip(self.alph[pred_phn], l4):
-                    error += (target - output) ** 2
-                converged = pred_phn == expected or error <= errTolerance
-                log_print(
-                    'Predicted {} and expected {}'.format(pred_phn, expected)
-                )
-                if not converged:
-                    self.backward_pass(error, feature, l4, [])
+                l5 = sum(l4)
+                error = (expected - l5) ** 2
+                # for (target, output) in zip(self.alph[pred_phn], l4):
+                #     error += (target - output) ** 2
+                # converged = pred_phn == expected or error <= errTolerance
+                # log_print(
+                #     'Predicted {} and expected {}'.format(pred_phn, expected)
+                # )
+                # if not converged:
+                #     self.backward_pass(error, feature, l4, [])
                 log_print(
                     'Error for {}-th epoch is {}\n'.format(epoch + 1, error)
                 )
