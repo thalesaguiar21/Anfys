@@ -29,3 +29,8 @@ class Alphabet():
         if index >= 0 and index < len(self._symbols):
             pair = (self._symbols[index], self._values[index])
         return pair
+
+    def symbol_at(self, value):
+        for i in range(len(self._symbols)):
+            if value <= self._values[i]:
+                return self._symbols[i]

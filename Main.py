@@ -11,19 +11,18 @@ LABELS = 39
 CON_PARAMS_SIZE = 2
 PRE_PARAMS_SIZE = 3
 
+# Reading PHN -> VALUE file
+phn_list = []
+phn_values = []
+phn_file = open('phoneme_relative_frequency.txt').read()
+file_rows = phn_file.split('\n')
 
-phonemes = [
-    'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'B', 'CH', 'D', 'DH', 'EH', 'ER',
-    'EY', 'F', 'G', 'HH', 'IH', 'IY', 'JH', 'K', 'L', 'M', 'N', 'NG', 'OW',
-    'OY', 'P', 'R', 'S', 'SH', 'T', 'TH', 'UH', 'UW', 'V', 'W', 'Y', 'Z',
-    'ZH'
-]
-phnNum = len(phonemes)
-values = [[random() for i in range(phnNum)] for i in range(phnNum)]
+for row in file_rows:
+    row = row.split('\t')
+    phn_list.append(row[0])
+    phn_values.append(float(row[1]))
 
-for i in range(1, phnNum):
-    values[i][i] = values[i - 1][i - 1] + random()
-alph = Alphabet(phonemes, values)
+alph = Alphabet(phn_list, phn_values)
 
 inputs = [
     ([random() for i in range(INPUT_SIZE)], random()) for i in range(1)
@@ -41,14 +40,8 @@ consequents = [
 ]
 
 consParams = [
-    [random() * 10 for i in range(CON_PARAMS_SIZE)] for j in range(LABELS)
+    [0 for i in range(CON_PARAMS_SIZE)] for j in range(LABELS)
 ]
 
-for params in consParams:
-    if params[0] == params[1]:
-        params[0] += 0.1
-# print('Consequent paramaters are \n{}'.format(array(consParams)))
-
 anfis = Anfis(precedents, consequents, consParams)
-
 anfis.train_by_hybrid_online(6, 1e-8, inputs)
