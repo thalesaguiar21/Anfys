@@ -7,7 +7,7 @@ class Logit(LinguisticLabel):
     """
     def __init__(self):
         LinguisticLabel.__init__(self)
-        self.__low = 0.001
+        self.__low = 1e-15
         self.__high = 1
 
     def membership_degree(self, value, params):

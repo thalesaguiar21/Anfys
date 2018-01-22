@@ -1,5 +1,5 @@
 from __future__ import print_function
-DEBUG = True
+DEBUG = False
 
 
 def log_print(msg, end_=None):

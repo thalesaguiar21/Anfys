@@ -1,3 +1,4 @@
+from __future__ import print_function
 from Errors import err, log_print
 from exceptions import AttributeError, IndexError
 from SpeechUtils import lse
@@ -86,34 +87,35 @@ class Anfis():
             value of a consequent membership function multiplied by the
             normalized value of each rule's firing strength.
         """
-        log_print('Initiating forward pass...', end_='')
+        print('Initiating forward pass...')
         precOutput = []
 
         # Layer 1
         for (fuzz, entry) in zip(self.precedents, inputs):
             precOutput.append(fuzz.evaluate(entry))
-        # log_print('Layer 1 output')
-        # log_print('-' * len('Layer 1 output'))
-        # log_print(array(precOutput))
-        # log_print('=' * 100)
+        log_print('Layer 1 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(array(precOutput))
+        log_print('=' * 100)
 
         # Layer 2 input -> output
         layerTwo = [1.0 for i in range(self.__numOfLabels)]
         for i in range(self.__numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
-        # log_print('Layer 2 output')
-        # log_print('-' * len('Layer 1 output'))
-        # log_print(layerTwo)
-        # log_print('=' * 100)
+        log_print('Layer 2 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(array(layerTwo))
+        log_print('=' * 100)
 
         # Layer 3 input -> output
         l2_Sum = sum(layerTwo)
         layerThree = [float(x) / l2_Sum for x in layerTwo]
-        # log_print('Layer 3 output')
-        # log_print('-' * len('Layer 1 output'))
-        # log_print(layerThree)
-        # log_print('=' * 100)
+        log_print('Layer 3 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print('Sum of layer 2 = ' + str(l2_Sum) + '\n')
+        log_print(array(layerThree))
+        log_print('=' * 100)
 
         self.update_consequents(layerTwo, layerThree, expected)
 
@@ -125,16 +127,11 @@ class Anfis():
                 self.cons_params[i]
             )
             layerFour.append(fi * layerThree[i])
-        # log_print('Layer 4 output')
-        # log_print('-' * len('Layer 1 output'))
-        # log_print(layerFour)
-        # log_print('=' * 100)
-
-        log_print('Done!')
-        # log_print('Inferred phoneme is {}, target was {}'.format(
-        #    step(result),
-        #    expected)
-        # )
+        log_print('\nLayer 4 output')
+        log_print('-' * len('Layer 1 output'))
+        log_print(array(layerFour))
+        log_print('=' * 100)
+        print('End of forward pass!')
         return layerTwo, layerFour
 
     def update_consequents(self, layer2, layer3, expected, lamb=0.03):
@@ -153,7 +150,7 @@ class Anfis():
             Defaults to 0.03
         """
         layerSize = 2 * len(self.cons_params)
-        log_print('Updating consequent parameters...', end_='')
+        print('Updating consequent parameters...', end='')
 
         coefMatrix = []
         for i in range(layerSize):
@@ -171,6 +168,7 @@ class Anfis():
             )
         self.cons_params = tmp_params
         # self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
+        print('Done!')
         # log_print(
         #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
         # )
@@ -196,7 +194,7 @@ class Anfis():
         error : double
             A double value of the data loss (error) for this epoch
         """
-        log_print('Initializing backward pass...')
+        print('Initializing backward pass...')
 
         # Computing the derivative of each label
         derivatives = zeros(
@@ -215,7 +213,10 @@ class Anfis():
         for i in range(fuzzSetDerivs.shape[0]):
             fuzzSetDerivs[i] = fuzzSetDerivs[i] * err
 
-        log_print('Finished backward pass!')
+        for (prec, derivs) in zip(self.precedents, fuzzSetDerivs):
+            prec.params = derivs
+
+        print('Finished backward pass!')
 
     def train_by_hybrid_online(self, nEpochs, errTolerance, trainingData):
         """ Train the ANFIS with the training data. Each (input, output) pair
@@ -230,25 +231,31 @@ class Anfis():
             A small number for the desired error tolerance
         traningData : duple
         """
+        errors = []
         for (feature, expected) in trainingData:
-            log_print('\n\nTraining for data \n{}'.format((feature, expected)))
-            log_print('=' * 150)
+            print('\n\nTraining for data \n{}'.format((feature, expected)))
+            print('=' * 150)
             epoch = 0
             converged = False
+            prediction = 0
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
                 l5 = sum(l4)
                 error = (expected - l5) ** 2
-                # for (target, output) in zip(self.alph[pred_phn], l4):
-                #     error += (target - output) ** 2
-                # converged = pred_phn == expected or error <= errTolerance
+                # converged = error <= errTolerance
                 # log_print(
-                #     'Predicted {} and expected {}'.format(pred_phn, expected)
+                #     'Predicted {} and expected {}'.format(l5, expected)
                 # )
                 # if not converged:
                 #     self.backward_pass(error, feature, l4, [])
-                log_print(
+                print(
                     'Error for {}-th epoch is {}\n'.format(epoch + 1, error)
                 )
                 epoch += 1
-            log_print('Convergence occurred at epoch {}'.format(epoch))
+                errors.append(error)
+                prediction = l5
+            if converged:
+                print('Convergence occurred at epoch {}'.format(epoch))
+            else:
+                print('Final predition was {} with {} of error!'.format(
+                    prediction, errors[-1]))
