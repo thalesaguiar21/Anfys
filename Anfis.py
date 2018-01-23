@@ -160,7 +160,7 @@ class Anfis():
             else:
                 coefMatrix.append(layer3[idx])
 
-        self.cons_params = lse(coefMatrix, expected, lamb=lamb)
+        self.cons_params = lse(coefMatrix, sum(expected), lamb=lamb)
         tmp_params = []
         for i in range(layerSize / 2):
             tmp_params.append(
@@ -208,10 +208,7 @@ class Anfis():
                     label.derivative_at(inp, v) for v in ['a', 'b', 'c']]
                 i += 1
             fuzzSetDerivs.append(derivatives)
-
         fuzzSetDerivs = array(fuzzSetDerivs)
-        for i in range(fuzzSetDerivs.shape[0]):
-            fuzzSetDerivs[i] = fuzzSetDerivs[i] * err
 
         for (prec, derivs) in zip(self.precedents, fuzzSetDerivs):
             prec.params = derivs
@@ -233,15 +230,17 @@ class Anfis():
         """
         errors = []
         for (feature, expected) in trainingData:
-            print('\n\nTraining for data \n{}'.format((feature, expected)))
+            print('\n\nTraining for data \nINPUT:\n{}\nOUTPUT:\n{}\n'.format(
+                array(feature), array(expected)
+            ))
             print('=' * 150)
             epoch = 0
             converged = False
-            prediction = 0
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                l5 = sum(l4)
-                error = (expected - l5) ** 2
+                errors = [(target - output) ** 2 for (target, output) in zip(
+                    expected, l4)]
+                error = sum(errors)
                 # converged = error <= errTolerance
                 # log_print(
                 #     'Predicted {} and expected {}'.format(l5, expected)
@@ -253,7 +252,8 @@ class Anfis():
                 )
                 epoch += 1
                 errors.append(error)
-                prediction = l5
+            l2, l4 = self.forward_pass(feature, expected)
+            prediction = sum(l4)
             if converged:
                 print('Convergence occurred at epoch {}'.format(epoch))
             else:
