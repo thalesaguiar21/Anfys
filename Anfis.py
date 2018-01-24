@@ -2,7 +2,8 @@ from __future__ import print_function
 from Errors import err, log_print
 from exceptions import AttributeError, IndexError
 from SpeechUtils import lse
-from numpy import array, zeros
+from numpy import array, zeros, dot
+from math import sqrt
 
 
 class Anfis():
@@ -173,15 +174,16 @@ class Anfis():
         #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
         # )
 
-    def backward_pass(self, err, inputs, layerFour, step_size=0.01):
+    def backward_pass(
+            self, expected, inputs, l4Input, layerFour, step_size=0.01):
         """ Implements the backward pass of the neural network. In this case,
         the backward pass for an ANFIS consider that the consequent parameters
         are optimal, and therefore they are fixed in this stage.
 
         Parameters
         ----------
-        err : double
-            The error from the fifth layer
+        expected : list of double
+            The expected values for the output layer
         inputs : list of double
             The input feeded to neural network
         layerFour : list of double
@@ -196,22 +198,47 @@ class Anfis():
         """
         print('Initializing backward pass...')
 
+        dE_dO = []
+        for i in range(self.__numOfLabels):
+            dE_dO.append(-2 * (expected[i] - layerFour[i]))
+
+        dO_dW = []
+        for (consequent, entry) in zip(self.consequents, l4Input):
+            dO_dW.append(consequent.derivative_at(entry, 'lamb'))
         # Computing the derivative of each label
         derivatives = zeros(
             (self.__numOfLabels, len(self.precedents[0].params[0]))
         )
-        fuzzSetDerivs = []
+        dW_dAlpha = []
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
             i = 0
             for label in precFuzzySet.labels:
                 derivatives[i] = [
                     label.derivative_at(inp, v) for v in ['a', 'b', 'c']]
                 i += 1
-            fuzzSetDerivs.append(derivatives)
-        fuzzSetDerivs = array(fuzzSetDerivs)
+            dW_dAlpha.append(derivatives)
+        dW_dAlpha = array(dW_dAlpha)
 
-        for (prec, derivs) in zip(self.precedents, fuzzSetDerivs):
-            prec.params = derivs
+        dE_dAlpha = []
+        for fuzzDerivs in dW_dAlpha:
+            tmp = []
+            for i in range(self.__numOfLabels):
+                tmp.append([
+                    dE_dO[i] * dO_dW[i] * fuzzDerivs[i][k] for k in range(3)
+                ])
+            dE_dAlpha.append(tmp)
+
+        grad_sum = 0
+        for fuzzDerivs in dE_dAlpha:
+            grad_sum += sum(sum(array(fuzzDerivs)))
+
+        k = 0.01
+        eta = k / sqrt(grad_sum ** 2)
+
+        for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
+            for i in range(len(deriv)):
+                for j in range(len(deriv[i])):
+                    precedent.params[i][j] -= deriv[i][j] * eta
 
         print('Finished backward pass!')
 
@@ -241,19 +268,17 @@ class Anfis():
                 errors = [(target - output) ** 2 for (target, output) in zip(
                     expected, l4)]
                 error = sum(errors)
-                # converged = error <= errTolerance
-                # log_print(
-                #     'Predicted {} and expected {}'.format(l5, expected)
-                # )
-                # if not converged:
-                #     self.backward_pass(error, feature, l4, [])
                 print(
                     'Error for {}-th epoch is {}\n'.format(epoch + 1, error)
                 )
+                converged = error <= errTolerance
+                if not converged:
+                    self.backward_pass(expected, feature, l2, l4)
                 epoch += 1
                 errors.append(error)
+            print()
             l2, l4 = self.forward_pass(feature, expected)
-            prediction = sum(l4)
+            prediction = 10  # sum(l4)
             if converged:
                 print('Convergence occurred at epoch {}'.format(epoch))
             else:

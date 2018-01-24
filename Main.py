@@ -45,4 +45,4 @@ consParams = [
 ]
 
 anfis = Anfis(precedents, consequents, consParams)
-anfis.train_by_hybrid_online(10, 1e-8, data[:1])
+anfis.train_by_hybrid_online(5, 1e-8, data[:1])
