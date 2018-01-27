@@ -40,9 +40,5 @@ consequents = [
     Logit() for i in range(LABELS)
 ]
 
-consParams = [
-    [0 for i in range(CON_PARAMS_SIZE)] for j in range(LABELS)
-]
-
-anfis = Anfis(precedents, consequents, consParams)
-anfis.train_by_hybrid_online(5, 1e-8, data[:1])
+anfis = Anfis(precedents, consequents)
+# anfis.train_by_hybrid_online(5, 1e-8, data[:1])

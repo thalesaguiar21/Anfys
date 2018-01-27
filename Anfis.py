@@ -16,7 +16,7 @@ class Anfis():
     """
     __MIN_SIZE = 2
 
-    def __init__(self, pre, consequents, cons_params):
+    def __init__(self, pre, consequents):
         """ This method initialize a new instance of an ANFIS.
 
         Parameters
@@ -25,8 +25,6 @@ class Anfis():
             The first layer, or precedent membership functions
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
-        cons_params : 2D list of double
-            The parameters p and q of each consequent memebership function
         """
         self.__numOfLabels = len(pre[0].labels)
         self.__numOfRules = len(pre) ** self.__numOfLabels
