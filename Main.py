@@ -24,7 +24,7 @@ for line in range(len(data_rows) - 2):
     for col in range(len(tmp_row)):
         tmp_row[col] = float(tmp_row[col])
     entry = tmp_row[:INPUT_SIZE]
-    output = tmp_row[INPUT_SIZE:]
+    output = tmp_row[INPUT_SIZE:(INPUT_SIZE + LABELS)]
     data.append((entry, output))
 if data[-1] == ([], []):
     del data[-1]
@@ -32,7 +32,7 @@ if data[-1] == ([], []):
 precedents = [
     FuzzySubset(
         [GaussianThree() for i in range(LABELS)],
-        [[random() for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)]
+        [[random() * 5 for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)]
     ) for i in range(INPUT_SIZE)
 ]
 
@@ -45,4 +45,4 @@ consParams = [
 ]
 
 anfis = Anfis(precedents, consequents, consParams)
-anfis.train_by_hybrid_online(2, 1e-8, data[:1])
+anfis.train_by_hybrid_online(5, 1e-8, data[:1])

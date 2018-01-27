@@ -1,8 +1,7 @@
 from __future__ import print_function
-from Errors import err, log_print
-from exceptions import AttributeError, IndexError
+from Errors import log_print
 from SpeechUtils import lse
-from numpy import array, zeros, dot
+from numpy import array
 from math import sqrt
 
 
@@ -32,41 +31,6 @@ class Anfis():
         self.cons_params = cons_params
         self.precedents = pre
         self.consequents = consequents
-
-    def validate(self, inputs):
-        """ Verify the ANFIS before the foward pass.
-
-        Parameters
-        ----------
-        inputs : list of double
-            The data to feed in the network
-
-        Returns
-        -------
-        valid : bool
-            True if the ANFIS object satisfies the constraints, Flase otherwise
-
-        Raises
-        ------
-        AttributeError
-            If any of the given layers are None
-        IndexError
-            If the number of precedents is different of the number of inputs
-        """
-        if self.precedents is None:
-            raise AttributeError(err['NO_PRECEDENTS'])
-        if self.consequents is None:
-            raise AttributeError(err['NO_CONSEQUENTS'])
-        if self.inference is None:
-            raise AttributeError(err['NO_INFERENCE'])
-        elif len(inputs) != len(self.precedents):
-            raise IndexError(err['INPUT_SIZE'])
-        else:
-            numOfLabels = len(self.precedents[0])
-            for i in range(1, len(self.precedents)):
-                if len(self.precedents[i]) != numOfLabels:
-                    raise IndexError(err['DIFF_LABELS'])
-            self.__numOfLabels = numOfLabels
 
     def forward_pass(self, inputs, expected):
         """ This will feed the network with the given inputs, that is, will
@@ -104,9 +68,6 @@ class Anfis():
         for i in range(self.__numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
-            if layerTwo[i] < 0:
-                print('L2 OUTPUT CANNOT BE NEGATIVE!')
-                print(layerTwo[i])
         log_print('Layer 2 output')
         log_print('-' * len('Layer 1 output'))
         log_print(array(layerTwo))
@@ -140,7 +101,7 @@ class Anfis():
         print('End of forward pass!')
         return layerTwo, layerFour
 
-    def update_consequents(self, layer2, layer3, expected, lamb=0.1):
+    def update_consequents(self, layer2, layer3, expected, lamb=0.9):
         """ Update the consequent parameters with a Least Square Estimation
 
         Parameters
@@ -160,12 +121,17 @@ class Anfis():
 
         coef_line = []
         for i in range(layerSize):
-            coef_line.append(layer3[i] * layer2[i])
-            coef_line.append(layer3[i])
+            ki = (layer3[i] * layer2[i])
+            coef_line.append(ki)
+            coef_line.append(-ki)
         coefMatrix = []
         coefMatrix.append(coef_line)
 
+        # pdb.set_trace()
+        print('Coefficient matrix dim: ' + str(len(coefMatrix)))
+
         self.cons_params = lse(coefMatrix, [sum(expected)], lamb=lamb)
+        # pdb.set_trace()
         self.cons_params = [
             self.cons_params[v, 0] for v in range(layerSize * 2)
         ]
