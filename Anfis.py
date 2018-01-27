@@ -71,10 +71,17 @@ class Anfis():
         log_print('=' * 100)
 
         # Layer 2 input -> output
-        layerTwo = [1.0 for i in range(self.__numOfLabels)]
-        for i in range(self.__numOfLabels):
-            for prec in precOutput:
-                layerTwo[i] *= prec[i]
+        layerTwo = []
+        for rule in self.__rules:
+            prod = 1.0
+            for (mem_outs, label) in zip(range(len(precOutput)), rule):
+                prod *= precOutput[mem_outs][label]
+            layerTwo.append(prod)
+
+        # layerTwo = [1.0 for i in range(self.__numOfLabels)]
+        # for i in range(self.__numOfLabels):
+        #     for prec in precOutput:
+        #         layerTwo[i] *= prec[i]
         log_print('Layer 2 output')
         log_print('-' * len('Layer 1 output'))
         log_print(array(layerTwo))
@@ -230,7 +237,7 @@ class Anfis():
             A small number for the desired error tolerance
         traningData : duple
         """
-        errors = []
+        # errors = []
         for (feature, expected) in trainingData:
             print('\n\nTraining for data \nINPUT:\n{}\nOUTPUT:\n{}\n'.format(
                 array(feature), array(expected)
@@ -241,23 +248,23 @@ class Anfis():
             converged = False
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                error = 0
-                for (target, output) in zip(expected, l4):
-                    error += target - output
-                error = error ** 2
-                print(
-                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
-                    end=''
-                )
-                converged = error <= errTolerance
-                # if not converged:
-                #     self.backward_pass(expected, feature, l2, l4)
-                epoch += 1
-                errors.append(error)
+                # error = 0
+                # for (target, output) in zip(expected, l4):
+                #     error += target - output
+                # error = error ** 2
+                # print(
+                #     'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
+                #     end=''
+                # )
+                # converged = error <= errTolerance
+                # # if not converged:
+                # #     self.backward_pass(expected, feature, l2, l4)
+                # epoch += 1
+                # errors.append(error)
                 print()
-            l2, l4 = self.forward_pass(feature, expected)
-            prediction = sum(l4)
-            if converged:
-                print('Convergence occurred at epoch {}'.format(epoch))
-            print('Final predition was {} with {} of error!'.format(
-                prediction, errors[-1]))
+            # l2, l4 = self.forward_pass(feature, expected)
+            # prediction = sum(l4)
+            # if converged:
+            #     print('Convergence occurred at epoch {}'.format(epoch))
+            # print('Final predition was {} with {} of error!'.format(
+            #     prediction, errors[-1]))

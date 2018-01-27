@@ -11,7 +11,6 @@ data_rows = data_file.split('\n')
 
 INPUT_SIZE = int(data_rows[0])
 LABELS = int(data_rows[1])
-CON_PARAMS_SIZE = 2
 PRE_PARAMS_SIZE = 3
 
 data = []
@@ -24,7 +23,7 @@ for line in range(len(data_rows) - 2):
     for col in range(len(tmp_row)):
         tmp_row[col] = float(tmp_row[col])
     entry = tmp_row[:INPUT_SIZE]
-    output = tmp_row[INPUT_SIZE:(INPUT_SIZE + LABELS)]
+    output = tmp_row[INPUT_SIZE:(INPUT_SIZE + (LABELS ** INPUT_SIZE))]
     data.append((entry, output))
 if data[-1] == ([], []):
     del data[-1]
@@ -41,4 +40,4 @@ consequents = [
 ]
 
 anfis = Anfis(precedents, consequents)
-# anfis.train_by_hybrid_online(5, 1e-8, data[:1])
+anfis.train_by_hybrid_online(5, 1e-8, data[:1])
