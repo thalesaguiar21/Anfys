@@ -3,6 +3,7 @@ from Errors import log_print
 from SpeechUtils import lse
 from numpy import array
 from math import sqrt
+from itertools import product
 
 
 class Anfis():
@@ -28,9 +29,17 @@ class Anfis():
             The parameters p and q of each consequent memebership function
         """
         self.__numOfLabels = len(pre[0].labels)
-        self.cons_params = cons_params
+        self.__numOfRules = len(pre) ** self.__numOfLabels
+        self.__rules = []
+        self.cons_params = [[0] * 2 for i in range(self.__numOfRules)]
         self.precedents = pre
         self.consequents = consequents
+        self.__create_rules()
+
+    def __create_rules(self):
+        label_set = [i for i in range(self.__numOfLabels)]
+        labels_sets = [label_set for i in range(len(self.precedents))]
+        self.__rules = product(*labels_sets)
 
     def forward_pass(self, inputs, expected):
         """ This will feed the network with the given inputs, that is, will
@@ -116,11 +125,10 @@ class Anfis():
             THe forgetting factor, usually a small number between 0 and 1.
             Defaults to 0.9
         """
-        layerSize = len(self.cons_params)
         print('Updating consequent parameters...')
 
         coef_line = []
-        for i in range(layerSize):
+        for i in range(self.__numOfRules):
             ki = (layer3[i] * layer2[i])
             coef_line.append(ki)
             coef_line.append(-ki)
@@ -133,7 +141,7 @@ class Anfis():
         self.cons_params = lse(coefMatrix, [sum(expected)], lamb=lamb)
         # pdb.set_trace()
         self.cons_params = [
-            self.cons_params[v, 0] for v in range(layerSize * 2)
+            self.cons_params[v, 0] for v in range(2 * self.__numOfRules)
         ]
 
         total = 0
@@ -142,7 +150,7 @@ class Anfis():
         print('LSE approximation result: ' + str(total))
 
         tmp_params = []
-        for i in range(0, 2 * layerSize, 2):
+        for i in range(0, 2 * self.__numOfRules, 2):
             tmp_params.append(
                 [self.cons_params[i], self.cons_params[i + 1]]
             )
@@ -244,8 +252,8 @@ class Anfis():
                     end=''
                 )
                 converged = error <= errTolerance
-                if not converged:
-                    self.backward_pass(expected, feature, l2, l4)
+                # if not converged:
+                #     self.backward_pass(expected, feature, l2, l4)
                 epoch += 1
                 errors.append(error)
                 print()
