@@ -104,6 +104,9 @@ class Anfis():
         for i in range(self.__numOfLabels):
             for prec in precOutput:
                 layerTwo[i] *= prec[i]
+            if layerTwo[i] < 0:
+                print('L2 OUTPUT CANNOT BE NEGATIVE!')
+                print(layerTwo[i])
         log_print('Layer 2 output')
         log_print('-' * len('Layer 1 output'))
         log_print(array(layerTwo))
@@ -117,6 +120,8 @@ class Anfis():
         log_print('Sum of layer 2 = ' + str(l2_Sum) + '\n')
         log_print(array(layerThree))
         log_print('=' * 100)
+
+        # print('Before update:\n' + str(array(self.cons_params)))
 
         self.update_consequents(layerTwo, layerThree, expected)
 
@@ -135,7 +140,7 @@ class Anfis():
         print('End of forward pass!')
         return layerTwo, layerFour
 
-    def update_consequents(self, layer2, layer3, expected, lamb=0.03):
+    def update_consequents(self, layer2, layer3, expected, lamb=0.1):
         """ Update the consequent parameters with a Least Square Estimation
 
         Parameters
@@ -148,34 +153,36 @@ class Anfis():
             The expected value for the current input
         lamb : double
             THe forgetting factor, usually a small number between 0 and 1.
-            Defaults to 0.03
+            Defaults to 0.9
         """
-        layerSize = 2 * len(self.cons_params)
-        print('Updating consequent parameters...', end='')
+        layerSize = len(self.cons_params)
+        print('Updating consequent parameters...')
 
-        coefMatrix = []
+        coef_line = []
         for i in range(layerSize):
-            idx = i / 2
-            if i % 2 == 0:
-                coefMatrix.append(layer3[idx] * layer2[idx])
-            else:
-                coefMatrix.append(layer3[idx])
+            coef_line.append(layer3[i] * layer2[i])
+            coef_line.append(layer3[i])
+        coefMatrix = []
+        coefMatrix.append(coef_line)
 
-        self.cons_params = lse(coefMatrix, sum(expected), lamb=lamb)
+        self.cons_params = lse(coefMatrix, [sum(expected)], lamb=lamb)
+        self.cons_params = [
+            self.cons_params[v, 0] for v in range(layerSize * 2)
+        ]
+
+        total = 0
+        for i in range(len(self.cons_params)):
+            total += self.cons_params[i] * coefMatrix[0][i]
+        print('LSE approximation result: ' + str(total))
+
         tmp_params = []
-        for i in range(layerSize / 2):
+        for i in range(0, 2 * layerSize, 2):
             tmp_params.append(
-                [self.cons_params[i, 0], self.cons_params[i + 1, 0]]
+                [self.cons_params[i], self.cons_params[i + 1]]
             )
         self.cons_params = tmp_params
-        # self.cons_params = [[x, y] for (x, y) in zip(*self.cons_params)]
-        print('Done!')
-        # log_print(
-        #    'Done!\nNew parameters are...\n{}'.format(array(self.cons_params))
-        # )
 
-    def backward_pass(
-            self, expected, inputs, l4Input, layerFour, step_size=0.01):
+    def backward_pass(self, expected, inputs, l4Input, layerFour):
         """ Implements the backward pass of the neural network. In this case,
         the backward pass for an ANFIS consider that the consequent parameters
         are optimal, and therefore they are fixed in this stage.
@@ -201,23 +208,19 @@ class Anfis():
         dE_dO = []
         for i in range(self.__numOfLabels):
             dE_dO.append(-2 * (expected[i] - layerFour[i]))
+        # print('dE_dO: \n' + str(array(dE_dO)))
 
         dO_dW = []
         for (consequent, entry) in zip(self.consequents, l4Input):
-            dO_dW.append(consequent.derivative_at(entry, 'lamb'))
+            dO_dW.append(consequent.derivative_at(entry, 'lamb', []))
+        # print('dO_dW: \n' + str(array(dE_dO)))
+
         # Computing the derivative of each label
-        derivatives = zeros(
-            (self.__numOfLabels, len(self.precedents[0].params[0]))
-        )
         dW_dAlpha = []
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
-            i = 0
-            for label in precFuzzySet.labels:
-                derivatives[i] = [
-                    label.derivative_at(inp, v) for v in ['a', 'b', 'c']]
-                i += 1
-            dW_dAlpha.append(derivatives)
+            dW_dAlpha.append(precFuzzySet.derivs_at(inp))
         dW_dAlpha = array(dW_dAlpha)
+        # print('dW_dAlpha: \n' + str(array(dE_dO)))
 
         dE_dAlpha = []
         for fuzzDerivs in dW_dAlpha:
@@ -232,13 +235,13 @@ class Anfis():
         for fuzzDerivs in dE_dAlpha:
             grad_sum += sum(sum(array(fuzzDerivs)))
 
-        k = 0.01
+        k = 0.1
         eta = k / sqrt(grad_sum ** 2)
 
         for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
             for i in range(len(deriv)):
                 for j in range(len(deriv[i])):
-                    precedent.params[i][j] -= deriv[i][j] * eta
+                    precedent.params[i][j] -= eta * deriv[i][j]
 
         print('Finished backward pass!')
 
@@ -260,27 +263,29 @@ class Anfis():
             print('\n\nTraining for data \nINPUT:\n{}\nOUTPUT:\n{}\n'.format(
                 array(feature), array(expected)
             ))
+            print('\nEXPECTED PREDICTION: ' + str(sum(expected)))
             print('=' * 150)
             epoch = 0
             converged = False
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                errors = [(target - output) ** 2 for (target, output) in zip(
-                    expected, l4)]
-                error = sum(errors)
+                error = 0
+                for (target, output) in zip(expected, l4):
+                    error += target - output
+                error = error ** 2
                 print(
-                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error)
+                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
+                    end=''
                 )
                 converged = error <= errTolerance
                 if not converged:
                     self.backward_pass(expected, feature, l2, l4)
                 epoch += 1
                 errors.append(error)
-            print()
+                print()
             l2, l4 = self.forward_pass(feature, expected)
-            prediction = 10  # sum(l4)
+            prediction = sum(l4)
             if converged:
                 print('Convergence occurred at epoch {}'.format(epoch))
-            else:
-                print('Final predition was {} with {} of error!'.format(
-                    prediction, errors[-1]))
+            print('Final predition was {} with {} of error!'.format(
+                prediction, errors[-1]))

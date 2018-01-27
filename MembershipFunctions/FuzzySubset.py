@@ -35,3 +35,13 @@ class FuzzySubset():
                 self.labels[i].membership_degree(value, self.params[i])
             )
         return mem_degree
+
+    def derivs_at(self, value):
+        derivs = []
+        for i in range(len(self.labels)):
+            tmp = [
+                self.labels[i].derivative_at(value, var, self.params[i])
+                for var in ['a', 'b', 'c']
+            ]
+            derivs.append(tmp)
+        return derivs

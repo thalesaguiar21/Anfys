@@ -28,7 +28,7 @@ class LinguisticLabel:
         """
         raise NotImplementedError()
 
-    def derivative_at(self, value, var):
+    def derivative_at(self, value, var, params):
         """ Calculate the derivative of this function at the given point.
 
         Parameters

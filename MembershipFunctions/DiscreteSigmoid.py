@@ -30,7 +30,7 @@ class DiscreteSigmoid(LinguisticLabel):
 
         return memDegree
 
-    def derivative_at(self, value, var):
+    def derivative_at(self, value, var, params):
         """ Computes the derivative with respect to one of the params, for this
         function at the given value.
 

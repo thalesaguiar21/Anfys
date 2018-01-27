@@ -13,27 +13,25 @@ class GaussianTwo(LinguisticLabel):
         """
         LinguisticLabel.__init__(self)
         self.name = 'Gaussian Linguistic Label'
-        self.params = []
 
     def membership_degree(self, value, premiseParams):
         """ Compute the membership degree for the following bellshaped function:
         B(x) = exp(((x - c) / a)^2)
         """
-        self.params = premiseParams
         p = - ((value - premiseParams[2]) / premiseParams[0]) ** 2
         return exp(p)
 
-    def derivative_at(self, value, var):
+    def derivative_at(self, value, var, params):
         result = 0
         denom = 1.0
-        k = (value - self.params[2]) ** 2 / self.params[0] ** 2
-        result = 2 * (value - self.params[2]) * exp(-k)
+        k = (value - params[2]) ** 2 / params[0] ** 2
+        result = 2 * (value - params[2]) * exp(-k)
         if var == 'a':
-            denom = self.params[0] ** 3
+            denom = params[0] ** 3
         elif var == 'b':
             result = 0
         elif var == 'c':
-            denom = self.params[0] ** 2
+            denom = params[0] ** 2
         else:
             print err['INVALID_DERIV_ARG'].format(var)
         return result / denom
