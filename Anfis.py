@@ -4,6 +4,7 @@ from SpeechUtils import lse
 from numpy import array
 from math import sqrt
 from itertools import product
+import pdb
 
 
 class Anfis():
@@ -27,7 +28,7 @@ class Anfis():
             The fourth layer, or the consequent membership functions
         """
         self.__numOfLabels = len(pre[0].labels)
-        self.__numOfRules = len(pre) ** self.__numOfLabels
+        self.__numOfRules = self.__numOfLabels ** len(pre)
         self.__rules = []
         self.cons_params = [[0] * 2 for i in range(self.__numOfRules)]
         self.precedents = pre
@@ -35,9 +36,46 @@ class Anfis():
         self.__create_rules()
 
     def __create_rules(self):
-        label_set = [i for i in range(self.__numOfLabels)]
+        """ Compute the cartesian product of the precedents and initialize
+        the __rules attribute.
+        """
+        label_set = range(self.__numOfLabels)
         labels_sets = [label_set for i in range(len(self.precedents))]
-        self.__rules = product(*labels_sets)
+        self.__rules = [rule for rule in product(*labels_sets)]
+
+    def __min_output(self, precOutput):
+        """ Computes the output of the Layer Two using the min of the inputs
+
+        Parameters
+        ----------
+        precOutput : list of double
+            The output from the previous layer
+        """
+        outputs = []
+        for rule in self.__rules:
+            minimum = precOutput[0][rule[0]]
+            for (mem_outs, label) in zip(range(len(precOutput)), rule):
+                if minimum > precOutput[mem_outs][label]:
+                    minimum = precOutput[mem_outs][label]
+            outputs.append(minimum)
+        return outputs
+
+    def __product_output(self, precOutput):
+        """ Computes the output of the Layer Two using the product of the
+        inputs.
+
+        Parameters
+        ----------
+        precOutput : list of double
+            The output from the previous layer
+        """
+        outputs = []
+        for rule in self.__rules:
+            prod = 1.0
+            for (mem_outs, label) in zip(range(len(precOutput)), rule):
+                prod *= precOutput[mem_outs][label]
+            outputs.append(prod)
+        return outputs
 
     def forward_pass(self, inputs, expected):
         """ This will feed the network with the given inputs, that is, will
@@ -60,9 +98,9 @@ class Anfis():
             normalized value of each rule's firing strength.
         """
         print('Initiating forward pass...')
-        precOutput = []
 
         # Layer 1
+        precOutput = []
         for (fuzz, entry) in zip(self.precedents, inputs):
             precOutput.append(fuzz.evaluate(entry))
         log_print('Layer 1 output')
@@ -71,17 +109,7 @@ class Anfis():
         log_print('=' * 100)
 
         # Layer 2 input -> output
-        layerTwo = []
-        for rule in self.__rules:
-            prod = 1.0
-            for (mem_outs, label) in zip(range(len(precOutput)), rule):
-                prod *= precOutput[mem_outs][label]
-            layerTwo.append(prod)
-
-        # layerTwo = [1.0 for i in range(self.__numOfLabels)]
-        # for i in range(self.__numOfLabels):
-        #     for prec in precOutput:
-        #         layerTwo[i] *= prec[i]
+        layerTwo = self.__min_output(precOutput)
         log_print('Layer 2 output')
         log_print('-' * len('Layer 1 output'))
         log_print(array(layerTwo))
@@ -96,13 +124,11 @@ class Anfis():
         log_print(array(layerThree))
         log_print('=' * 100)
 
-        # print('Before update:\n' + str(array(self.cons_params)))
-
         self.update_consequents(layerTwo, layerThree, expected)
 
         # Layer 4 input -> output
         layerFour = []
-        for i in range(self.__numOfLabels):
+        for i in range(self.__numOfRules):
             fi = self.consequents[i].membership_degree(
                 layerTwo[i],
                 self.cons_params[i]
@@ -140,11 +166,7 @@ class Anfis():
         coefMatrix = []
         coefMatrix.append(coef_line)
 
-        # pdb.set_trace()
-        print('Coefficient matrix dim: ' + str(len(coefMatrix)))
-
-        self.cons_params = lse(coefMatrix, [sum(expected)], lamb=lamb)
-        # pdb.set_trace()
+        self.cons_params = lse(coefMatrix, [[sum(expected)]], lamb=lamb)
         self.cons_params = [
             self.cons_params[v, 0] for v in range(2 * self.__numOfRules)
         ]
@@ -153,6 +175,20 @@ class Anfis():
         for i in range(len(self.cons_params)):
             total += self.cons_params[i] * coefMatrix[0][i]
         print('LSE approximation result: ' + str(total))
+        if sum(expected) - total > 3:
+            print(
+                'LSE ERROR! Expected {} and got {}'.format(
+                    sum(expected), total)
+            )
+            print('Layer3:')
+            print(array(layer3))
+            print('Layer 2:')
+            print(array(layer2))
+            print('consequent parameters:')
+            print(array(self.cons_params))
+            print('coefficient matrix:')
+            print(array(coefMatrix))
+            raise Exception
 
         tmp_params = []
         for i in range(0, 2 * self.__numOfRules, 2):
@@ -172,8 +208,8 @@ class Anfis():
             The expected values for the output layer
         inputs : list of double
             The input feeded to neural network
-        layerFour : list of double
-            The output vector of layer four
+        layer4Input : list of double
+            The input vector for layer four
         target : list of double
             A target output vector
 
@@ -187,19 +223,19 @@ class Anfis():
         dE_dO = []
         for i in range(self.__numOfLabels):
             dE_dO.append(-2 * (expected[i] - layerFour[i]))
-        # print('dE_dO: \n' + str(array(dE_dO)))
+        print('dE_dO: \n' + str(array(dE_dO)))
 
         dO_dW = []
         for (consequent, entry) in zip(self.consequents, l4Input):
             dO_dW.append(consequent.derivative_at(entry, 'lamb', []))
-        # print('dO_dW: \n' + str(array(dE_dO)))
+        print('dO_dW: \n' + str(array(dE_dO)))
 
         # Computing the derivative of each label
         dW_dAlpha = []
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
             dW_dAlpha.append(precFuzzySet.derivs_at(inp))
         dW_dAlpha = array(dW_dAlpha)
-        # print('dW_dAlpha: \n' + str(array(dE_dO)))
+        print('dW_dAlpha: \n' + str(array(dE_dO)))
 
         dE_dAlpha = []
         for fuzzDerivs in dW_dAlpha:
@@ -214,8 +250,11 @@ class Anfis():
         for fuzzDerivs in dE_dAlpha:
             grad_sum += sum(sum(array(fuzzDerivs)))
 
-        k = 0.1
+        k = 0.01
         eta = k / sqrt(grad_sum ** 2)
+        if eta < 0:
+            print('Negative eta! ' + str(eta))
+            raise Exception
 
         for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
             for i in range(len(deriv)):
@@ -237,7 +276,7 @@ class Anfis():
             A small number for the desired error tolerance
         traningData : duple
         """
-        # errors = []
+        errors = []
         for (feature, expected) in trainingData:
             print('\n\nTraining for data \nINPUT:\n{}\nOUTPUT:\n{}\n'.format(
                 array(feature), array(expected)
@@ -248,23 +287,23 @@ class Anfis():
             converged = False
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
-                # error = 0
-                # for (target, output) in zip(expected, l4):
-                #     error += target - output
-                # error = error ** 2
-                # print(
-                #     'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
-                #     end=''
-                # )
-                # converged = error <= errTolerance
-                # # if not converged:
-                # #     self.backward_pass(expected, feature, l2, l4)
-                # epoch += 1
-                # errors.append(error)
+                error = 0
+                for (target, output) in zip(expected, l4):
+                    error += target - output
+                error = error ** 2
+                print(
+                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
+                    end=''
+                )
+                converged = error <= errTolerance
+                if not converged:
+                    self.backward_pass(expected, feature, l2, l4)
+                epoch += 1
+                errors.append(error)
                 print()
-            # l2, l4 = self.forward_pass(feature, expected)
-            # prediction = sum(l4)
-            # if converged:
-            #     print('Convergence occurred at epoch {}'.format(epoch))
-            # print('Final predition was {} with {} of error!'.format(
-            #     prediction, errors[-1]))
+            l2, l4 = self.forward_pass(feature, expected)
+            prediction = sum(l4)
+            if converged:
+                print('Convergence occurred at epoch {}'.format(epoch))
+            print('Final predition was {} with {} of error!'.format(
+                prediction, errors[-1]))
