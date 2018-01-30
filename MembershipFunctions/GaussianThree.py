@@ -28,28 +28,24 @@ class GaussianThree(LinguisticLabel):
         return 1 / denom
 
     def derivative_at(self, value, var, params):
-        # pdb.set_trace()
         result = 0
-        if abs(params[0]) <= 1e-25:
-            print 'ERROR! Param too small! A = ' + str(params[0])
         if value - params[2] == 0:
+            print 'Value is euqal to a param!'
             value += 1e-10
+            raise Exception
+
         k = (value - params[2]) ** 2 / params[0] ** 2
         if var == 'a':
             result = 2 * params[1] * (value - params[2]) ** 2
             result *= k ** (params[1] - 1)
-            # pdb.set_trace()
-            # print('Result:\t' + str(result))
-            # print('Params:\t' + str(params))
-            # print('K:\t' + str(k))
-            result /= params[0] ** 3 * (k ** params[1] + 1) ** 2
+            result /= params[0] ** 3 * ((k ** params[1]) + 1) ** 2
         elif var == 'b':
             result = (k ** params[1]) * log(k)
             result *= 1 / (k ** params[1] + 1) ** 2
         elif var == 'c':
             result = 2 * params[1] * (value - params[2])
             result *= k ** (params[1] - 1)
-            result /= params[0] ** 2 * (k ** params[1] + 1) ** 2
+            result /= params[0] ** 2 * ((k ** params[1]) + 1) ** 2
         else:
             print err['INVALID_DERIV_ARG'].format(var)
         return result
