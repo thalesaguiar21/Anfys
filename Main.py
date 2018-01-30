@@ -36,8 +36,8 @@ precedents = [
 ]
 
 consequents = [
-    Logit() for i in range(LABELS)
+    Logit() for i in range(LABELS ** INPUT_SIZE)
 ]
 
 anfis = Anfis(precedents, consequents)
-anfis.train_by_hybrid_online(5, 1e-8, data[:1])
+anfis.train_by_hybrid_online(10000, 1e-8, data[:1])
