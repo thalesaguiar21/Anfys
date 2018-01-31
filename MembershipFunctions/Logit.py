@@ -9,12 +9,10 @@ class Logit(LinguisticLabel):
         LinguisticLabel.__init__(self)
         self.__low = 1e-15
         self.__high = 0.99999
-        self.__deriv = 0
 
     def membership_degree(self, value, params):
         memDegree = 0
         a = (params[1] - params[0]) / (self.__high - self.__low)
-        self.__deriv = a
         if value <= self.__low:
             memDegree = params[0]
         elif self.__low < value and self.__high > value:
@@ -24,4 +22,4 @@ class Logit(LinguisticLabel):
         return memDegree
 
     def derivative_at(self, value, var, params):
-        return self.__deriv
+        return (params[1] - params[0]) / (self.__high - self.__low)
