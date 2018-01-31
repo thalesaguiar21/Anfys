@@ -1,4 +1,3 @@
-import pdb
 from MembershipFunctions.LinguisticLabel import LinguisticLabel
 from math import log
 from Errors import err
@@ -14,7 +13,6 @@ class GaussianThree(LinguisticLabel):
         """
         LinguisticLabel.__init__(self)
         self.name = name
-        self.params = []
 
     def membership_degree(self, value, premiseParams):
         """ Computes the Probability Density Function for a given value. This

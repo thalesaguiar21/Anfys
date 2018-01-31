@@ -4,7 +4,6 @@ from SpeechUtils import lse
 from numpy import array
 from math import sqrt
 from itertools import product
-import pdb
 
 
 class Anfis():
@@ -15,7 +14,6 @@ class Anfis():
     Inference system follows the basic IF-THEN rule system from Takagi and
     Sugeno.
     """
-    __MIN_SIZE = 2
 
     def __init__(self, pre, consequents):
         """ This method initialize a new instance of an ANFIS.
@@ -27,7 +25,7 @@ class Anfis():
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
         """
-        self.__numOfLabels = len(pre[0].labels)
+        self.__numOfLabels = pre[0]._num_of_labels
         self.__numOfRules = self.__numOfLabels ** len(pre)
         self.__rules = []
         self.cons_params = [[0] * 2 for i in range(self.__numOfRules)]
@@ -175,20 +173,20 @@ class Anfis():
         for i in range(len(self.cons_params)):
             total += self.cons_params[i] * coefMatrix[0][i]
         print('LSE approximation result: ' + str(total))
-        if sum(expected) - total > 3:
-            print(
-                'LSE ERROR! Expected {} and got {}'.format(
-                    sum(expected), total)
-            )
-            print('Layer3:')
-            print(array(layer3))
-            print('Layer 2:')
-            print(array(layer2))
-            print('consequent parameters:')
-            print(array(self.cons_params))
-            print('coefficient matrix:')
-            print(array(coefMatrix))
-            raise Exception
+        # if sum(expected) - total > 3:
+        #     print(
+        #         'LSE ERROR! Expected {} and got {}'.format(
+        #             sum(expected), total)
+        #     )
+        #     print('Layer3:')
+        #     print(array(layer3))
+        #     print('Layer 2:')
+        #     print(array(layer2))
+        #     print('consequent parameters:')
+        #     print(array(self.cons_params))
+        #     print('coefficient matrix:')
+        #     print(array(coefMatrix))
+        #     raise Exception
 
         tmp_params = []
         for i in range(0, 2 * self.__numOfRules, 2):
@@ -197,7 +195,7 @@ class Anfis():
             )
         self.cons_params = tmp_params
 
-    def backward_pass(self, expected, inputs, l4Input, layerFour):
+    def backward_pass(self, expected, inputs, l4Input, layerFour, step=0.01):
         """ Implements the backward pass of the neural network. In this case,
         the backward pass for an ANFIS consider that the consequent parameters
         are optimal, and therefore they are fixed in this stage.
@@ -221,21 +219,22 @@ class Anfis():
         print('Initializing backward pass...')
 
         dE_dO = []
-        for i in range(self.__numOfLabels):
+        for i in range(self.__numOfRules):
             dE_dO.append(-2 * (expected[i] - layerFour[i]))
         print('dE_dO: \n' + str(array(dE_dO)))
 
         dO_dW = []
-        for (consequent, entry) in zip(self.consequents, l4Input):
-            dO_dW.append(consequent.derivative_at(entry, 'lamb', []))
-        print('dO_dW: \n' + str(array(dE_dO)))
+        for i in range(self.__numOfRules):
+            dO_dW.append(self.consequents[i].derivative_at(
+                l4Input[i], '', self.cons_params[i])
+            )
 
         # Computing the derivative of each label
         dW_dAlpha = []
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
             dW_dAlpha.append(precFuzzySet.derivs_at(inp))
         dW_dAlpha = array(dW_dAlpha)
-        print('dW_dAlpha: \n' + str(array(dE_dO)))
+        # print('dW_dAlpha: \n' + str(array(dE_dO)))
 
         dE_dAlpha = []
         for fuzzDerivs in dW_dAlpha:
@@ -245,16 +244,15 @@ class Anfis():
                     dE_dO[i] * dO_dW[i] * fuzzDerivs[i][k] for k in range(3)
                 ])
             dE_dAlpha.append(tmp)
+        # print('dE_dAlpha')
+        # print(array(dE_dAlpha))
 
         grad_sum = 0
         for fuzzDerivs in dE_dAlpha:
             grad_sum += sum(sum(array(fuzzDerivs)))
 
-        k = 0.01
-        eta = k / sqrt(grad_sum ** 2)
-        if eta < 0:
-            print('Negative eta! ' + str(eta))
-            raise Exception
+        eta = step / sqrt(grad_sum ** 2)
+        # print('ETA: ' + str(eta))
 
         for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
             for i in range(len(deriv)):
@@ -285,12 +283,22 @@ class Anfis():
             print('=' * 150)
             epoch = 0
             converged = False
+            step = 1
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
                 error = 0
                 for (target, output) in zip(expected, l4):
                     error += target - output
                 error = error ** 2
+                errors.append(error)
+
+                # Heuristic increase of setp size
+                if len(errors) > 3:
+                    if errors[-1] < errors[-2] and errors[-2] < errors[-3]:
+                        step = step * 1.1
+                    else:
+                        step = step * 0.9
+
                 print(
                     'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
                     end=''
@@ -299,7 +307,6 @@ class Anfis():
                 if not converged:
                     self.backward_pass(expected, feature, l2, l4)
                 epoch += 1
-                errors.append(error)
                 print()
             l2, l4 = self.forward_pass(feature, expected)
             prediction = sum(l4)
@@ -307,3 +314,7 @@ class Anfis():
                 print('Convergence occurred at epoch {}'.format(epoch))
             print('Final predition was {} with {} of error!'.format(
                 prediction, errors[-1]))
+            print('Outpus from layer four: ')
+            print(l4)
+            print('Expected: ')
+            print(expected)

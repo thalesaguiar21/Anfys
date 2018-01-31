@@ -2,7 +2,7 @@ class LinguisticLabel:
     """This class represents a Linguistic Label for a Fuzzy Subset."""
 
     def __init__(self):
-        """Does nothing"""
+        """ Create an linguistic label, or a membership function """
         self.name = 'Linguistic Label Subset'
 
     def membership_degree(self, value, params):

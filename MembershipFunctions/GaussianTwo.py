@@ -6,19 +6,19 @@ from math import exp
 class GaussianTwo(LinguisticLabel):
     """This class implements a Gaussian Density Distribu Fuzzy Subset"""
 
-    def __init__(self):
+    def __init__(self, name='Gaussian Two Label'):
         """ Initializes a new Gaussian Fuzzy Subset with corresponding
         membership function as a Normal Distribution over the parameters
         given in initialization.
         """
         LinguisticLabel.__init__(self)
-        self.name = 'Gaussian Linguistic Label'
+        self.name = name
 
-    def membership_degree(self, value, premiseParams):
+    def membership_degree(self, value, params):
         """ Compute the membership degree for the following bellshaped function:
         B(x) = exp(((x - c) / a)^2)
         """
-        p = - ((value - premiseParams[2]) / premiseParams[0]) ** 2
+        p = - ((value - params[2]) / params[0]) ** 2
         return exp(p)
 
     def derivative_at(self, value, var, params):

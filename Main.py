@@ -30,8 +30,9 @@ if data[-1] == ([], []):
 
 precedents = [
     FuzzySubset(
-        [GaussianThree() for i in range(LABELS)],
-        [[random() * 5 for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)]
+        LABELS,
+        [[random() for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)],
+        GaussianThree()
     ) for i in range(INPUT_SIZE)
 ]
 
@@ -40,4 +41,4 @@ consequents = [
 ]
 
 anfis = Anfis(precedents, consequents)
-anfis.train_by_hybrid_online(10000, 1e-8, data[:1])
+anfis.train_by_hybrid_online(1000, 1e-8, data[:1])
