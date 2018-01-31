@@ -18,17 +18,17 @@ class DiscreteSigmoid(LinguisticLabel):
         """ Computes the memebership degree of the given value for an
         discrete sigmoid function, described by two parameters.
         """
-        memDegree = 0
+        mem_degree = 0
         if value <= params[0]:
-            memDegree = 0.001
+            mem_degree = 0.001
         elif params[0] < value and params[1] > value:
             a = 0.999 / params[1] - params[0]
             b = 0.001 - a * value
-            memDegree = a * value + b
+            mem_degree = a * value + b
         else:
-            memDegree = 1.0
+            mem_degree = 1.0
 
-        return memDegree
+        return mem_degree
 
     def derivative_at(self, value, var, params):
         """ Computes the derivative with respect to one of the params, for this

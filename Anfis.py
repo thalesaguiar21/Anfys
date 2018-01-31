@@ -25,10 +25,10 @@ class Anfis():
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
         """
-        self.__numOfLabels = pre[0]._num_of_labels
-        self.__numOfRules = self.__numOfLabels ** len(pre)
+        self.__num_of_labels = pre[0]._num_of_labels
+        self.__num_of_rules = self.__num_of_labels ** len(pre)
         self.__rules = []
-        self.cons_params = [[0] * 2 for i in range(self.__numOfRules)]
+        self.cons_params = [[0] * 2 for i in range(self.__num_of_rules)]
         self.precedents = pre
         self.consequents = consequents
         self.__create_rules()
@@ -37,41 +37,41 @@ class Anfis():
         """ Compute the cartesian product of the precedents and initialize
         the __rules attribute.
         """
-        label_set = range(self.__numOfLabels)
+        label_set = range(self.__num_of_labels)
         labels_sets = [label_set for i in range(len(self.precedents))]
         self.__rules = [rule for rule in product(*labels_sets)]
 
-    def __min_output(self, precOutput):
+    def __min_output(self, prec_output):
         """ Computes the output of the Layer Two using the min of the inputs
 
         Parameters
         ----------
-        precOutput : list of double
+        prec_output : list of double
             The output from the previous layer
         """
         outputs = []
         for rule in self.__rules:
-            minimum = precOutput[0][rule[0]]
-            for (mem_outs, label) in zip(range(len(precOutput)), rule):
-                if minimum > precOutput[mem_outs][label]:
-                    minimum = precOutput[mem_outs][label]
+            minimum = prec_output[0][rule[0]]
+            for (mem_outs, label) in zip(range(len(prec_output)), rule):
+                if minimum > prec_output[mem_outs][label]:
+                    minimum = prec_output[mem_outs][label]
             outputs.append(minimum)
         return outputs
 
-    def __product_output(self, precOutput):
+    def __product_output(self, prec_output):
         """ Computes the output of the Layer Two using the product of the
         inputs.
 
         Parameters
         ----------
-        precOutput : list of double
+        prec_output : list of double
             The output from the previous layer
         """
         outputs = []
         for rule in self.__rules:
             prod = 1.0
-            for (mem_outs, label) in zip(range(len(precOutput)), rule):
-                prod *= precOutput[mem_outs][label]
+            for (mem_outs, label) in zip(range(len(prec_output)), rule):
+                prod *= prec_output[mem_outs][label]
             outputs.append(prod)
         return outputs
 
@@ -88,9 +88,9 @@ class Anfis():
 
         Returns
         -------
-        layerTwo : list of double
+        layer_two : list of double
             The outputs from the second layer, using product
-        layerFour : list of double
+        layer_four : list of double
             The output of the layer four, that is, each element is an the crisp
             value of a consequent membership function multiplied by the
             normalized value of each rule's firing strength.
@@ -98,46 +98,46 @@ class Anfis():
         print('Initiating forward pass...')
 
         # Layer 1
-        precOutput = []
+        prec_output = []
         for (fuzz, entry) in zip(self.precedents, inputs):
-            precOutput.append(fuzz.evaluate(entry))
+            prec_output.append(fuzz.evaluate(entry))
         log_print('Layer 1 output')
         log_print('-' * len('Layer 1 output'))
-        log_print(array(precOutput))
+        log_print(array(prec_output))
         log_print('=' * 100)
 
         # Layer 2 input -> output
-        layerTwo = self.__min_output(precOutput)
+        layer_two = self.__min_output(prec_output)
         log_print('Layer 2 output')
         log_print('-' * len('Layer 1 output'))
-        log_print(array(layerTwo))
+        log_print(array(layer_two))
         log_print('=' * 100)
 
         # Layer 3 input -> output
-        l2_Sum = sum(layerTwo)
-        layerThree = [float(x) / l2_Sum for x in layerTwo]
+        l2_Sum = sum(layer_two)
+        layerThree = [float(x) / l2_Sum for x in layer_two]
         log_print('Layer 3 output')
         log_print('-' * len('Layer 1 output'))
         log_print('Sum of layer 2 = ' + str(l2_Sum) + '\n')
         log_print(array(layerThree))
         log_print('=' * 100)
 
-        self.update_consequents(layerTwo, layerThree, expected)
+        self.update_consequents(layer_two, layerThree, expected)
 
         # Layer 4 input -> output
-        layerFour = []
-        for i in range(self.__numOfRules):
+        layer_four = []
+        for i in range(self.__num_of_rules):
             fi = self.consequents[i].membership_degree(
-                layerTwo[i],
+                layer_two[i],
                 self.cons_params[i]
             )
-            layerFour.append(fi * layerThree[i])
+            layer_four.append(fi * layerThree[i])
         log_print('\nLayer 4 output')
         log_print('-' * len('Layer 1 output'))
-        log_print(array(layerFour))
+        log_print(array(layer_four))
         log_print('=' * 100)
         print('End of forward pass!')
-        return layerTwo, layerFour
+        return layer_two, layer_four
 
     def update_consequents(self, layer2, layer3, expected, lamb=0.9):
         """ Update the consequent parameters with a Least Square Estimation
@@ -157,21 +157,21 @@ class Anfis():
         print('Updating consequent parameters...')
 
         coef_line = []
-        for i in range(self.__numOfRules):
+        for i in range(self.__num_of_rules):
             ki = (layer3[i] * layer2[i])
             coef_line.append(ki)
             coef_line.append(-ki)
-        coefMatrix = []
-        coefMatrix.append(coef_line)
+        coef_matrix = []
+        coef_matrix.append(coef_line)
 
-        self.cons_params = lse(coefMatrix, [[sum(expected)]], lamb=lamb)
+        self.cons_params = lse(coef_matrix, [[sum(expected)]], lamb=lamb)
         self.cons_params = [
-            self.cons_params[v, 0] for v in range(2 * self.__numOfRules)
+            self.cons_params[v, 0] for v in range(2 * self.__num_of_rules)
         ]
 
         total = 0
         for i in range(len(self.cons_params)):
-            total += self.cons_params[i] * coefMatrix[0][i]
+            total += self.cons_params[i] * coef_matrix[0][i]
         print('LSE approximation result: ' + str(total))
         # if sum(expected) - total > 3:
         #     print(
@@ -185,17 +185,17 @@ class Anfis():
         #     print('consequent parameters:')
         #     print(array(self.cons_params))
         #     print('coefficient matrix:')
-        #     print(array(coefMatrix))
+        #     print(array(coef_matrix))
         #     raise Exception
 
         tmp_params = []
-        for i in range(0, 2 * self.__numOfRules, 2):
+        for i in range(0, 2 * self.__num_of_rules, 2):
             tmp_params.append(
                 [self.cons_params[i], self.cons_params[i + 1]]
             )
         self.cons_params = tmp_params
 
-    def backward_pass(self, expected, inputs, l4Input, layerFour, step=0.01):
+    def backward_pass(self, expected, inputs, l4_input, l4_output, step=0.01):
         """ Implements the backward pass of the neural network. In this case,
         the backward pass for an ANFIS consider that the consequent parameters
         are optimal, and therefore they are fixed in this stage.
@@ -206,27 +206,22 @@ class Anfis():
             The expected values for the output layer
         inputs : list of double
             The input feeded to neural network
-        layer4Input : list of double
+        l4_input : list of double
             The input vector for layer four
-        target : list of double
-            A target output vector
-
-        Returns
-        -------
-        error : double
-            A double value of the data loss (error) for this epoch
+        step : double
+            An small double value representing the step size of the gradient.
         """
         print('Initializing backward pass...')
 
         dE_dO = []
-        for i in range(self.__numOfRules):
-            dE_dO.append(-2 * (expected[i] - layerFour[i]))
-        print('dE_dO: \n' + str(array(dE_dO)))
+        for i in range(self.__num_of_rules):
+            dE_dO.append(-2 * (expected[i] - l4_output[i]))
+        # print('dE_dO: \n' + str(array(dE_dO)))
 
         dO_dW = []
-        for i in range(self.__numOfRules):
+        for i in range(self.__num_of_rules):
             dO_dW.append(self.consequents[i].derivative_at(
-                l4Input[i], '', self.cons_params[i])
+                l4_input[i], '', self.cons_params[i])
             )
 
         # Computing the derivative of each label
@@ -239,7 +234,7 @@ class Anfis():
         dE_dAlpha = []
         for fuzzDerivs in dW_dAlpha:
             tmp = []
-            for i in range(self.__numOfLabels):
+            for i in range(self.__num_of_labels):
                 tmp.append([
                     dE_dO[i] * dO_dW[i] * fuzzDerivs[i][k] for k in range(3)
                 ])
@@ -292,7 +287,7 @@ class Anfis():
                 error = error ** 2
                 errors.append(error)
 
-                # Heuristic increase of setp size
+                # Heuristic increase of step size
                 if len(errors) > 3:
                     if errors[-1] < errors[-2] and errors[-2] < errors[-3]:
                         step = step * 1.1

@@ -14,15 +14,15 @@ class GaussianThree(LinguisticLabel):
         LinguisticLabel.__init__(self)
         self.name = name
 
-    def membership_degree(self, value, premiseParams):
+    def membership_degree(self, value, premise_params):
         """ Computes the Probability Density Function for a given value. This
         method also shifts the function to the specified values in the object
         construction.
         (1 / (1 + ((x-ci)/ai)^2)^bi)
         """
         denom = 1 + ((
-            (value - premiseParams[2]) /
-            premiseParams[0]) ** 2) ** premiseParams[1]
+            (value - premise_params[2]) /
+            premise_params[0]) ** 2) ** premise_params[1]
         return 1 / denom
 
     def derivative_at(self, value, var, params):
