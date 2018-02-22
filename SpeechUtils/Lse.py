@@ -2,7 +2,7 @@ from numpy import eye, dot, array, zeros
 initial_gamma = 10. ** 10
 
 
-def online_lse(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
+def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
     """ Computes the Least Square Estimation for the matrices AX = B
 
     Parameters

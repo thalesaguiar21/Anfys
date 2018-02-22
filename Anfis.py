@@ -1,6 +1,6 @@
 from __future__ import print_function
 from Errors import Debugger
-from SpeechUtils import lse
+from SpeechUtils import lse, lse_online
 from numpy import array
 from math import sqrt
 from itertools import product
@@ -26,7 +26,7 @@ class Anfis():
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
         """
-        self.debugger = Debugger(False)
+        self.__debugger = Debugger(False)
         self.__num_of_labels = pre[0]._num_of_labels
         self.__num_of_rules = self.__num_of_labels ** len(pre)
         self.__rules = []
@@ -103,16 +103,16 @@ class Anfis():
         prec_output = []
         for (fuzz, entry) in zip(self.precedents, inputs):
             prec_output.append(fuzz.evaluate(entry))
-        self.debugger.print(layer_output_msg(prec_output, 1))
+        self.__debugger.print(layer_output_msg(prec_output, 1))
 
         # Layer 2 input -> output
         layer_two = self.__min_output(prec_output)
-        self.debugger.print(layer_output_msg(layer_two, 2))
+        self.__debugger.print(layer_output_msg(layer_two, 2))
 
         # Layer 3 input -> output
         l2_Sum = sum(layer_two)
         layer_three = [float(x) / l2_Sum for x in layer_two]
-        self.debugger.print(layer_output_msg(layer_three, 3))
+        self.__debugger.print(layer_output_msg(layer_three, 3))
 
         self.update_consequents(layer_two, layer_three, expected)
 
@@ -124,7 +124,7 @@ class Anfis():
                 self.cons_params[i]
             )
             layer_four.append(fi * layer_three[i])
-        self.debugger.print(layer_output_msg(layer_four, 4))
+        self.__debugger.print(layer_output_msg(layer_four, 4))
         print('End of forward pass!')
         return layer_two, layer_four
 
@@ -153,7 +153,7 @@ class Anfis():
         coef_matrix = []
         coef_matrix.append(coef_line)
 
-        self.cons_params = lse(coef_matrix, [[sum(expected)]], lamb=lamb)
+        self.cons_params = lse_online(coef_matrix, [[sum(expected)]], lamb)
         self.cons_params = [
             self.cons_params[v, 0] for v in range(2 * self.__num_of_rules)
         ]
@@ -255,7 +255,7 @@ class Anfis():
         """
         errors = []
         for (feature, expected) in trainingData:
-            self.debugger.print(begin_training_msg(feature, expected))
+            self.__debugger.print(begin_training_msg(feature, expected))
             epoch = 0
             converged = False
             step = 1
@@ -274,7 +274,7 @@ class Anfis():
                     else:
                         step = step * 0.9
 
-                self.debugger.print(epoch_error_msg(epoch + 1, error), False)
+                self.__debugger.print(epoch_error_msg(epoch + 1, error), False)
 
                 converged = error <= errTolerance
                 if not converged:
@@ -290,4 +290,4 @@ class Anfis():
             print(l4)
 
     def setDebug(self, debug):
-        debugger.debug = True
+        self.__debugger.debug = debug
