@@ -1,9 +1,10 @@
 from __future__ import print_function
-from Errors import log_print
+from Errors import Debugger
 from SpeechUtils import lse
 from numpy import array
 from math import sqrt
 from itertools import product
+from SpeechUtils.Interface import *
 
 
 class Anfis():
@@ -25,6 +26,7 @@ class Anfis():
         consequents : list of LinguisticLabel
             The fourth layer, or the consequent membership functions
         """
+        self.debugger = Debugger(False)
         self.__num_of_labels = pre[0]._num_of_labels
         self.__num_of_rules = self.__num_of_labels ** len(pre)
         self.__rules = []
@@ -101,28 +103,18 @@ class Anfis():
         prec_output = []
         for (fuzz, entry) in zip(self.precedents, inputs):
             prec_output.append(fuzz.evaluate(entry))
-        log_print('Layer 1 output')
-        log_print('-' * len('Layer 1 output'))
-        log_print(array(prec_output))
-        log_print('=' * 100)
+        self.debugger.print(layer_output_msg(prec_output, 1))
 
         # Layer 2 input -> output
         layer_two = self.__min_output(prec_output)
-        log_print('Layer 2 output')
-        log_print('-' * len('Layer 1 output'))
-        log_print(array(layer_two))
-        log_print('=' * 100)
+        self.debugger.print(layer_output_msg(layer_two, 2))
 
         # Layer 3 input -> output
         l2_Sum = sum(layer_two)
-        layerThree = [float(x) / l2_Sum for x in layer_two]
-        log_print('Layer 3 output')
-        log_print('-' * len('Layer 1 output'))
-        log_print('Sum of layer 2 = ' + str(l2_Sum) + '\n')
-        log_print(array(layerThree))
-        log_print('=' * 100)
+        layer_three = [float(x) / l2_Sum for x in layer_two]
+        self.debugger.print(layer_output_msg(layer_three, 3))
 
-        self.update_consequents(layer_two, layerThree, expected)
+        self.update_consequents(layer_two, layer_three, expected)
 
         # Layer 4 input -> output
         layer_four = []
@@ -131,11 +123,8 @@ class Anfis():
                 layer_two[i],
                 self.cons_params[i]
             )
-            layer_four.append(fi * layerThree[i])
-        log_print('\nLayer 4 output')
-        log_print('-' * len('Layer 1 output'))
-        log_print(array(layer_four))
-        log_print('=' * 100)
+            layer_four.append(fi * layer_three[i])
+        self.debugger.print(layer_output_msg(layer_four, 4))
         print('End of forward pass!')
         return layer_two, layer_four
 
@@ -173,20 +162,20 @@ class Anfis():
         for i in range(len(self.cons_params)):
             total += self.cons_params[i] * coef_matrix[0][i]
         print('LSE approximation result: ' + str(total))
-        # if sum(expected) - total > 3:
-        #     print(
-        #         'LSE ERROR! Expected {} and got {}'.format(
-        #             sum(expected), total)
-        #     )
-        #     print('Layer3:')
-        #     print(array(layer3))
-        #     print('Layer 2:')
-        #     print(array(layer2))
-        #     print('consequent parameters:')
-        #     print(array(self.cons_params))
-        #     print('coefficient matrix:')
-        #     print(array(coef_matrix))
-        #     raise Exception
+        if sum(expected) - total > 3:
+            print(
+                'LSE ERROR! Expected {} and got {}'.format(
+                    sum(expected), total)
+            )
+            print('Layer3:')
+            print(array(layer3))
+            print('Layer 2:')
+            print(array(layer2))
+            print('consequent parameters:')
+            print(array(self.cons_params))
+            print('coefficient matrix:')
+            print(array(coef_matrix))
+            raise Exception
 
         tmp_params = []
         for i in range(0, 2 * self.__num_of_rules, 2):
@@ -216,7 +205,6 @@ class Anfis():
         dE_dO = []
         for i in range(self.__num_of_rules):
             dE_dO.append(-2 * (expected[i] - l4_output[i]))
-        # print('dE_dO: \n' + str(array(dE_dO)))
 
         dO_dW = []
         for i in range(self.__num_of_rules):
@@ -229,7 +217,6 @@ class Anfis():
         for (precFuzzySet, inp) in zip(self.precedents, inputs):
             dW_dAlpha.append(precFuzzySet.derivs_at(inp))
         dW_dAlpha = array(dW_dAlpha)
-        # print('dW_dAlpha: \n' + str(array(dE_dO)))
 
         dE_dAlpha = []
         for fuzzDerivs in dW_dAlpha:
@@ -239,15 +226,12 @@ class Anfis():
                     dE_dO[i] * dO_dW[i] * fuzzDerivs[i][k] for k in range(3)
                 ])
             dE_dAlpha.append(tmp)
-        # print('dE_dAlpha')
-        # print(array(dE_dAlpha))
 
         grad_sum = 0
         for fuzzDerivs in dE_dAlpha:
             grad_sum += sum(sum(array(fuzzDerivs)))
 
         eta = step / sqrt(grad_sum ** 2)
-        # print('ETA: ' + str(eta))
 
         for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
             for i in range(len(deriv)):
@@ -271,11 +255,7 @@ class Anfis():
         """
         errors = []
         for (feature, expected) in trainingData:
-            print('\n\nTraining for data \nINPUT:\n{}\nOUTPUT:\n{}\n'.format(
-                array(feature), array(expected)
-            ))
-            print('\nEXPECTED PREDICTION: ' + str(sum(expected)))
-            print('=' * 150)
+            self.debugger.print(begin_training_msg(feature, expected))
             epoch = 0
             converged = False
             step = 1
@@ -294,10 +274,8 @@ class Anfis():
                     else:
                         step = step * 0.9
 
-                print(
-                    'Error for {}-th epoch is {}\n'.format(epoch + 1, error),
-                    end=''
-                )
+                self.debugger.print(epoch_error_msg(epoch + 1, error), False)
+
                 converged = error <= errTolerance
                 if not converged:
                     self.backward_pass(expected, feature, l2, l4)
@@ -306,10 +284,10 @@ class Anfis():
             l2, l4 = self.forward_pass(feature, expected)
             prediction = sum(l4)
             if converged:
-                print('Convergence occurred at epoch {}'.format(epoch))
-            print('Final predition was {} with {} of error!'.format(
-                prediction, errors[-1]))
-            print('Outpus from layer four: ')
+                convergence_msg(epoch + 1)
+            end_epoch_msg(prediction, errors[-1])
+            print('Final output: ')
             print(l4)
-            print('Expected: ')
-            print(expected)
+
+    def setDebug(self, debug):
+        debugger.debug = True

@@ -41,4 +41,4 @@ consequents = [
 ]
 
 anfis = Anfis(precedents, consequents)
-anfis.train_by_hybrid_online(1000, 1e-8, data[:1])
+anfis.train_by_hybrid_online(10000, 1e-8, data[:1])

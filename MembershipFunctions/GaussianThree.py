@@ -18,7 +18,6 @@ class GaussianThree(LinguisticLabel):
         """ Computes the Probability Density Function for a given value. This
         method also shifts the function to the specified values in the object
         construction.
-        (1 / (1 + ((x-ci)/ai)^2)^bi)
         """
         denom = 1 + ((
             (value - premise_params[2]) /

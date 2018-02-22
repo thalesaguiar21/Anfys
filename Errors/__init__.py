@@ -1,4 +1,4 @@
-from Debug import log_print
+from Debug import Debugger
 from Exceptions import SizeMismatchError
 
 err = {
