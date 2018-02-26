@@ -1,8 +1,7 @@
 # ANFIS
 This repository contains an Type-1 Artificial Neural Fuzzy Inferece System in Python programming language.
 
-At this moment this project only supports precedent fuzzy subsets with the same
-number of labels of the consequent subset. Besides, the learning algorithm implemented is the Hybrid Batch Online presented by Jang (1993). This method update the consequent labels using a Least Square Estimation and the precedent parameters with an Backpropagatino algorithm.
+At this moment this project only supports precedent fuzzy with the same number of labels. Besides, the learning algorithm implemented is the Hybrid Batch Online presented by Jang (1993). This method update the consequent labels using a Least Square Estimation and the precedent parameters with an Backpropagatino algorithm.
 
 For extracting the features from the uttrances, I reccomend the code in the this
 <a href=https://github.com/jameslyons/python_speech_features>repository</a>
