@@ -1,5 +1,5 @@
 from numpy import eye, dot, array, zeros
-initial_gamma = 10. ** 10
+initial_gamma = 10. ** 15
 
 
 def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
@@ -38,7 +38,7 @@ def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
     return X
 
 
-def lse(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
+def lse(coef_matrix, rs_matrix, gamma=initial_gamma):
     """ Computes the Least Square Estimation for the matrices AX = B
 
     Parameters
@@ -47,8 +47,6 @@ def lse(coef_matrix, rs_matrix, lamb=0.9, gamma=initial_gamma):
         The coefficient matrix, or A
     rs_matrix : 2D list of double
         The result matrix, or B
-    lamb : double
-        An real value between 0 and 1. Defaults to 0.2
     gamma : double
         Initial values for main diag of S. Default to 10 ** 10
 
