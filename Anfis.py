@@ -289,5 +289,5 @@ class Anfis():
             print('Final output: ')
             print(l4)
 
-    def setDebug(self, debug):
+    def set_debug(self, debug):
         self.__debugger.debug = debug
