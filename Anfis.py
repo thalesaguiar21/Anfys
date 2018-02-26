@@ -1,6 +1,6 @@
 from __future__ import print_function
 from Errors import Debugger
-from SpeechUtils import lse, lse_online
+from SpeechUtils import lse_online
 from numpy import array
 from math import sqrt
 from itertools import product
@@ -12,8 +12,7 @@ class Anfis():
     System (ANFIS). This structure was suggested by Jang (1993). The
     Type-1 ANFIS is a five-layer feed foward neural network. In this work, the
     purpose is to apply this structure in the Speech Reconigtion problem. This
-    Inference system follows the basic IF-THEN rule system from Takagi and
-    Sugeno.
+    Inference system follows the basic IF-THEN rule system from Tsukamoto FIS.
     """
 
     def __init__(self, pre, consequents):
@@ -114,7 +113,7 @@ class Anfis():
         layer_three = [float(x) / l2_Sum for x in layer_two]
         self.__debugger.print(layer_output_msg(layer_three, 3))
 
-        self.update_consequents(layer_two, layer_three, expected)
+        self.update_consequents(layer_two, layer_three, expected, 0.95)
 
         # Layer 4 input -> output
         layer_four = []
@@ -153,7 +152,13 @@ class Anfis():
         coef_matrix = []
         coef_matrix.append(coef_line)
 
-        self.cons_params = lse_online(coef_matrix, [[sum(expected)]], lamb)
+        self.cons_params = lse_online(
+            coef_matrix,
+            [[sum(expected)]],
+            lamb,
+            10 ** 10
+        )
+
         self.cons_params = [
             self.cons_params[v, 0] for v in range(2 * self.__num_of_rules)
         ]
@@ -258,7 +263,6 @@ class Anfis():
             self.__debugger.print(begin_training_msg(feature, expected))
             epoch = 0
             converged = False
-            step = 1
             while epoch < nEpochs and not converged:
                 l2, l4 = self.forward_pass(feature, expected)
                 error = 0
@@ -266,13 +270,6 @@ class Anfis():
                     error += target - output
                 error = error ** 2
                 errors.append(error)
-
-                # Heuristic increase of step size
-                if len(errors) > 3:
-                    if errors[-1] < errors[-2] and errors[-2] < errors[-3]:
-                        step = step * 1.1
-                    else:
-                        step = step * 0.9
 
                 self.__debugger.print(epoch_error_msg(epoch + 1, error), False)
 
