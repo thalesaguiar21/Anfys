@@ -46,9 +46,11 @@ def begin_training_msg(feature, expected):
     msg : string
         A formatted string to print the initial and targeted data for training
     """
-    msg = '\nTraining for:\n'
-    msg += 'INPUT:' + str(array(feature)) + __line_sep()
-    msg += 'EXPECTED: ' + str(array(expected)) + __line_sep()
+    msg = '\nTraining for:'
+    msg += '\n' + __line_sep() + __line_sep()
+    msg += 'INPUT:\n' + str(array(feature)) + '\n'
+    msg += 'EXPECTED:\n' + str(array(expected))
+    msg += '\n' + __line_sep() + __line_sep()
     return msg
 
 
