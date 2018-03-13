@@ -166,21 +166,6 @@ class Anfis():
         total = 0
         for i in range(len(self.cons_params)):
             total += self.cons_params[i] * coef_matrix[0][i]
-        print('LSE approximation result: ' + str(total))
-        if sum(expected) - total > 3:
-            print(
-                'LSE ERROR! Expected {} and got {}'.format(
-                    sum(expected), total)
-            )
-            print('Layer3:')
-            print(array(layer3))
-            print('Layer 2:')
-            print(array(layer2))
-            print('consequent parameters:')
-            print(array(self.cons_params))
-            print('coefficient matrix:')
-            print(array(coef_matrix))
-            raise Exception
 
         tmp_params = []
         for i in range(0, 2 * self.__num_of_rules, 2):
@@ -282,7 +267,7 @@ class Anfis():
             prediction = sum(l4)
             if converged:
                 convergence_msg(epoch + 1)
-            end_epoch_msg(prediction, errors[-1])
+            print(end_epoch_msg(epoch, prediction, errors[-1]))
             print('Final output: ')
             print(l4)
 
