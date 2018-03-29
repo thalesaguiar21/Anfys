@@ -78,4 +78,6 @@ def convergence_msg(epoch):
 
 
 def end_epoch_msg(epoch, pred, error):
-    return 'Final prediction was {} with {} of error!'.format(pred, error)
+    return 'Final prediction was {} with {} of error!'.format(
+        array(pred), error
+    )
