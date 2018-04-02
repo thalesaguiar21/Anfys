@@ -4,7 +4,11 @@ class MembershipFunction:
     degree of a given value, and to calculate the derivative at a point
     with respect to a variable.
     """
-    def membership_value(value, a, b, c=None):
+
+    def __init__(self):
+        pass
+
+    def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value
 
         Parameters
@@ -26,7 +30,7 @@ class MembershipFunction:
         """
         raise NotImplementedError()
 
-    def derivative_at(value, var, a, b, c=None):
+    def derivative_at(self, value, var, a, b, c=None):
         """ Computes the derivative of the membership function with respect to
         a variable, at the given point.
 

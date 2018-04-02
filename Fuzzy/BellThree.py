@@ -1,6 +1,5 @@
 from MembershipFunction import MembershipFunction
 from math import log
-from Errors import err
 
 
 class BellThree(MembershipFunction):
@@ -8,7 +7,10 @@ class BellThree(MembershipFunction):
 
     min_denom = 1e-15
 
-    def membership_value(value, a, b, c=None):
+    def __init__(self):
+        pass
+
+    def membership_degree(self, value, a, b, c=None):
         """
         """
         if((a is None) or (b is None) or (c is None)):
@@ -18,27 +20,27 @@ class BellThree(MembershipFunction):
             if(a > -BellThree.min_denom and a < BellThree.min_denom):
                 raise ValueError("Value of parameter \"a\" is too small!")
 
-        denom = 1.0 + (((value - c) / a) ** 2.0) ** b
+        denom = 1.0 + (((value - c) / float(a)) ** 2.0) ** b
         return 1.0 / denom
 
-    def derivative_at(value, var, a, b, c=None):
+    def derivative_at(self, value, var, a, b, c=None):
         result = 0
 
         if((a is None) or (b is None) or (c is None)):
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
 
-        k = (value - c) ** 2 / a ** 2
+        k = (value - c) ** 2 / float(a) ** 2
         if var == 'a':
-            result = 2 * b * k ** 2
+            result = 2.0 * b * k ** 2
             result /= a * ((k ** b) + 1) ** 2
         elif var == 'b':
             result = (k ** b) * log(k)
             result /= ((k ** b) + 1) ** 2
+            result = result * (-1)
         elif var == 'c':
-            result = 2 * b * (value - c)
-            result *= k ** (b - 1)
-            result /= a ** 2 * ((k ** b) + 1) ** 2
+            result = -2.0 * b * k ** b
+            result /= (c - value) * ((k ** b) + 1) ** 2
         else:
-            print err['INVALID_DERIV_ARG'].format(var)
+            print 'ERROR'
         return result
