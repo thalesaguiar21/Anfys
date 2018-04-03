@@ -129,7 +129,7 @@ class BellThree(MembershipFunction):
             result = -2.0 * b * k ** b
             result /= (c - value) * ((k ** b) + 1) ** 2
         else:
-            print 'ERROR'
+            raise Warning('Function has no variable \'{}\''.format(var))
         return result
 
 
@@ -195,10 +195,8 @@ class BellTwo(MembershipFunction):
         elif var == 'b':
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
-        elif var == 'c':
-            result = 0
         else:
-            print 'ERROR'
+            raise Warning('Function has no variable \'{}\''.format(var))
         return result / denom
 
 
@@ -251,28 +249,41 @@ class DiscreteSigmoid(MembershipFunction):
         elif var == 'c':
             dF_dAlpha = 0
         else:
-            print 'ERROR'
+            raise Warning('Function has no variable \'{}\''.format(var))
         return dF_dAlpha
 
 
-class Logit(MembershipFunction):
+class PiecewiseLogit(MembershipFunction):
     """ A piecewise linear approximation of logit (inverse of sigmoid) function
     with two parameters (p, q).
     """
     def __init__(self):
         self.__low = 1e-15
         self.__high = 0.99999
+        self.__hl = self.__high - self.__low
 
     def membership_degree(self, value, a, b, c=None):
+        # a = Pmin, b = Pmax
         mem_degree = 0
-        a = (b - a) / (self.__high - self.__low)
+        lin_coef = (b - a) / self.__hl
+        indep = a - lin_coef
         if value <= self.__low:
             mem_degree = a
         elif self.__low < value and self.__high > value:
-            mem_degree = a * value
+            mem_degree = lin_coef * value + indep
         elif value >= self.__high:
             mem_degree = b
         return mem_degree
 
     def derivative_at(self, value, var, a, b, c=None):
-        return (b - a) / (self.__high - self.__low)
+        result = 0.0
+        if value < self.__low or value > self.__high:
+            return 0.0
+        elif var == 'a':
+            numerator = - value + 1 - self.__hl
+            return float(numerator) / self.__hl
+        elif var == 'b':
+            return (float(value) + 1.0) / self.__hl
+        else:
+            raise Warning('Function has no variable \'{}\''.format(var))
+        return result
