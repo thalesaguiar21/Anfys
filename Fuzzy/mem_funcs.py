@@ -200,59 +200,6 @@ class BellTwo(MembershipFunction):
         return result / denom
 
 
-class DiscreteSigmoid(MembershipFunction):
-    """ This class implements a discrete Sigmoid function, where two
-    parameters (p, q) are used as a linear function for approximate the
-    sigmoid curve.
-    """
-
-    def __init__(self):
-        pass
-
-    def membership_degree(self, value, a, b, c=None):
-        """ Computes the memebership degree of the given value for an
-        discrete sigmoid function, described by two parameters.
-        """
-        mem_degree = 0
-        if value <= a:
-            mem_degree = 0.001
-        elif a < value and b > value:
-            a = 0.999 / b - a
-            b = 0.001 - a * value
-            mem_degree = a * value + b
-        else:
-            mem_degree = 1.0
-
-        return mem_degree
-
-    def derivative_at(self, value, var, a, b, c=None):
-        """ Computes the derivative with respect to one of the params, for this
-        function at the given value.
-
-        Parameters
-        ----------
-        value : float
-            The value to be computed.
-        var : chr
-            A character of the variable to derivate.
-
-        Returns
-        -------
-        value : float
-            The value of the derivative with respect to var at the given value.
-        """
-        dF_dAlpha = 0
-        if var == 'a':
-            dF_dAlpha = 1 / a
-        elif var == 'b':
-            dF_dAlpha = 1
-        elif var == 'c':
-            dF_dAlpha = 0
-        else:
-            raise Warning('Function has no variable \'{}\''.format(var))
-        return dF_dAlpha
-
-
 class PiecewiseLogit(MembershipFunction):
     """ A piecewise linear approximation of logit (inverse of sigmoid) function
     with two parameters (p, q).
