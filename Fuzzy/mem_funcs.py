@@ -135,7 +135,8 @@ class BellThree(MembershipFunction):
             result = -2.0 * b * k ** b
             result /= (c - value) * ((k ** b) + 1) ** 2
         else:
-            raise Warning('Function has no variable \'{}\''.format(var))
+            print '[WARNING] Mebership function has no \
+                   parameter \'{}\''.format(var)
         return result
 
 
@@ -202,7 +203,8 @@ class BellTwo(MembershipFunction):
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
         else:
-            raise Warning('Function has no variable \'{}\''.format(var))
+            print '[WARNING] Mebership function has no \
+                   parameter \'{}\''.format(var)
         return result / denom
 
 
@@ -280,5 +282,6 @@ class PiecewiseLogit(MembershipFunction):
         elif var == 'b':
             return (float(value) + 1.0) / self.__hl
         else:
-            raise Warning('Function has no variable \'{}\''.format(var))
+            print '[WARNING] Mebership function has no \
+                   parameter \'{}\''.format(var)
         return result
