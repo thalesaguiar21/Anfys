@@ -47,6 +47,12 @@ class MembershipFunction:
             The second parameter
         c : double
             The third parameter. Defaults to None.
+
+        Returns
+        -------
+        deriv : double
+            The result of computing the derivative of the Bell Two function
+            at the given value.
         """
         raise NotImplementedError()
 
@@ -210,6 +216,27 @@ class PiecewiseLogit(MembershipFunction):
         self.__hl = self.__high - self.__low
 
     def membership_degree(self, value, a, b, c=None):
+        """ Computes the membership degree of the given value, with respect to
+        this membership function and the given parameters.
+
+        Parameters
+        ----------
+        value : double
+            THe value to compute the membership degree
+        a : double
+            The first parameter
+        b : double
+            The second parameter
+        c : double
+            The third parameter. Defaults to None, notice that this is not
+            used in this class, even though you pass any value to it.
+
+        Returns
+        -------
+        degree : double
+            A number between 0 and 1 representing the membership degree of the
+            given value for this fuzzy subset.
+        """
         # a = Pmin, b = Pmax
         mem_degree = 0
         lin_coef = (b - a) / self.__hl
@@ -223,6 +250,27 @@ class PiecewiseLogit(MembershipFunction):
         return mem_degree
 
     def derivative_at(self, value, var, a, b, c=None):
+        """ Compute the derivative at the given point (value) with respect to
+        a variable.
+
+        Parameters
+        ----------
+        value : double
+            THe value to compute the membership degree
+        a : double
+            The first parameter
+        b : double
+            The second parameter
+        c : double
+            The third parameter. Defaults to None, notice that this is not
+            used in this class, even though you pass any value to it.
+
+        Returns
+        -------
+        deriv : double
+            The result of computing the derivative of the Logit function
+            at the given value.
+        """
         result = 0.0
         if value < self.__low or value > self.__high:
             return 0.0
