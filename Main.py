@@ -1,6 +1,5 @@
-from MembershipFunctions import FuzzySubset
-from MembershipFunctions import GaussianThree
-from MembershipFunctions import Logit
+from fuzzy.subsets import FuzzySubset
+from fuzzy.mem_funcs import BellThree, PiecewiseLogit
 from random import random
 from Anfis import Anfis
 
@@ -32,12 +31,12 @@ precedents = [
     FuzzySubset(
         LABELS,
         [[random() for i in range(PRE_PARAMS_SIZE)] for i in range(LABELS)],
-        GaussianThree()
+        BellThree()
     ) for i in range(INPUT_SIZE)
 ]
 
 consequents = [
-    Logit() for i in range(LABELS ** INPUT_SIZE)
+    PiecewiseLogit() for i in range(LABELS ** INPUT_SIZE)
 ]
 
 anfis = Anfis(precedents, consequents)

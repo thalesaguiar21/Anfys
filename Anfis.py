@@ -1,10 +1,10 @@
 from __future__ import print_function
 from Errors import Debugger
-from SpeechUtils import lse_online
+from speech.utils import lse_online
 from numpy import array
 from math import sqrt
 from itertools import product
-from SpeechUtils.Interface import *
+from speech.interface import *
 
 
 class Anfis():
@@ -120,7 +120,7 @@ class Anfis():
         for i in range(self.__num_of_rules):
             fi = self.consequents[i].membership_degree(
                 layer_two[i],
-                self.cons_params[i]
+                *self.cons_params[i]
             )
             layer_four.append(fi * layer_three[i])
         self.__debugger.print(layer_output_msg(layer_four, 4))
@@ -200,7 +200,7 @@ class Anfis():
         dO_dW = []
         for i in range(self.__num_of_rules):
             dO_dW.append(self.consequents[i].derivative_at(
-                l4_input[i], '', self.cons_params[i])
+                l4_input[i], '', *self.cons_params[i])
             )
 
         # Computing the derivative of each label
@@ -222,7 +222,8 @@ class Anfis():
         for fuzzDerivs in dE_dAlpha:
             grad_sum += sum(sum(array(fuzzDerivs)))
 
-        eta = step / sqrt(grad_sum ** 2)
+        # [REMEMBER] Remove the plus 1
+        eta = step / (sqrt(grad_sum ** 2) + 1.0)
 
         for (precedent, deriv) in zip(self.precedents, dE_dAlpha):
             for i in range(len(deriv)):
