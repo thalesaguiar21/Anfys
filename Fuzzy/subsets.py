@@ -10,7 +10,7 @@ class FuzzySubset():
             Number of linguistic labels of this fuzzy subset
         params : 2D list of double
             A 2D array of dimension Nx3, where N is the number of Labels
-        mem_function : LinguisticLabel
+        mem_function : MembershipFunction
             The type of membership function to be used in this Fuzzy subset
         """
         self._num_of_labels = 1 if num_of_labels < 0 else num_of_labels
@@ -35,7 +35,7 @@ class FuzzySubset():
         mem_degree = []
         for i in range(self._num_of_labels):
             mem_degree.append(
-                self.mem_function.membership_degree(value, self.params[i])
+                self.mem_function.membership_degree(value, *self.params[i])
             )
         return mem_degree
 
@@ -43,7 +43,7 @@ class FuzzySubset():
         derivs = []
         for i in range(self._num_of_labels):
             tmp = [
-                self.mem_function.derivative_at(value, var, self.params[i])
+                self.mem_function.derivative_at(value, var, *self.params[i])
                 for var in ['a', 'b', 'c']
             ]
             derivs.append(tmp)
