@@ -74,10 +74,27 @@ def epoch_error_msg(epoch, error):
 
 
 def convergence_msg(epoch):
+    """ Create a message to inform that the convergence occurred at the given
+    epoch.
+
+    Parameters
+    ----------
+    epoch : int
+        The epoch which the convergence occurred.
+    """
     return 'Convergence occurred at epoch ' + str(epoch) + '\n'
 
 
-def end_epoch_msg(epoch, pred, error):
+def end_epoch_msg(pred, error):
+    """ Create a message with the final prediction and error found.
+
+    Parameters
+    ----------
+    pred : double
+        The final prediction of the training
+    error : double
+        The total error found after the training
+    """
     return 'Final prediction was {} with {} of error!'.format(
         array(pred), error
     )

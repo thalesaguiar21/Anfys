@@ -269,7 +269,7 @@ class Anfis():
             prediction = sum(l4)
             if converged:
                 convergence_msg(epoch + 1)
-            print(end_epoch_msg(epoch, prediction, errors[-1]))
+            print(end_epoch_msg(prediction, errors[-1]))
             print('Final output:\n{}'.format(array(l4)))
 
     def set_debug(self, debug):
