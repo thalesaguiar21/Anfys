@@ -1,3 +1,4 @@
+from __future__ import division
 from math import log, exp
 from errors.msg import warn
 
@@ -86,15 +87,19 @@ class BellThree(MembershipFunction):
         degree : double
             A number between 0 and 1 representing the membership degree of the
             value in this Fuzzy Subset.
+
+        Raises
+        ------
+        ValueError
+            If any given argument is None
+        ZeroDivisionError
+            If a is 0
         """
-        if((a is None) or (b is None) or (c is None)):
+        if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
-        if(a > -1 and a < 1):
-            if(a > -BellThree.min_denom and a < BellThree.min_denom):
-                raise ValueError("Value of parameter \"a\" is too small!")
 
-        denom = 1.0 + (((value - c) / float(a)) ** 2.0) ** b
+        denom = 1.0 + (((value - c) / a) ** 2.0) ** b
         return 1.0 / denom
 
     def derivative_at(self, value, var, a, b, c=None):
@@ -117,14 +122,19 @@ class BellThree(MembershipFunction):
         deriv : double
             The result of computing the derivative of the Bell Two function
             at the given value.
+
+        Raises
+        ------
+        ValueError
+            If any given argument is None
         """
         result = 0
 
-        if((a is None) or (b is None) or (c is None)):
+        if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
 
-        k = (value - c) ** 2 / float(a) ** 2
+        k = (value - c) ** 2 / a ** 2
         if var == 'a':
             result = 2.0 * b * k ** 2
             result /= a * ((k ** b) + 1) ** 2
@@ -167,8 +177,15 @@ class BellTwo(MembershipFunction):
         degree : double
             A number between 0 and 1 representing the membership degree of the
             given value for this fuzzy subset.
+
+        Raises
+        ------
+        TypeError
+            Case an argument, except c, is None
+        ZeroDivisionError
+            Case 'a' is zero
         """
-        arg = - ((value - b) / float(a)) ** 2
+        arg = - ((value - b) / a) ** 2
         return exp(arg)
 
     def derivative_at(self, value, var, a, b, c=None):
@@ -195,7 +212,7 @@ class BellTwo(MembershipFunction):
         """
         result = 0
         denom = 1.0
-        k = (value - b) ** 2 / float(a) ** 2
+        k = (value - b) ** 2 / a ** 2
         if var == 'a':
             result = 2 * ((value - b) ** 2) * exp(-k)
             denom = a ** 3
@@ -277,9 +294,9 @@ class PiecewiseLogit(MembershipFunction):
             return 0.0
         elif var == 'a':
             numerator = - value + 1 - self.__hl
-            return float(numerator) / self.__hl
+            return numerator / self.__hl
         elif var == 'b':
-            return (float(value) + 1.0) / self.__hl
+            return (value + 1.0) / self.__hl
         else:
             print warn['INVALID_DERIV_ARG'].format(var)
         return result
