@@ -1,5 +1,3 @@
-from debug import Debugger
-
 err = {
     'DIFF_LABELS': '[ERROR] Different number of labels in precedents subsets',
     'NO_PRECEDENTS': '[ERROR] Empty precedents set',

@@ -1,10 +1,10 @@
-from __future__ import print_function
-from Errors import Debugger
-from speech.utils import lse_online
+from __future__ import print_function, division
 from numpy import array
 from math import sqrt
 from itertools import product
 from speech.interface import *
+from speech.utils import lse_online
+from errors.debug import Debugger
 
 
 class Anfis():
