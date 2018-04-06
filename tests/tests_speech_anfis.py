@@ -2,7 +2,7 @@ from context import anfis
 import unittest2 as unittest
 
 
-class TestAnfis(unittest.TestCase):
+class TestRuleCreation(unittest.TestCase):
 
     def __init__(self):
         self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
@@ -37,5 +37,5 @@ class TestAnfis(unittest.TestCase):
         self.test_rules_empty()
 
 
-test_anfis = TestAnfis()
+test_anfis = TestRuleCreation()
 test_anfis.run_all()
