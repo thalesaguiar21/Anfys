@@ -68,3 +68,7 @@ def lse(coef_matrix, rs_matrix, gamma=10000):
         )
         X = X + (dot(S, dot(a_i.T, (B[i] - dot(a_i, X)))))
     return X
+
+
+def almost_zero(value, expected, range):
+    return abs(value - expected) <= range
