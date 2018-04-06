@@ -71,7 +71,6 @@ class TestBellTwo(unittest.TestCase):
             pass
 
     def run_all(self):
-        print 'Runnning all tests on BellTwo...'
         self.__test_mem_degree()
         self.__test_mem_degree_three()
         self.__test_mem_degree_none()
@@ -149,7 +148,6 @@ class TestBellThree(unittest.TestCase):
             pass
 
     def run_all(self):
-        print 'Runnning all tests on Bell Three...'
         self.__test_mem_degree()
         self.__test_mem_degree_none()
         self.__test_mem_degree_zerodivision()
@@ -157,10 +155,3 @@ class TestBellThree(unittest.TestCase):
         self.__test_derivative_on_b()
         self.__test_derivative_on_other()
         self.__test_derivative_none()
-
-
-test_b2 = TestBellTwo()
-test_b3 = TestBellThree()
-
-test_b2.run_all()
-test_b3.run_all()
