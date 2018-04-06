@@ -26,7 +26,19 @@ def _create_rules(sets_size):
     -------
     rules_combination : list of tuples
         A list of tuples with all combinations of the given fuzzy sets
+
+    Raises
+    ------
+    ValueError
+        On empty parameter, element or negative size
     """
+    if sets_size is None or None in sets_size:
+        raise ValueError('Sets size or one of its elements are None')
+    else:
+        for x in sets_size:
+            if x <= 0:
+                raise ValueError('Invalid size ' + str(x))
+
     rules_set = [range(num_of_rules) for num_of_rules in sets_size]
     rules_combinations = [comb for comb in product(*rules_set)]
     return rules_combinations
