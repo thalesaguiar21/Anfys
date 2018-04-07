@@ -32,12 +32,13 @@ def _create_rules(sets_size):
     ValueError
         On empty parameter, element or negative size
     """
-    if sets_size is None or None in sets_size:
-        raise ValueError('Sets size or one of its elements are None')
-    else:
-        for x in sets_size:
-            if x <= 0:
-                raise ValueError('Invalid size ' + str(x))
+    if sets_size is None:
+        raise ValueError('Parameter is None!')
+    elif None in sets_size:
+        raise ValueError('Input contains None as size!')
+    for size in sets_size:
+        if size <= 0:
+            raise ValueError('Invalid size ' + str(size))
 
     rules_set = [range(num_of_rules) for num_of_rules in sets_size]
     rules_combinations = [comb for comb in product(*rules_set)]
