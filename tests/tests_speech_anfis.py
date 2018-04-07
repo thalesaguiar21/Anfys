@@ -83,8 +83,3 @@ class TestBaseModel(unittest.TestCase):
         self.test_min_no_output()
         self.test_prod_expected()
         self.test_prod_no_output()
-
-
-test_base_model = TestBaseModel()
-
-test_base_model.run_all()
