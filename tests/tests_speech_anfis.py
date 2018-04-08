@@ -6,11 +6,13 @@ class TestBaseModel(unittest.TestCase):
 
     def __init__(self):
         self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
-        self.anfis = anfis.BaseModel([3, 2, 2])
+        self.prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
+        self.anfis = anfis.BaseModel([3, 2, 2], self.prec)
 
     def setup(self):
         self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
-        self.anfis = anfis.BaseModel([3, 2, 2])
+        self.prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
+        self.anfis = anfis.BaseModel([3, 2, 2], self.prec)
 
     def test_rules(self):
         expected = [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0),
@@ -19,30 +21,31 @@ class TestBaseModel(unittest.TestCase):
         self.assertSequenceEqual(expected, self.anfis.rule_set)
 
     def test_rules_none(self):
+        self.prec = [[1, 2], [1, 2], [1, 2], [1, 2]]
         try:
-            self.anfis = anfis.BaseModel(None)
+            self.anfis = anfis.BaseModel(None, self.prec)
             self.fail('Rules created with no sets!')
-        except ValueError:
+        except TypeError:
             pass
 
         try:
-            self.anfis = anfis.BaseModel([-1, 2, 3])
+            self.anfis = anfis.BaseModel([-1, 2, 3], self.prec)
             self.fail('Rules created with negative size!')
         except ValueError:
             pass
 
         try:
-            self.anfis = anfis.BaseModel([-1, 2, None])
+            self.anfis = anfis.BaseModel([-1, 2, None], self.prec)
             self.fail('Rules created with no sets!')
         except ValueError:
             pass
 
     def test_rules_one(self):
-        self.anfis = anfis.BaseModel([2])
+        self.anfis = anfis.BaseModel([2], self.prec)
         self.assertSequenceEqual([(0,), (1,)], self.anfis.rule_set)
 
     def test_rules_empty(self):
-        self.anfis = anfis.BaseModel([])
+        self.anfis = anfis.BaseModel([], self.prec)
         self.assertSequenceEqual([()], self.anfis.rule_set)
 
     def test_min_expected(self):

@@ -2,16 +2,6 @@ from itertools import product
 import sys
 sys.path.append('../')
 
-"""
-rule_set = anfis._create_rules([3, 2, 2])
-[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1), (2, 0, 0), (2, 0, 1), (2, 1, 0), (2, 1, 1)]
-output = [[1, 2, 3], [2, 2], [0.5, 3]]
-minimums = anfis._min_operation(rule_set, output)
-[0.5, 1, 0.5, 1, 0.5, 2, 0.5, 2, 0.5, 2, 0.5, 2]
-products = anfis._product_operation(rule_set, output)
-[1.0, 6.0, 1.0, 6.0, 2.0, 12.0, 2.0, 12.0, 3.0, 18.0, 3.0, 18.0]
-"""
-
 
 def _find_consequents(self):
     pass
@@ -19,7 +9,8 @@ def _find_consequents(self):
 
 class BaseModel:
 
-    def __init__(self, sets_size):
+    def __init__(self, sets_size, prec_params):
+        self.prec = prec_params
         self.rule_set = self._create_rules(sets_size)
 
     def _create_rules(self, sets_size):
