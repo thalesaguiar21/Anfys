@@ -10,8 +10,8 @@ def _find_consequents(self):
 class BaseModel:
 
     def __init__(self, sets_size, prec_params):
-        self.prec = prec_params
-        self.rule_set = self._create_rules(sets_size)
+        self.__prec = prec_params
+        self._rule_set = self._create_rules(sets_size)
 
     def _create_rules(self, sets_size):
         """ Create all combinations of the fuzzy labels, that is all the
@@ -33,7 +33,7 @@ class BaseModel:
             On empty parameter, element or negative size
         """
         if sets_size is None:
-            raise ValueError('Parameter is None!')
+            raise ValueError('Sets size is None!')
         elif None in sets_size:
             raise ValueError('Input contains None as size!')
         for size in sets_size:
@@ -70,7 +70,7 @@ class BaseModel:
             raise ValueError('Fuzz outputs has a None element!')
 
         prod_outputs = []
-        for rule in self.rule_set:
+        for rule in self._rule_set:
             prod = 1.0
             for output, label in zip(fuzz_output, rule):
                 prod *= output[label]
@@ -102,7 +102,7 @@ class BaseModel:
             raise ValueError('Output has None element!')
 
         minimum_outputs = []
-        for rule in self.rule_set:
+        for rule in self._rule_set:
             minimum = fuzz_output[0][rule[0]]
             for output, label in zip(fuzz_output, rule):
                 if output[label] < minimum:

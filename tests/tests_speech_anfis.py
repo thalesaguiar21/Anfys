@@ -15,17 +15,18 @@ class TestBaseModel(unittest.TestCase):
         self.anfis = anfis.BaseModel([3, 2, 2], self.prec)
 
     def test_rules(self):
+        self.setup()
         expected = [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0),
                     (1, 0, 1), (1, 1, 0), (1, 1, 1), (2, 0, 0), (2, 0, 1),
                     (2, 1, 0), (2, 1, 1)]
-        self.assertSequenceEqual(expected, self.anfis.rule_set)
+        self.assertSequenceEqual(expected, self.anfis._rule_set)
 
     def test_rules_none(self):
         self.prec = [[1, 2], [1, 2], [1, 2], [1, 2]]
         try:
             self.anfis = anfis.BaseModel(None, self.prec)
             self.fail('Rules created with no sets!')
-        except TypeError:
+        except ValueError:
             pass
 
         try:
@@ -42,11 +43,11 @@ class TestBaseModel(unittest.TestCase):
 
     def test_rules_one(self):
         self.anfis = anfis.BaseModel([2], self.prec)
-        self.assertSequenceEqual([(0,), (1,)], self.anfis.rule_set)
+        self.assertSequenceEqual([(0,), (1,)], self.anfis._rule_set)
 
     def test_rules_empty(self):
         self.anfis = anfis.BaseModel([], self.prec)
-        self.assertSequenceEqual([()], self.anfis.rule_set)
+        self.assertSequenceEqual([()], self.anfis._rule_set)
 
     def test_min_expected(self):
         self.setup()
