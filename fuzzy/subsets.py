@@ -10,7 +10,7 @@ class FuzzySubset():
             Number of linguistic labels of this fuzzy subset
         params : 2D list of double
             A 2D array of dimension Nx3, where N is the number of Labels
-        mem_function : MembershipFunction   
+        mem_function : MembershipFunction
             The type of membership function to be used in this Fuzzy subset
         """
         self._num_of_labels = 1 if num_of_labels < 0 else num_of_labels
