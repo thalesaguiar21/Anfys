@@ -291,6 +291,7 @@ class PiecewiseLogit(MembershipFunction):
             The result of computing the derivative of the Logit function
             at the given value.
         """
+        # TODO: Verify algorithm validity
         result = 0.0
         if value < self.__low or value > self.__high:
             return 0.0

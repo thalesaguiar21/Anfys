@@ -179,5 +179,16 @@ class TestPiecewiseLogit(unittest.TestCase):
                 e, self.plogit.membership_degree(value, *self.params)
             )
 
+    def test_derivative(self):
+        self.setup()
+        self.value = 0.3
+        rs = []
+        for variable in ['a', 'b', 'c']:
+            rs.append(self.plogit.derivative_at(
+                self.value, variable, *self.params)
+            )
+        print rs
+
     def run_all(self):
         self.test_mem_degree()
+        self.test_derivative()
