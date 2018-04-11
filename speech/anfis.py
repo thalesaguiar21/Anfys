@@ -1,3 +1,4 @@
+from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
 
@@ -163,4 +164,7 @@ class TsukamotoModel(BaseModel):
         else:
             layer_2 = self._product_operation(layer_1)
 
-        return layer_1, layer_2
+        denom = sum(layer_2)
+        layer_3 = [elm / denom for elm in layer_2]
+
+        return layer_1, layer_2, layer_3
