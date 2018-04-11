@@ -1,6 +1,7 @@
 from itertools import product
 import sys
 sys.path.append('../')
+from fuzzy.subsets import FuzzySet
 
 
 def _find_consequents(self):
@@ -12,6 +13,11 @@ class BaseModel(object):
     def __init__(self, sets_size, prec_params, mem_func):
         self._prec = prec_params
         self._rule_set = self._create_rules(sets_size)
+
+        if sum(sets_size) != len(prec_params):
+            raise ValueError('Invalid number params and membership functions! \
+                {} != {}'.format(sum(sets_size), len(prec_params)))
+
         self._sets = sets_size
         for i in range(1, len(sets_size)):
             self._sets[i] = self._sets[i - 1] + sets_size[i]
@@ -141,16 +147,24 @@ class TsukamotoModel(BaseModel):
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         pass
 
-    def forward_pass(self, entry, expected):
+    def forward_pass(self, entries, expected):
         """
         """
+        subsets = [FuzzySet(self._mem_func) for i in self._sets]
         layer_1 = []
-        set_idx = 0
-        for param_idx in range(len(self._prec)):
-            if param_idx > self._sets[set_idx] - 1:
-                set_idx += 1
-            layer_1.append(
-                self._mem_func.membership_degree(
-                    entry[set_idx], *self._prec[param_idx])
-            )
-        print 'Layer one is: \n{}'.format(layer_1)
+        last_idx = 0
+        for entry, subset, idx in zip(entries, subsets, self._sets):
+            layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
+            last_idx = idx
+
+        # layer_1 = []
+        # set_idx = 0
+        # for param_idx in range(len(self._prec)):
+        #     if param_idx > self._sets[set_idx] - 1:
+        #         set_idx += 1
+        #     layer_1.append(
+        #         self._mem_func.membership_degree(
+        #             entry[set_idx], *self._prec[param_idx])
+        #     )
+
+        return layer_1

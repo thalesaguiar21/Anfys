@@ -43,11 +43,11 @@ class TestBaseModel(unittest.TestCase):
             pass
 
     def test_rules_one(self):
-        self.anfis = anfis.BaseModel([2], self.prec, fuzz.BellTwo())
+        self.anfis = anfis.BaseModel([2], [[1, 2], [1, 2]], fuzz.BellTwo())
         self.assertSequenceEqual([(0,), (1,)], self.anfis._rule_set)
 
     def test_rules_empty(self):
-        self.anfis = anfis.BaseModel([], self.prec, fuzz.BellTwo())
+        self.anfis = anfis.BaseModel([], [], fuzz.BellTwo())
         self.assertSequenceEqual([()], self.anfis._rule_set)
 
     def test_min_expected(self):
@@ -83,6 +83,15 @@ class TestBaseModel(unittest.TestCase):
         self.setup()
         self.assertSequenceEqual(self.anfis._sets, [3, 5, 7])
 
+    def test_different_size_param(self):
+        sets = [1, 2, 1]
+        try:
+            self.anfis = anfis.BaseModel(sets, self.prec. fuzz.BellTwo())
+            self.fail('Created a model with different number of params and \
+                       functions')
+        except ValueError:
+            pass
+
     def run_all(self):
         self.test_rules()
         self.test_rules_none()
@@ -114,7 +123,15 @@ class TestTsukamoto(unittest.TestCase):
     def test_layer_1(self):
         self.setup()
         entry = [4, 5, 6]
-        self.tsukamoto.forward_pass(entry, 400)
+        expected = [[0.6411803884299546, 0.6411803884299546,
+                    0.6411803884299546],
+                    [0.36787944117144233, 0.36787944117144233],
+                    [0.1690133154060661, 0.1690133154060661]]
+
+        layer_1 = self.tsukamoto.forward_pass(entry, 400)
+        for line_exp, line_rs in zip(expected, layer_1):
+            for elm, rs in zip(line_exp, line_rs):
+                self.assertAlmostEqual(elm, rs)
 
     def run_all(self):
         self.test_layer_1()
