@@ -6,7 +6,7 @@ import sys
 sys.path.append('../')
 
 
-def _find_consequents(self):
+def _find_consequents():
     pass
 
 
@@ -143,8 +143,9 @@ class MamdaniModel(BaseModel):
 class TsukamotoModel(BaseModel):
     """
     """
-    def __init__(self, sets_size, prec_params, mem_func):
-        super(TsukamotoModel, self).__init__(sets_size, prec_params, mem_func)
+    def __init__(self, sets_size, prec_params, prec_fun, cons_fun):
+        super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
+        self.cons_fun = cons_fun
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         pass
@@ -166,5 +167,12 @@ class TsukamotoModel(BaseModel):
 
         denom = sum(layer_2)
         layer_3 = [elm / denom for elm in layer_2]
+
+        # consequents = _find_consequents()
+
+        # cons_fun = 0
+        # layer_4 = []
+        # for inp, weight, params in zip(layer_2, layer_3, consequents):
+        #     layer_4.append(weight * cons_fun.membership_degree(inp, *params))
 
         return layer_1, layer_2, layer_3
