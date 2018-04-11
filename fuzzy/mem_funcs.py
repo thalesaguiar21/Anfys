@@ -229,8 +229,8 @@ class PiecewiseLogit(MembershipFunction):
     with two parameters (p, q).
     """
     def __init__(self):
-        self.__low = 1e-15
-        self.__high = 0.99999
+        self.__low = 1e-8
+        self.__high = 1.0 - self.__low
         self.__hl = self.__high - self.__low
 
     def membership_degree(self, value, a, b, c=None):
@@ -240,7 +240,7 @@ class PiecewiseLogit(MembershipFunction):
         Parameters
         ----------
         value : double
-            THe value to compute the membership degree
+            The value to compute the membership degree
         a : double
             The first parameter
         b : double
@@ -258,10 +258,12 @@ class PiecewiseLogit(MembershipFunction):
         # a = Pmin, b = Pmax
         mem_degree = 0
         lin_coef = (b - a) / self.__hl
-        indep = a - lin_coef
+        indep = b - lin_coef
+        # print 'hl := ' + str(self.__hl)
         if value <= self.__low:
             mem_degree = a
         elif self.__low < value and self.__high > value:
+            # print 'logit := {}x + {}'.format(lin_coef, indep)
             mem_degree = lin_coef * value + indep
         elif value >= self.__high:
             mem_degree = b

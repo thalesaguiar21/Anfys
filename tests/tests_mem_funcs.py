@@ -155,3 +155,29 @@ class TestBellThree(unittest.TestCase):
         self.__test_derivative_on_b()
         self.__test_derivative_on_other()
         self.__test_derivative_none()
+
+
+class TestPiecewiseLogit(unittest.TestCase):
+
+    def __init__(self):
+        self.plogit = fuzz.PiecewiseLogit()
+        self.params = [2, 3]
+        self.value = 3
+
+    def setup(self):
+        self.plogit = fuzz.PiecewiseLogit()
+        self.params = [2, 10]
+        self.value = 3
+
+    def test_mem_degree(self):
+        self.setup()
+        values = [0.000001, 0.3, 0.15, 0.99, 4, -1]
+        expec = [2.0000078400001557, 4.399999887999996, 3.199999863999996,
+                 9.9199999984, 10, 2]
+        for value, e in zip(values, expec):
+            self.assertAlmostEqual(
+                e, self.plogit.membership_degree(value, *self.params)
+            )
+
+    def run_all(self):
+        self.test_mem_degree()

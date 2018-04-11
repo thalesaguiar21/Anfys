@@ -112,14 +112,18 @@ class TestTsukamoto(unittest.TestCase):
         prec_params = [[3, 2], [3, 2], [3, 2], [3, 2],
                        [3, 2], [3, 2], [3, 2]]
         mem_func = fuzz.BellTwo()
-        self.tsukamoto = anfis.TsukamotoModel(sets_size, prec_params, mem_func)
+        self.tsukamoto = anfis.TsukamotoModel(
+            sets_size, prec_params, mem_func, None
+        )
 
     def setup(self):
         sets_size = [3, 2, 2]
         prec_params = [[3, 2], [3, 2], [3, 2], [3, 2],
                        [3, 2], [3, 2], [3, 2]]
         mem_func = fuzz.BellTwo()
-        self.tsukamoto = anfis.TsukamotoModel(sets_size, prec_params, mem_func)
+        self.tsukamoto = anfis.TsukamotoModel(
+            sets_size, prec_params, mem_func, None
+        )
 
     def test_layer_1(self):
         self.setup()
@@ -133,6 +137,7 @@ class TestTsukamoto(unittest.TestCase):
         for line_exp, line_rs in zip(expected, l1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
+
         for l2_out in l2:
             self.assertAlmostEqual(l2_out, 0.0398663678237249)
 

@@ -6,22 +6,23 @@ import tests_speech_anfis
 # Testing membership functions
 test_bell_three = tests_mem_funcs.TestBellThree()
 test_bell_two = tests_mem_funcs.TestBellTwo()
+test_plogit = tests_mem_funcs.TestPiecewiseLogit()
 
 print('Testing membership functions...')
 test_bell_three.run_all()
 test_bell_two.run_all()
-print('OK!\n')
+test_plogit.run_all()
 
 # Testing utils
-print('Testing speech utils...', end='')
+print('Testing speech utils...')
 test_utils = tests_speech_utils.TestUtils()
 test_utils.run_all()
-print('OK!\n')
 
 # Testing anfis
-print('Testing anfis...', end='')
+print('Testing anfis...')
 test_anfis = tests_speech_anfis.TestBaseModel()
 test_anfis.run_all()
 test_tsukamoto = tests_speech_anfis.TestTsukamoto()
 test_tsukamoto.run_all()
-print('OK!\n')
+
+print('\n\nDone!\n')
