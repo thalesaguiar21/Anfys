@@ -1,7 +1,8 @@
 from itertools import product
+from fuzzy.subsets import FuzzySet
+
 import sys
 sys.path.append('../')
-from fuzzy.subsets import FuzzySet
 
 
 def _find_consequents(self):
@@ -18,10 +19,10 @@ class BaseModel(object):
             raise ValueError('Invalid number params and membership functions! \
                 {} != {}'.format(sum(sets_size), len(prec_params)))
 
+        self.subsets = [FuzzySet(mem_func) for i in sets_size]
         self._sets = sets_size
         for i in range(1, len(sets_size)):
             self._sets[i] = self._sets[i - 1] + sets_size[i]
-        self._mem_func = mem_func
 
     def _create_rules(self, sets_size):
         """ Create all combinations of the fuzzy labels, that is all the
@@ -147,24 +148,19 @@ class TsukamotoModel(BaseModel):
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         pass
 
-    def forward_pass(self, entries, expected):
+    def forward_pass(self, entries, expected, min_prod=False):
         """
         """
-        subsets = [FuzzySet(self._mem_func) for i in self._sets]
         layer_1 = []
         last_idx = 0
-        for entry, subset, idx in zip(entries, subsets, self._sets):
+        for entry, subset, idx in zip(entries, self.subsets, self._sets):
             layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
             last_idx = idx
 
-        # layer_1 = []
-        # set_idx = 0
-        # for param_idx in range(len(self._prec)):
-        #     if param_idx > self._sets[set_idx] - 1:
-        #         set_idx += 1
-        #     layer_1.append(
-        #         self._mem_func.membership_degree(
-        #             entry[set_idx], *self._prec[param_idx])
-        #     )
+        layer_2 = []
+        if min_prod:
+            layer_2 = self._min_operation(layer_1)
+        else:
+            layer_2 = self._product_operation(layer_1)
 
-        return layer_1
+        return layer_1, layer_2

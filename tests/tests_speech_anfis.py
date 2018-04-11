@@ -1,5 +1,6 @@
 from context import anfis, fuzz
 import unittest2 as unittest
+import pprint
 
 
 class TestBaseModel(unittest.TestCase):
@@ -122,16 +123,19 @@ class TestTsukamoto(unittest.TestCase):
 
     def test_layer_1(self):
         self.setup()
+        pp = pprint.PrettyPrinter()
         entry = [4, 5, 6]
         expected = [[0.6411803884299546, 0.6411803884299546,
                     0.6411803884299546],
                     [0.36787944117144233, 0.36787944117144233],
                     [0.1690133154060661, 0.1690133154060661]]
 
-        layer_1 = self.tsukamoto.forward_pass(entry, 400)
+        layer_1, layer_2 = self.tsukamoto.forward_pass(entry, 400)
         for line_exp, line_rs in zip(expected, layer_1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
+        for l2_out in layer_2:
+            self.assertAlmostEqual(l2_out, 0.0398663678237249)
 
     def run_all(self):
         self.test_layer_1()
