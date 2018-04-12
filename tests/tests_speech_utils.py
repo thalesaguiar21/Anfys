@@ -4,12 +4,6 @@ import unittest2 as unittest
 
 class TestUtils(unittest.TestCase):
 
-    def __init__(self):
-        pass
-
-    def test_almost_zero(self):
-        utils.almost_zero(1, 0, 1e-10)
-
     def test_lse_online(self):
         coef_matrix = [[2, 3, -1], [4, -1, 2]]
         rs_matrix = [5, -1]
@@ -32,12 +26,3 @@ class TestUtils(unittest.TestCase):
         res = utils.lse(coef_matrix, rs_matrix, 10000000)
         for expected, curr in zip(expected, res):
             self.assertAlmostEqual(expected, curr[0])
-
-    def run_all(self):
-        self.test_almost_zero()
-        self.test_lse_offline()
-        self.test_lse_online()
-
-
-if __name__ == '__main__':
-    unittest.main()

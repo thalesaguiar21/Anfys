@@ -219,7 +219,7 @@ class BellTwo(MembershipFunction):
         elif var == 'b':
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
-        else:
+        elif var != 'c':
             print warn['INVALID_DERIV_ARG'].format(var)
         return result / denom
 
@@ -298,7 +298,7 @@ class PiecewiseLogit(MembershipFunction):
             return numerator / self.__hl
         elif var == 'b':
             return (value + 1.0) / self.__hl
-        else:
+        elif var != 'c':
             print warn['INVALID_DERIV_ARG'].format(var)
         return result
 

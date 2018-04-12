@@ -4,12 +4,6 @@ import unittest2 as unittest
 
 class TestBellTwo(unittest.TestCase):
 
-    def __init__(self):
-        self.bellTwo = fuzz.BellTwo()
-        self.value = 0
-        self.a = 0
-        self.b = 0
-
     def setUp(self):
         self.bellTwo = fuzz.BellTwo()
         self.value = 4
@@ -70,25 +64,8 @@ class TestBellTwo(unittest.TestCase):
         except TypeError:
             pass
 
-    def run_all(self):
-        self.test_mem_degree()
-        self.test_mem_degree_three()
-        self.test_mem_degree_none()
-        self.test_mem_degree_zerodivision()
-        self.test_derivative_on_a()
-        self.test_derivative_on_b()
-        self.test_derivative_on_other()
-        self.test_derivative_none()
-
 
 class TestBellThree(unittest.TestCase):
-
-    def __init__(self):
-        self.bellThree = fuzz.BellThree()
-        self.value = 0
-        self.a = 0
-        self.b = 0
-        self.c = 0
 
     def setUp(self):
         self.bellThree = fuzz.BellThree()
@@ -147,22 +124,8 @@ class TestBellThree(unittest.TestCase):
         except ValueError:
             pass
 
-    def run_all(self):
-        self.test_mem_degree()
-        self.test_mem_degree_none()
-        self.test_mem_degree_zerodivision()
-        self.test_derivative_on_a()
-        self.test_derivative_on_b()
-        self.test_derivative_on_other()
-        self.test_derivative_none()
-
 
 class TestPiecewiseLogit(unittest.TestCase):
-
-    def __init__(self):
-        self.plogit = fuzz.PiecewiseLogit()
-        self.params = [2, 3]
-        self.value = 3
 
     def setUp(self):
         self.plogit = fuzz.PiecewiseLogit()
@@ -187,11 +150,3 @@ class TestPiecewiseLogit(unittest.TestCase):
             rs.append(self.plogit.derivative_at(
                 self.value, variable, *self.params)
             )
-
-    def run_all(self):
-        self.test_mem_degree()
-        self.test_derivative()
-
-
-if __name__ == '__main__':
-    unittest.main()

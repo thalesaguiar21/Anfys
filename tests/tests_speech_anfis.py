@@ -1,14 +1,8 @@
 from context import anfis, fuzz
 import unittest2 as unittest
-import pprint
 
 
 class TestBaseModel(unittest.TestCase):
-
-    def __init__(self):
-        self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
-        self.prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
-        self.anfis = anfis.BaseModel([3, 2, 2], self.prec, fuzz.BellTwo())
 
     def setup(self):
         self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
@@ -85,36 +79,18 @@ class TestBaseModel(unittest.TestCase):
         self.assertSequenceEqual(self.anfis._sets, [3, 5, 7])
 
     def test_different_size_param(self):
+        self.setUp()
+        prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
         sets = [1, 2, 1]
         try:
-            self.anfis = anfis.BaseModel(sets, self.prec. fuzz.BellTwo())
+            self.anfis = anfis.BaseModel(sets, prec, fuzz.BellTwo())
             self.fail('Created a model with different number of params and \
                        functions')
         except ValueError:
             pass
 
-    def run_all(self):
-        self.test_rules()
-        self.test_rules_none()
-        self.test_rules_one()
-        self.test_rules_empty()
-        self.test_min_expected()
-        self.test_min_no_output()
-        self.test_prod_expected()
-        self.test_prod_no_output()
-        self.test_sets()
-
 
 class TestTsukamoto(unittest.TestCase):
-
-    def __init__(self):
-        sets_size = [3, 2, 2]
-        prec_params = [[3, 2], [3, 2], [3, 2], [3, 2],
-                       [3, 2], [3, 2], [3, 2]]
-        mem_func = fuzz.BellTwo()
-        self.tsukamoto = anfis.TsukamotoModel(
-            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
-        )
 
     def setup(self):
         sets_size = [3, 2, 2]
@@ -169,12 +145,3 @@ class TestTsukamoto(unittest.TestCase):
             for rs, coef in zip(results, equation):
                 total += rs * coef
             approximated_result.append(total)
-
-    def run_all(self):
-        self.test_layer_1()
-        self.test_build_coefmatrix()
-        self.test_find_consequents()
-
-
-if __name__ == '__main__':
-    unittest.main()
