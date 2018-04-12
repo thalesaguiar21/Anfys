@@ -113,7 +113,7 @@ class TestTsukamoto(unittest.TestCase):
                        [3, 2], [3, 2], [3, 2]]
         mem_func = fuzz.BellTwo()
         self.tsukamoto = anfis.TsukamotoModel(
-            sets_size, prec_params, mem_func, None
+            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
         )
 
     def setup(self):
@@ -122,7 +122,7 @@ class TestTsukamoto(unittest.TestCase):
                        [3, 2], [3, 2], [3, 2]]
         mem_func = fuzz.BellTwo()
         self.tsukamoto = anfis.TsukamotoModel(
-            sets_size, prec_params, mem_func, None
+            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
         )
 
     def test_layer_1(self):
@@ -144,5 +144,37 @@ class TestTsukamoto(unittest.TestCase):
         for l3_out in l3:
             self.assertAlmostEqual(l3_out, 0.0833333333333)
 
+    def test_build_coefmatrix(self):
+        self.setup()
+        values = [1, 2, 3]
+        weights = [3, 2, 1]
+        self.tsukamoto._build_coefmatrix(values, weights)
+        self.tsukamoto._build_coefmatrix(values, weights, True)
+
+    def test_find_consequents(self):
+        self.setup()
+        values = [1, 2, 3]
+        weights = [3, 2, 1]
+        expected = [10]
+        self.tsukamoto._find_consequents(values, weights, expected)
+        values = [3, 2, 1]
+        weights = [2, 2, 2]
+        expected = [10, 15]
+        results = self.tsukamoto._find_consequents(
+            values, weights, expected, True
+        )
+        approximated_result = []
+        for equation in self.tsukamoto.coef_matrix:
+            total = 0
+            for rs, coef in zip(results, equation):
+                total += rs * coef
+            approximated_result.append(total)
+
     def run_all(self):
         self.test_layer_1()
+        self.test_build_coefmatrix()
+        self.test_find_consequents()
+
+
+if __name__ == '__main__':
+    unittest.main()

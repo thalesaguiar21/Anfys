@@ -259,11 +259,9 @@ class PiecewiseLogit(MembershipFunction):
         mem_degree = 0
         lin_coef = (b - a) / self.__hl
         indep = b - lin_coef
-        # print 'hl := ' + str(self.__hl)
         if value <= self.__low:
             mem_degree = a
         elif self.__low < value and self.__high > value:
-            # print 'logit := {}x + {}'.format(lin_coef, indep)
             mem_degree = lin_coef * value + indep
         elif value >= self.__high:
             mem_degree = b
@@ -303,3 +301,7 @@ class PiecewiseLogit(MembershipFunction):
         else:
             print warn['INVALID_DERIV_ARG'].format(var)
         return result
+
+    def build_sys_row(self, value, weight):
+        return [weight * (value - 1.0 - self.__hl) / self.__hl,
+                weight * (1.0 - value) / self.__hl]

@@ -10,60 +10,60 @@ class TestBellTwo(unittest.TestCase):
         self.a = 0
         self.b = 0
 
-    def __setup(self):
+    def setUp(self):
         self.bellTwo = fuzz.BellTwo()
         self.value = 4
         self.a = 3
         self.b = 2
 
-    def __test_mem_degree(self):
-        self.__setup()
+    def test_mem_degree(self):
+        self.setUp()
         res = self.bellTwo.membership_degree(self.value, self.a, self.b)
         self.assertAlmostEqual(res, 0.64118038843, 13)
 
-    def __test_mem_degree_three(self):
-        self.__setup()
+    def test_mem_degree_three(self):
+        self.setUp()
         res = self.bellTwo.membership_degree(self.value, self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.64118038843, 13)
 
-    def __test_mem_degree_none(self):
-        self.__setup()
+    def test_mem_degree_none(self):
+        self.setUp()
         try:
             self.bellTwo.membership_degree(None, None, None)
             self.fail('Mem degree computed with a None argument')
         except TypeError:
             pass
 
-    def __test_mem_degree_zerodivision(self):
-        self.__setup()
+    def test_mem_degree_zerodivision(self):
+        self.setUp()
         try:
             self.bellTwo.membership_degree(self.value, 0.0, self.b)
         except ZeroDivisionError:
             pass
 
-    def __test_derivative_on_a(self):
-        self.__setup()
+    def test_derivative_on_a(self):
+        self.setUp()
         res = self.bellTwo.derivative_at(self.value, 'a', self.a, self.b)
         self.assertAlmostEqual(res, 0.18997937435, 12)
         res = self.bellTwo.derivative_at(self.value, 'a', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.18997937435, 12)
 
-    def __test_derivative_on_b(self):
-        self.__setup()
+    def test_derivative_on_b(self):
+        self.setUp()
         res = self.bellTwo.derivative_at(self.value, 'b', self.a, self.b)
         self.assertAlmostEqual(res, 0.284969061524, 12)
         res = self.bellTwo.derivative_at(self.value, 'b', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.284969061524, 12)
 
-    def __test_derivative_on_other(self):
-        self.__setup()
+    def test_derivative_on_other(self):
+        self.setUp()
         res = self.bellTwo.derivative_at(self.value, 'c', self.a, self.b)
         self.assertAlmostEqual(res, 0.0, 13)
         res = self.bellTwo.derivative_at(self.value, 'c', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.0, 13)
 
-    def __test_derivative_none(self):
-        self.__setup()
+    def test_derivative_none(self):
+        self.setUp()
         try:
             self.bellTwo.derivative_at(None, None, None, None)
             self.fail('Mem derivative computed with None')
@@ -71,14 +71,14 @@ class TestBellTwo(unittest.TestCase):
             pass
 
     def run_all(self):
-        self.__test_mem_degree()
-        self.__test_mem_degree_three()
-        self.__test_mem_degree_none()
-        self.__test_mem_degree_zerodivision()
-        self.__test_derivative_on_a()
-        self.__test_derivative_on_b()
-        self.__test_derivative_on_other()
-        self.__test_derivative_none()
+        self.test_mem_degree()
+        self.test_mem_degree_three()
+        self.test_mem_degree_none()
+        self.test_mem_degree_zerodivision()
+        self.test_derivative_on_a()
+        self.test_derivative_on_b()
+        self.test_derivative_on_other()
+        self.test_derivative_none()
 
 
 class TestBellThree(unittest.TestCase):
@@ -90,71 +90,71 @@ class TestBellThree(unittest.TestCase):
         self.b = 0
         self.c = 0
 
-    def __setup(self):
+    def setUp(self):
         self.bellThree = fuzz.BellThree()
         self.value = 4
         self.a = 3
         self.b = 2
         self.c = 2
 
-    def __test_mem_degree(self):
-        self.__setup()
+    def test_mem_degree(self):
+        self.setUp()
         res = self.bellThree.membership_degree(
             self.value, self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.835051546392, 12)
 
-    def __test_mem_degree_none(self):
-        self.__setup()
+    def test_mem_degree_none(self):
+        self.setUp()
         try:
             self.bellThree.membership_degree(None, None, None, None)
             self.fail('Mem degree computed with a None argument')
         except ValueError:
             pass
 
-    def __test_mem_degree_zerodivision(self):
-        self.__setup()
+    def test_mem_degree_zerodivision(self):
+        self.setUp()
         try:
             self.bellThree.membership_degree(self.value, 0.0, self.b, self.c)
         except ZeroDivisionError:
             pass
 
-    def __test_derivative_on_a(self):
-        self.__setup()
+    def test_derivative_on_a(self):
+        self.setUp()
         res = self.bellThree.derivative_at(
             self.value, 'a', self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.183653948347, 12)
 
-    def __test_derivative_on_b(self):
-        self.__setup()
+    def test_derivative_on_b(self):
+        self.setUp()
         res = self.bellThree.derivative_at(
             self.value, 'b', self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.111697902032, 12)
 
-    def __test_derivative_on_other(self):
-        self.__setup()
+    def test_derivative_on_other(self):
+        self.setUp()
         res = self.bellThree.derivative_at(
             self.value, 'c', self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.275480922521, 12)
 
-    def __test_derivative_none(self):
-        self.__setup()
+    def test_derivative_none(self):
+        self.setUp()
         try:
             self.bellThree.derivative_at(None, None, None, None)
         except ValueError:
             pass
 
     def run_all(self):
-        self.__test_mem_degree()
-        self.__test_mem_degree_none()
-        self.__test_mem_degree_zerodivision()
-        self.__test_derivative_on_a()
-        self.__test_derivative_on_b()
-        self.__test_derivative_on_other()
-        self.__test_derivative_none()
+        self.test_mem_degree()
+        self.test_mem_degree_none()
+        self.test_mem_degree_zerodivision()
+        self.test_derivative_on_a()
+        self.test_derivative_on_b()
+        self.test_derivative_on_other()
+        self.test_derivative_none()
 
 
 class TestPiecewiseLogit(unittest.TestCase):
@@ -164,13 +164,13 @@ class TestPiecewiseLogit(unittest.TestCase):
         self.params = [2, 3]
         self.value = 3
 
-    def setup(self):
+    def setUp(self):
         self.plogit = fuzz.PiecewiseLogit()
         self.params = [2, 10]
         self.value = 3
 
     def test_mem_degree(self):
-        self.setup()
+        self.setUp()
         values = [0.000001, 0.3, 0.15, 0.99, 4, -1]
         expec = [2.0000078400001557, 4.399999887999996, 3.199999863999996,
                  9.9199999984, 10, 2]
@@ -180,15 +180,18 @@ class TestPiecewiseLogit(unittest.TestCase):
             )
 
     def test_derivative(self):
-        self.setup()
+        self.setUp()
         self.value = 0.3
         rs = []
         for variable in ['a', 'b', 'c']:
             rs.append(self.plogit.derivative_at(
                 self.value, variable, *self.params)
             )
-        print rs
 
     def run_all(self):
         self.test_mem_degree()
         self.test_derivative()
+
+
+if __name__ == '__main__':
+    unittest.main()

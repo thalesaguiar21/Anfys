@@ -37,3 +37,7 @@ class TestUtils(unittest.TestCase):
         self.test_almost_zero()
         self.test_lse_offline()
         self.test_lse_online()
+
+
+if __name__ == '__main__':
+    unittest.main()

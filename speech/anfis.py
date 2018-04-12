@@ -1,13 +1,10 @@
 from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
+from speech.utils import lse
 
 import sys
 sys.path.append('../')
-
-
-def _find_consequents():
-    pass
 
 
 class BaseModel(object):
@@ -125,6 +122,9 @@ class BaseModel(object):
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         raise NotImplementedError()
 
+    def _find_consequents(values, weights, new_line=False):
+        raise NotImplementedError()
+
     def forward_pass(self, pair):
         raise NotImplementedError()
 
@@ -146,6 +146,22 @@ class TsukamotoModel(BaseModel):
     def __init__(self, sets_size, prec_params, prec_fun, cons_fun):
         super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
         self.cons_fun = cons_fun
+        self.coef_matrix = []
+
+    def _build_coefmatrix(self, values, weights, new_row=False):
+        tmp_row = []
+        for value, weight in zip(values, weights):
+            tmp_row.extend(
+                self.cons_fun.build_sys_row(value, weight)
+            )
+        if new_row or len(self.coef_matrix) == 0:
+            self.coef_matrix.append(tmp_row)
+        else:
+            self.coef_matrix[-1] = tmp_row
+
+    def _find_consequents(self, values, weights, expected, new_row=False):
+        self._build_coefmatrix(values, weights, new_row)
+        return lse(self.coef_matrix, expected)
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         pass
