@@ -241,6 +241,6 @@ class TsukamotoModel(BaseModel):
         denom = sum(layer_2)
         layer_3 = [elm / denom for elm in layer_2]
 
-        # layer_4 = self._find_consequents(layer_2, layer_3, expected)
-        # print layer_4
+        consequents = self._find_consequents(layer_2, layer_3, expected)
+        print consequents
         return layer_1, layer_2, layer_3
