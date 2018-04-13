@@ -164,6 +164,7 @@ class TsukamotoModel(BaseModel):
         super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
         self.cons_fun = cons_fun
         self.coef_matrix = []
+        self.expected = []
 
     def _build_coefmatrix(self, values, weights, new_row=False):
         """ Updates the linear system as new equations are available
@@ -188,9 +189,14 @@ class TsukamotoModel(BaseModel):
         else:
             self.coef_matrix[-1] = tmp_row
 
-    def _find_consequents(self, values, weights, expected, new_row=False):
+    def _find_consequents(self, values, weights, expec_result, new_row=False):
         self._build_coefmatrix(values, weights, new_row)
-        return lse(self.coef_matrix, expected)
+        if new_row or len(self.expected) == 0:
+            self.expected.append(expec_result)
+        else:
+            self.expected[-1] = expec_result
+
+        return lse(self.coef_matrix, self.expected)
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         pass
@@ -235,4 +241,6 @@ class TsukamotoModel(BaseModel):
         denom = sum(layer_2)
         layer_3 = [elm / denom for elm in layer_2]
 
+        # layer_4 = self._find_consequents(layer_2, layer_3, expected)
+        # print layer_4
         return layer_1, layer_2, layer_3
