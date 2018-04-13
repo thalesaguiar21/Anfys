@@ -141,14 +141,43 @@ class MamdaniModel(BaseModel):
 
 
 class TsukamotoModel(BaseModel):
+    """ Class to represent an Artifical Neural Fuzzy Inference System which
+    uses the Tsukamoto Fuzzy Inference System.
     """
-    """
+
     def __init__(self, sets_size, prec_params, prec_fun, cons_fun):
+        """ Initialize a new Tsukamoto Fuzzy Inference System
+
+        Parameters
+        ----------
+        sets_size : list of int
+            The size of each fuzzy set in the precendents layer
+        prec_params : 2D list of double
+            A matrix with the precedent parameters to be used on the fuzzy sets
+        prec_fun : MembershipFunction
+            A MembershipFcuntion to be used on the precedent layer
+        cons_fun : MembershipFunction
+            A MembershipFcuntion to be used on the consequent layer. Note that,
+            to be used in the Hybrid Learning method, this function must allow
+            the system to have its parameters in evidence.
+        """
         super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
         self.cons_fun = cons_fun
         self.coef_matrix = []
 
     def _build_coefmatrix(self, values, weights, new_row=False):
+        """ Updates the linear system as new equations are available
+
+        Parameters
+        ----------
+        values : list of double
+            The inputs to the fourth layer
+        weights : list of double
+            The outputs from the third layer
+        new_row : boolean
+            Defaults to False. If set to true a new equation is added to the
+            system, otherwise the last equation is overwritten.
+        """
         tmp_row = []
         for value, weight in zip(values, weights):
             tmp_row.extend(
@@ -167,7 +196,29 @@ class TsukamotoModel(BaseModel):
         pass
 
     def forward_pass(self, entries, expected, min_prod=False):
-        """
+        """ This method will compute the outputs from layers 1 to 4. The fourth
+        layer will be calculated after finding the parameters with a Least
+        Square Estimation.
+
+        Parameters
+        ----------
+        entries : list of double
+            The inputs to the ANFIS
+        expected : double
+            The expected value to the given parameters
+        min_prod : boolean
+            If set to True the min operation will be used to compute the layer
+            2 outputs. Otherwise, the product operation will be used. Defaults
+            to False.
+
+        Returns
+        ------
+        layer_1 : list of double
+            The outputs from layer one
+        layer_2 : list of double
+            The outputs from layer two
+        layer_3 : list of double
+            The outputs from layer three
         """
         layer_1 = []
         last_idx = 0
@@ -183,12 +234,5 @@ class TsukamotoModel(BaseModel):
 
         denom = sum(layer_2)
         layer_3 = [elm / denom for elm in layer_2]
-
-        # consequents = _find_consequents()
-
-        # cons_fun = 0
-        # layer_4 = []
-        # for inp, weight, params in zip(layer_2, layer_3, consequents):
-        #     layer_4.append(weight * cons_fun.membership_degree(inp, *params))
 
         return layer_1, layer_2, layer_3
