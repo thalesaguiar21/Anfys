@@ -3,6 +3,7 @@ from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse
 
+import pprint
 import sys
 sys.path.append('../')
 
@@ -195,11 +196,15 @@ class TsukamotoModel(BaseModel):
             self.expected.append(expec_result)
         else:
             self.expected[-1] = expec_result
-
-        return lse(self.coef_matrix, self.expected)
+        result = lse(self.coef_matrix, self.expected)
+        return [rs[0] for rs in result]
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
-        pass
+        for pair in data:
+            epoch = 0
+            while epoch < max_epochs:
+                self.forward_pass(pair[0], pair[1], False)
+                epoch += 1
 
     def forward_pass(self, entries, expected, min_prod=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -226,6 +231,7 @@ class TsukamotoModel(BaseModel):
         layer_3 : list of double
             The outputs from layer three
         """
+        # print 'Number of rules: ' + str(len(self._rule_set))
         layer_1 = []
         last_idx = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
@@ -242,5 +248,18 @@ class TsukamotoModel(BaseModel):
         layer_3 = [elm / denom for elm in layer_2]
 
         consequents = self._find_consequents(layer_2, layer_3, expected)
-        print consequents
+
+        cons_membership = []
+        for i in range(len(layer_2)):
+            init = i * 2
+            end = init + 2
+            mem_value = self.cons_fun.membership_degree(
+                layer_2[i], *consequents[init:end]
+            )
+            cons_membership.append(mem_value)
+        layer_4 = [weight * fi for weight, fi in zip(layer_3, cons_membership)]
+        layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3
+
+    def backward_pass(self, layer_1, layer_2, layer_5):
+        pass

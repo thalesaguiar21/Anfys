@@ -133,7 +133,7 @@ class TestTsukamoto(unittest.TestCase):
         values = [1, 2, 3]
         weights = [3, 2, 1]
         expected = 10
-        self.tsukamoto._find_consequents(values, weights, expected)
+        results = self.tsukamoto._find_consequents(values, weights, expected)
         values = [3, 2, 1]
         weights = [2, 2, 2]
         expected = 15
