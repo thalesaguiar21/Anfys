@@ -126,7 +126,7 @@ class BaseModel(object):
     def _find_consequents(values, weights, new_line=False):
         raise NotImplementedError()
 
-    def forward_pass(self, pair):
+    def forward_pass(self, entries, expected, min_prod=False, new_row=False):
         raise NotImplementedError()
 
     def backward_pass(self):
@@ -203,10 +203,12 @@ class TsukamotoModel(BaseModel):
         for pair in data:
             epoch = 0
             while epoch < max_epochs:
-                self.forward_pass(pair[0], pair[1], False)
+                l1, l2, l5 = self.forward_pass(
+                    pair[0], pair[1], False, epoch == 0
+                )
                 epoch += 1
 
-    def forward_pass(self, entries, expected, min_prod=False):
+    def forward_pass(self, entries, expected, min_prod=False, new_row=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
         layer will be calculated after finding the parameters with a Least
         Square Estimation.
@@ -247,7 +249,9 @@ class TsukamotoModel(BaseModel):
         denom = sum(layer_2)
         layer_3 = [elm / denom for elm in layer_2]
 
-        consequents = self._find_consequents(layer_2, layer_3, expected)
+        consequents = self._find_consequents(
+            layer_2, layer_3, expected, new_row
+        )
 
         cons_membership = []
         for i in range(len(layer_2)):
@@ -259,7 +263,7 @@ class TsukamotoModel(BaseModel):
             cons_membership.append(mem_value)
         layer_4 = [weight * fi for weight, fi in zip(layer_3, cons_membership)]
         layer_5 = sum(layer_4)
-        return layer_1, layer_2, layer_3
+        return layer_1, layer_2, layer_5
 
     def backward_pass(self, layer_1, layer_2, layer_5):
         pass

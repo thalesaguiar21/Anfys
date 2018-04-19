@@ -109,16 +109,13 @@ class TestTsukamoto(unittest.TestCase):
                     [0.36787944117144233, 0.36787944117144233],
                     [0.1690133154060661, 0.1690133154060661]]
 
-        l1, l2, l3 = self.tsukamoto.forward_pass(entry, 400)
+        l1, l2, l5 = self.tsukamoto.forward_pass(entry, 400)
         for line_exp, line_rs in zip(expected, l1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
 
         for l2_out in l2:
             self.assertAlmostEqual(l2_out, 0.0398663678237249)
-
-        for l3_out in l3:
-            self.assertAlmostEqual(l3_out, 0.0833333333333)
 
     def test_build_coefmatrix(self):
         self.setUp()
@@ -152,3 +149,12 @@ class TestTsukamoto(unittest.TestCase):
                 self.fail('Expected result on lse is far from expected!')
             if rs > expec + threshold:
                 self.fail('Expected result on lse is far from expected!')
+
+    def test_system_size(self):
+        self.setUp()
+        data = [([2, 3, 4], 10),
+                ([2, 1, 4], 20),
+                ([2, 3, 1], 25)]
+        self.tsukamoto.learn_hybrid_online(data, max_epochs=10)
+        sys_len = len(self.tsukamoto.coef_matrix)
+        self.assertEqual(3, sys_len)
