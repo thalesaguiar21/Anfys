@@ -113,16 +113,24 @@ class TestTsukamoto(unittest.TestCase):
         for line_exp, line_rs in zip(expected, l1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
+                self.assertEqual(True, rs > 0 and rs < 1.0)
 
         for l2_out in l2:
             self.assertAlmostEqual(l2_out, 0.0398663678237249)
 
-    def test_build_coefmatrix(self):
+    def test_layer_output_range(self):
         self.setUp()
-        values = [1, 2, 3]
-        weights = [3, 2, 1]
-        self.tsukamoto._build_coefmatrix(values, weights)
-        self.tsukamoto._build_coefmatrix(values, weights, True)
+        entry = [4, 5, 6]
+        l1, l2, l5 = self.tsukamoto.forward_pass(entry, 400)
+        denom = sum(l2)
+        l3 = [elm / denom for elm in l2]
+        for mem_degree in l1:
+            for degree in mem_degree:
+                self.assertEqual(True, degree > 0 and degree < 1.0)
+        for elm in l2:
+            self.assertEqual(True, elm > 0 and elm < 1.0)
+        for elm in l3:
+            self.assertEqual(True, elm > 0 and elm < 1.0)
 
     def test_find_consequents(self):
         self.setUp()

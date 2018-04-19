@@ -3,7 +3,6 @@ from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse
 
-import pprint
 import sys
 sys.path.append('../')
 
@@ -200,6 +199,16 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
+        """
+        Parameters
+        ----------
+        data : list of pars of list and integer
+            The training data set
+        threshold : double
+            The error tolerance. Defaults to 1e-10
+        max_epochs : integer
+            The maximum number of epochs for each pair. Defaults to 500
+        """
         for pair in data:
             epoch = 0
             while epoch < max_epochs:
@@ -233,7 +242,6 @@ class TsukamotoModel(BaseModel):
         layer_3 : list of double
             The outputs from layer three
         """
-        # print 'Number of rules: ' + str(len(self._rule_set))
         layer_1 = []
         last_idx = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
