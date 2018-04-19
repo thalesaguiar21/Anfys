@@ -19,6 +19,7 @@ class BaseModel(object):
 
         self.subsets = [FuzzySet(mem_func) for i in sets_size]
         self._sets = sets_size
+        self._errors = []
         for i in range(1, len(sets_size)):
             self._sets[i] = self._sets[i - 1] + sets_size[i]
 
@@ -128,7 +129,7 @@ class BaseModel(object):
     def forward_pass(self, entries, expected, min_prod=False, new_row=False):
         raise NotImplementedError()
 
-    def backward_pass(self):
+    def backward_pass(self, layer_1, layer_2, layer_5, error):
         raise NotImplementedError()
 
 
@@ -199,11 +200,12 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
-        """
+        """ Train the ANFIS with the given data pairs.
+
         Parameters
         ----------
         data : list of pars of list and integer
-            The training data set
+            The training data set. For instance [([2, 3, 4], 10)]
         threshold : double
             The error tolerance. Defaults to 1e-10
         max_epochs : integer
@@ -212,9 +214,20 @@ class TsukamotoModel(BaseModel):
         for pair in data:
             epoch = 0
             while epoch < max_epochs:
+                newrow = epoch == 0
                 l1, l2, l5 = self.forward_pass(
-                    pair[0], pair[1], False, epoch == 0
+                    pair[0], pair[1], False, newrow
                 )
+                # Compute the iteration error
+                error = pair[1] - l5
+                if newrow:
+                    self._errors.append(error ** 2)
+                else:
+                    self._errors[-1] = error
+                # Verify if the network has converged
+                if error <= threshold:
+                    break
+                self.backward_pass(l1, l2, l5, error)
                 epoch += 1
 
     def forward_pass(self, entries, expected, min_prod=False, new_row=False):
@@ -273,5 +286,5 @@ class TsukamotoModel(BaseModel):
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_5
 
-    def backward_pass(self, layer_1, layer_2, layer_5):
-        pass
+    def backward_pass(self, layer_1, layer_2, layer_5, error):
+        err = -2 * error
