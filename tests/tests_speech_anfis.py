@@ -109,7 +109,7 @@ class TestTsukamoto(unittest.TestCase):
                     [0.36787944117144233, 0.36787944117144233],
                     [0.1690133154060661, 0.1690133154060661]]
 
-        l1, l2, l5 = self.tsukamoto.forward_pass(entry, 400)
+        l1, l2, l3, l5 = self.tsukamoto.forward_pass(entry, 400)
         for line_exp, line_rs in zip(expected, l1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
@@ -121,9 +121,7 @@ class TestTsukamoto(unittest.TestCase):
     def test_layer_output_range(self):
         self.setUp()
         entry = [4, 5, 6]
-        l1, l2, l5 = self.tsukamoto.forward_pass(entry, 400)
-        denom = sum(l2)
-        l3 = [elm / denom for elm in l2]
+        l1, l2, l3, l5 = self.tsukamoto.forward_pass(entry, 400)
         for mem_degree in l1:
             for degree in mem_degree:
                 self.assertEqual(True, degree > 0 and degree < 1.0)

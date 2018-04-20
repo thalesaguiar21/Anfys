@@ -167,7 +167,7 @@ class TsukamotoModel(BaseModel):
         self.coef_matrix = []
         self.expected = []
 
-    def _build_coefmatrix(self, values, weights, new_row=False):
+    def _build_coefmatrix(self, values, weights, newrow=False):
         """ Updates the linear system as new equations are available
 
         Parameters
@@ -176,7 +176,7 @@ class TsukamotoModel(BaseModel):
             The inputs to the fourth layer
         weights : list of double
             The outputs from the third layer
-        new_row : boolean
+        newrow : boolean
             Defaults to False. If set to true a new equation is added to the
             system, otherwise the last equation is overwritten.
         """
@@ -185,14 +185,30 @@ class TsukamotoModel(BaseModel):
             tmp_row.extend(
                 self.cons_fun.build_sys_row(value, weight)
             )
-        if new_row or len(self.coef_matrix) == 0:
+        if newrow or len(self.coef_matrix) == 0:
             self.coef_matrix.append(tmp_row)
         else:
             self.coef_matrix[-1] = tmp_row
 
-    def _find_consequents(self, values, weights, expec_result, new_row=False):
-        self._build_coefmatrix(values, weights, new_row)
-        if new_row or len(self.expected) == 0:
+    def _find_consequents(self, values, weights, expec_result, newrow=False):
+        """ Handle the search for consequent parameters by using LSE and
+        expanding the linear system.
+
+        Parameters
+        ----------
+        values : list of double
+            The inputs to the consequent membership functions.
+        weights : list of double
+            The weights used in the outputs of the fourth layer. In this model
+            the values from the third layer are used as weights.
+        expec_result : double
+            The result expected for the given entries
+        newrow : boolean
+            Inform that this epoch is training a new pair, and this should be
+            added to the linear system. Defaults to false.
+        """
+        self._build_coefmatrix(values, weights, newrow)
+        if newrow or len(self.expected) == 0:
             self.expected.append(expec_result)
         else:
             self.expected[-1] = expec_result
@@ -215,7 +231,7 @@ class TsukamotoModel(BaseModel):
             epoch = 0
             while epoch < max_epochs:
                 newrow = epoch == 0
-                l1, l2, l5 = self.forward_pass(
+                l1, l2, l3, l5 = self.forward_pass(
                     pair[0], pair[1], False, newrow
                 )
                 # Compute the iteration error
@@ -230,7 +246,7 @@ class TsukamotoModel(BaseModel):
                 self.backward_pass(l1, l2, l5, error)
                 epoch += 1
 
-    def forward_pass(self, entries, expected, min_prod=False, new_row=False):
+    def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
         layer will be calculated after finding the parameters with a Least
         Square Estimation.
@@ -245,6 +261,9 @@ class TsukamotoModel(BaseModel):
             If set to True the min operation will be used to compute the layer
             2 outputs. Otherwise, the product operation will be used. Defaults
             to False.
+        newrow : boolean
+            Inform that this epoch is training a new pair, and this should be
+            added to the linear system. Defaults to false.
 
         Returns
         ------
@@ -271,7 +290,7 @@ class TsukamotoModel(BaseModel):
         layer_3 = [elm / denom for elm in layer_2]
 
         consequents = self._find_consequents(
-            layer_2, layer_3, expected, new_row
+            layer_2, layer_3, expected, newrow
         )
 
         cons_membership = []
@@ -284,7 +303,7 @@ class TsukamotoModel(BaseModel):
             cons_membership.append(mem_value)
         layer_4 = [weight * fi for weight, fi in zip(layer_3, cons_membership)]
         layer_5 = sum(layer_4)
-        return layer_1, layer_2, layer_5
+        return layer_1, layer_2, layer_3, layer_5
 
     def backward_pass(self, layer_1, layer_2, layer_5, error):
         err = -2 * error
