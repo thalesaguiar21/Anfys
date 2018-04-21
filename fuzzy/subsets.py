@@ -45,11 +45,10 @@ class FuzzySet:
             An array with the value of the derivative at the given value for
             each membership function in this set.
         """
-        variables = ['a', 'b', 'c'] if var is None else [var]
         all_derivs = []
         for line in params:
             derivs = []
-            for variable in variables:
+            for variable in self.mem_func.parameters:
                 derivs.append(
                     self.mem_func.derivative_at(value, variable, *line)
                 )

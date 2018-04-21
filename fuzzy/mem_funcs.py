@@ -11,7 +11,7 @@ class MembershipFunction:
     """
 
     def __init__(self):
-        pass
+        self.parameters = None
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value
@@ -65,7 +65,7 @@ class BellThree(MembershipFunction):
     min_denom = 1e-15
 
     def __init__(self):
-        pass
+        self.parameters = ['a', 'b', 'c']
 
     def membership_degree(self, value, a, b, c=None):
         """ This method computes the membership degree of the given value
@@ -145,8 +145,6 @@ class BellThree(MembershipFunction):
         elif var == 'c':
             result = -2.0 * b * k ** b
             result /= (c - value) * ((k ** b) + 1) ** 2
-        else:
-            print warn['INVALID_DERIV_ARG'].format(var)
         return result
 
 
@@ -154,7 +152,7 @@ class BellTwo(MembershipFunction):
     """ This class represents a Bell Shaped function with two parameters """
 
     def __init__(self):
-        pass
+        self.parameters = ['a', 'b']
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value, with respect to
@@ -219,8 +217,6 @@ class BellTwo(MembershipFunction):
         elif var == 'b':
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
-        elif var != 'c':
-            print warn['INVALID_DERIV_ARG'].format(var)
         return result / denom
 
 
@@ -232,6 +228,7 @@ class PiecewiseLogit(MembershipFunction):
         self.__low = 1e-8
         self.__high = 1.0 - self.__low
         self.__hl = self.__high - self.__low
+        self.parameters = ['a', 'b']
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value, with respect to
@@ -298,8 +295,6 @@ class PiecewiseLogit(MembershipFunction):
             return numerator / self.__hl
         elif var == 'b':
             return (value + 1.0) / self.__hl
-        elif var != 'c':
-            print warn['INVALID_DERIV_ARG'].format(var)
         return result
 
     def build_sys_row(self, value, weight):
