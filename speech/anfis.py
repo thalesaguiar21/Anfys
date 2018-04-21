@@ -57,8 +57,8 @@ class BaseModel(object):
         return rules_combinations
 
     def _product_operation(self, fuzz_output):
-        """ Execute a product operation with the fuzzy values from the first layer.
-        That is also known as .. operation.
+        """ Execute a product operation with the fuzzy values from the first
+        layer. That is also known as t-norm operation.
 
         Parameters
         ----------
@@ -91,7 +91,7 @@ class BaseModel(object):
 
     def _min_operation(self, fuzz_output):
         """ Execute a min operation with the fuzzy values from the first layer.
-        That is also known as .. operation.
+        That is also known as t-norm operation.
 
         Parameters
         ----------
@@ -310,20 +310,28 @@ class TsukamotoModel(BaseModel):
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3, layer_5
 
-    def backward_pass(self, entries, layer_1, layer_5, error, k=0.5):
-        # err = -2 * error
-        qtd_entries = len(entries)
+    def backward_pass(self, entries, layer_1, layer_5, error, k=0.1):
+        err = -2 * error
         derivs = []
         last_idx = 0
         derivs_sum = 0
+        # Compute the derivative for each membership function, and its params
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
             derivs.extend(subset.derivs_at(
                 entry, None, self._prec[last_idx:idx])
             )
             last_idx = idx
-
+        # Sum of all derivatives
         for rs in derivs:
             derivs_sum += sum(rs)
 
-        # pdb.set_trace()
         eta = k / derivs_sum
+        # pdb.set_trace()
+        # Compute the delta for each parameter
+        for i in range(len(derivs)):
+            derivs[i] = [-eta * d_aplha * err for d_aplha in derivs[i]]
+        # Update the precedent parameters by delta
+        for i in range(len(self._prec)):
+            self._prec[i] = [
+                prec - delta for prec, delta in zip(self._prec[i], derivs[i])
+            ]
