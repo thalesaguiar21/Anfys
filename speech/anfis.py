@@ -3,6 +3,7 @@ from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse
 
+import pprint
 import sys
 sys.path.append('../')
 
@@ -204,7 +205,7 @@ class TsukamotoModel(BaseModel):
         expec_result : double
             The result expected for the given entries
         newrow : boolean
-            Inform that this epoch is training a new pair, and this should be
+            Inform that this epoch is training a new pair, and that should be
             added to the linear system. Defaults to false.
         """
         self._build_coefmatrix(values, weights, newrow)
@@ -221,7 +222,8 @@ class TsukamotoModel(BaseModel):
         Parameters
         ----------
         data : list of pars of list and integer
-            The training data set. For instance [([2, 3, 4], 10)]
+            The training data set. For instance [([2, 3, 4], 10)], where 10 is
+            the expected value for [2, 3, 4] entry.
         threshold : double
             The error tolerance. Defaults to 1e-10
         max_epochs : integer
@@ -243,7 +245,9 @@ class TsukamotoModel(BaseModel):
                 # Verify if the network has converged
                 if error <= threshold:
                     break
-                self.backward_pass(l1, l2, l5, error)
+                # Initialize the backpropagation algorithm
+                if epoch == 1:
+                    self.backward_pass(pair[0], l1, l5, error)
                 epoch += 1
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
@@ -305,5 +309,18 @@ class TsukamotoModel(BaseModel):
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3, layer_5
 
-    def backward_pass(self, layer_1, layer_2, layer_5, error):
-        err = -2 * error
+    def backward_pass(self, entries, layer_1, layer_5, error):
+        # err = -2 * error
+        qtd_entries = len(entries)
+        derivs = []
+        last_idx = 0
+        for entry, subset, idx in zip(entries, self.subsets, self._sets):
+            derivs.append(subset.derivs_at(
+                entry, None, self._prec[last_idx:idx])
+            )
+            last_idx = idx
+
+        pp = pprint.PrettyPrinter()
+        print '\n\n'
+        pp.pprint(derivs)
+        print '\n\n'
