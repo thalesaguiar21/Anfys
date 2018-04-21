@@ -4,6 +4,7 @@ from fuzzy.subsets import FuzzySet
 from speech.utils import lse
 
 import pprint
+import pdb
 import sys
 sys.path.append('../')
 
@@ -309,18 +310,20 @@ class TsukamotoModel(BaseModel):
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3, layer_5
 
-    def backward_pass(self, entries, layer_1, layer_5, error):
+    def backward_pass(self, entries, layer_1, layer_5, error, k=0.5):
         # err = -2 * error
         qtd_entries = len(entries)
         derivs = []
         last_idx = 0
+        derivs_sum = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
-            derivs.append(subset.derivs_at(
+            derivs.extend(subset.derivs_at(
                 entry, None, self._prec[last_idx:idx])
             )
             last_idx = idx
 
-        pp = pprint.PrettyPrinter()
-        print '\n\n'
-        pp.pprint(derivs)
-        print '\n\n'
+        for rs in derivs:
+            derivs_sum += sum(rs)
+
+        # pdb.set_trace()
+        eta = k / derivs_sum

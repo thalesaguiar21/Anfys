@@ -46,9 +46,12 @@ class FuzzySet:
             each membership function in this set.
         """
         variables = ['a', 'b', 'c'] if var is None else [var]
-        derivs = []
+        all_derivs = []
         for line in params:
+            derivs = []
             for variable in variables:
-                deriv = self.mem_func.derivative_at(value, variable, *line)
-                derivs.append(deriv)
-        return derivs
+                derivs.append(
+                    self.mem_func.derivative_at(value, variable, *line)
+                )
+            all_derivs.append(derivs)
+        return all_derivs
