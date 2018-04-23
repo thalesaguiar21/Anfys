@@ -161,7 +161,7 @@ class TestTsukamoto(unittest.TestCase):
         data = [([2, 3, 4], 10),
                 ([2, 1, 4], 20),
                 ([2, 3, 1], 25)]
-        self.tsukamoto.learn_hybrid_online(data, max_epochs=10)
+        self.tsukamoto.learn_hybrid_online(data, max_epochs=1)
         sys_len = len(self.tsukamoto.coef_matrix)
         self.assertEqual(3, sys_len)
 
@@ -170,6 +170,6 @@ class TestTsukamoto(unittest.TestCase):
         data = [([2, 3, 4], 10),
                 ([2, 1, 4], 20),
                 ([2, 3, 1], 25)]
-        self.tsukamoto.learn_hybrid_online(data, max_epochs=10)
+        self.tsukamoto.learn_hybrid_online(data, max_epochs=1)
         erros_len = len(self.tsukamoto._errors)
         self.assertEqual(3, erros_len)

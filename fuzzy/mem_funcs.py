@@ -10,6 +10,8 @@ class MembershipFunction:
     with respect to a variable.
     """
 
+    MIN_MEMBERSHIP = 1e-10
+
     def __init__(self):
         self.parameters = None
 
@@ -100,7 +102,7 @@ class BellThree(MembershipFunction):
                 uments, less where given!")
 
         denom = 1.0 + (((value - c) / a) ** 2.0) ** b
-        return 1.0 / denom
+        return max(1.0 / denom, MembershipFunction.MIN_MEMBERSHIP)
 
     def derivative_at(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
@@ -184,7 +186,7 @@ class BellTwo(MembershipFunction):
             Case 'a' is zero
         """
         arg = - ((value - b) / a) ** 2
-        return exp(arg)
+        return max(exp(arg), MembershipFunction.MIN_MEMBERSHIP)
 
     def derivative_at(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to

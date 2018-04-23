@@ -217,7 +217,7 @@ class TsukamotoModel(BaseModel):
         result = lse(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
+    def learn_hybrid_online(self, data, threshold=0.1, max_epochs=500):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -230,6 +230,7 @@ class TsukamotoModel(BaseModel):
         max_epochs : integer
             The maximum number of epochs for each pair. Defaults to 500
         """
+        pp = pprint.PrettyPrinter()
         for pair in data:
             epoch = 0
             while epoch < max_epochs:
@@ -245,11 +246,14 @@ class TsukamotoModel(BaseModel):
                     self._errors[-1] = error
                 # Verify if the network has converged
                 if error <= threshold:
+                    print 'Converged at epoch ' + str(epoch)
                     break
                 # Initialize the backpropagation algorithm
-                if epoch == 1:
-                    self.backward_pass(pair[0], l1, l5, error)
+                self.backward_pass(pair[0], l1, l5, error)
                 epoch += 1
+            l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
+            # pdb.set_trace()
+            # print 'For entry {}, the result is {}'.format(pair[0], l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -290,8 +294,8 @@ class TsukamotoModel(BaseModel):
             layer_2 = self._min_operation(layer_1)
         else:
             layer_2 = self._product_operation(layer_1)
-
         denom = sum(layer_2)
+
         layer_3 = [elm / denom for elm in layer_2]
 
         consequents = self._find_consequents(
@@ -311,6 +315,20 @@ class TsukamotoModel(BaseModel):
         return layer_1, layer_2, layer_3, layer_5
 
     def backward_pass(self, entries, layer_1, layer_5, error, k=0.1):
+        """
+        Parameters
+        ----------
+        entries : list of double
+            The network inputs
+        layer_1 : list of double
+            The outputs from the first layer
+        layer_5 : double
+            The output from the fifth layer (the inference)
+        error : double
+            The error for the current epoch
+        k : double
+            A double to be used on the learning rate
+        """
         err = -2 * error
         derivs = []
         last_idx = 0
@@ -326,7 +344,6 @@ class TsukamotoModel(BaseModel):
             derivs_sum += sum(rs)
 
         eta = k / derivs_sum
-        # pdb.set_trace()
         # Compute the delta for each parameter
         for i in range(len(derivs)):
             derivs[i] = [-eta * d_aplha * err for d_aplha in derivs[i]]

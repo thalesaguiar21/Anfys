@@ -28,6 +28,12 @@ class TestBellTwo(unittest.TestCase):
         except TypeError:
             pass
 
+    def test_mem_degree_zero(self):
+        self.setUp()
+        params = [0.022528536199578036, 1.5046653242073884]
+        rs = self.bellTwo.membership_degree(0, *params)
+        self.assertEqual(rs, 1e-10)
+
     def test_mem_degree_zerodivision(self):
         self.setUp()
         try:
