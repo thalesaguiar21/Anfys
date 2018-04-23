@@ -47,7 +47,7 @@ prec_params = [
 prec_fun = BellTwo()
 con_fun = PiecewiseLogit()
 network = TsukamotoModel(sets_size, prec_params, prec_fun, con_fun)
-network.learn_hybrid_online(data, max_epochs=100)
+network.learn_hybrid_online(data, max_epochs=200)
 
 """
 precedents = [

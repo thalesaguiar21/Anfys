@@ -2,6 +2,7 @@ from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse
+from math import sqrt
 
 import pprint
 import pdb
@@ -217,7 +218,7 @@ class TsukamotoModel(BaseModel):
         result = lse(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, threshold=0.1, max_epochs=500):
+    def learn_hybrid_online(self, data, threshold=0.0001, max_epochs=500):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -240,12 +241,15 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
+                print '{}-th error = {} - {} = {}'.format(
+                    epoch, pair[1], l5, error
+                )
                 if newrow:
                     self._errors.append(error ** 2)
                 else:
                     self._errors[-1] = error
                 # Verify if the network has converged
-                if error <= threshold:
+                if abs(error) <= threshold:
                     print 'Converged at epoch ' + str(epoch)
                     break
                 # Initialize the backpropagation algorithm
@@ -253,7 +257,7 @@ class TsukamotoModel(BaseModel):
                 epoch += 1
             l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
             # pdb.set_trace()
-            # print 'For entry {}, the result is {}'.format(pair[0], l5)
+            print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -341,14 +345,14 @@ class TsukamotoModel(BaseModel):
             last_idx = idx
         # Sum of all derivatives
         for rs in derivs:
-            derivs_sum += sum(rs)
+            derivs_sum += sum([x ** 2 for x in rs])
 
-        eta = k / derivs_sum
+        eta = k / sqrt(derivs_sum)
         # Compute the delta for each parameter
         for i in range(len(derivs)):
             derivs[i] = [-eta * d_aplha * err for d_aplha in derivs[i]]
         # Update the precedent parameters by delta
         for i in range(len(self._prec)):
             self._prec[i] = [
-                prec - delta for prec, delta in zip(self._prec[i], derivs[i])
+                prec + delta for prec, delta in zip(self._prec[i], derivs[i])
             ]
