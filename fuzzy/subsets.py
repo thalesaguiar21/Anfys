@@ -26,7 +26,7 @@ class FuzzySet:
             mem_degree.append(self.mem_func.membership_degree(value, *line))
         return mem_degree
 
-    def derivs_at(self, value, var, params):
+    def derivs_at(self, value, params, var=None):
         """ Compute the derivative of each membership function in this set at
         the given value with respect to a given variable.
 
@@ -35,7 +35,8 @@ class FuzzySet:
         value : double
             The derivative argument
         var : string
-            A string with the variable to compute the partial derivative
+            A string with the variable to compute the partial derivative.
+            Defaults to None.
         params : numpy.arr of double
             A 2D array with the parameters of each membership function.
 

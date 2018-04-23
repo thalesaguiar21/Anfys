@@ -241,9 +241,9 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
-                print '{}-th error = {} - {} = {}'.format(
-                    epoch, pair[1], l5, error
-                )
+                # print '{}-th error = {} - {} = {}'.format(
+                #     epoch, pair[1], l5, error
+                # )
                 if newrow:
                     self._errors.append(error ** 2)
                 else:
@@ -339,9 +339,7 @@ class TsukamotoModel(BaseModel):
         derivs_sum = 0
         # Compute the derivative for each membership function, and its params
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
-            derivs.extend(subset.derivs_at(
-                entry, None, self._prec[last_idx:idx])
-            )
+            derivs.extend(subset.derivs_at(entry, self._prec[last_idx:idx]))
             last_idx = idx
         # Sum of all derivatives
         for rs in derivs:
