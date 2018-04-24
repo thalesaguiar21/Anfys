@@ -11,9 +11,9 @@ def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=10000):
     rs_matrix : 2D list of double
         The result matrix, or B
     lamb : double
-        An real value between 0 and 1. Defaults to 0.2
+        An real value between 0 and 1. Defaults to 0.9
     gamma : double
-        Initial values for main diag of S. Default to 10000
+        Initial values for main diag of S. Defaults to 10000
 
     Returns
     -------

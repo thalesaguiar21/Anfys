@@ -1,7 +1,7 @@
 from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
-from speech.utils import lse
+from speech.utils import lse_online
 from math import sqrt
 
 import pprint
@@ -215,7 +215,7 @@ class TsukamotoModel(BaseModel):
             self.expected.append(expec_result)
         else:
             self.expected[-1] = expec_result
-        result = lse(self.coef_matrix, self.expected)
+        result = lse_online(self.coef_matrix, self.expected, 0.99999, 1000)
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(self, data, threshold=0.0001, max_epochs=500):
@@ -231,9 +231,10 @@ class TsukamotoModel(BaseModel):
         max_epochs : integer
             The maximum number of epochs for each pair. Defaults to 500
         """
-        pp = pprint.PrettyPrinter()
+        # pp = pprint.PrettyPrinter()
         for pair in data:
             epoch = 0
+            # print 'Input pair is ' + str(pair)
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
@@ -241,8 +242,8 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
-                # print '{}-th error = {} - {} = {}'.format(
-                #     epoch, pair[1], l5, error
+                # print '{}-th epoch. Error = {} - {:10.12f} = {:10.12f}'.format(
+                #     (epoch + 1), pair[1], l5, error
                 # )
                 if newrow:
                     self._errors.append(error ** 2)
@@ -250,14 +251,16 @@ class TsukamotoModel(BaseModel):
                     self._errors[-1] = error
                 # Verify if the network has converged
                 if abs(error) <= threshold:
-                    print 'Converged at epoch ' + str(epoch)
+                    # print 'Pair {} Converged at epoch {}'.format(
+                    #     pair, epoch + 1
+                    # )
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], l1, l5, error)
                 epoch += 1
-            l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-            # pdb.set_trace()
-            print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
+        # for pair in data:
+        #     l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
+        #     print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -336,12 +339,12 @@ class TsukamotoModel(BaseModel):
         err = -2 * error
         derivs = []
         last_idx = 0
-        derivs_sum = 0
         # Compute the derivative for each membership function, and its params
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
             derivs.extend(subset.derivs_at(entry, self._prec[last_idx:idx]))
             last_idx = idx
         # Sum of all derivatives
+        derivs_sum = 0
         for rs in derivs:
             derivs_sum += sum([x ** 2 for x in rs])
 
