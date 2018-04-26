@@ -142,6 +142,13 @@ class TestTsukamoto(unittest.TestCase):
 
     def test_find_consequents(self):
         self.setUp()
+        sets_size = [1, 3]
+        prec_params = [[3, 2], [3, 2], [3, 2],
+                       [3, 2]]
+        mem_func = fuzz.BellTwo()
+        self.tsukamoto = anfis.TsukamotoModel(
+            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
+        )
         threshold = 3e-1
         values = [1, 2, 3]
         weights = [3, 2, 1]

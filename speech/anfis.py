@@ -166,8 +166,9 @@ class TsukamotoModel(BaseModel):
         """
         super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
         self.cons_fun = cons_fun
-        self.coef_matrix = []
-        self.expected = []
+        col = self._rule_set.shape[0] * len(cons_fun.parameters)
+        self.coef_matrix = np.empty((0, col))
+        self.expected = np.empty((0, 1))
 
     def _build_coefmatrix(self, values, weights, newrow=False):
         """ Updates the linear system as new equations are available
@@ -182,15 +183,15 @@ class TsukamotoModel(BaseModel):
             Defaults to False. If set to true a new equation is added to the
             system, otherwise the last equation is overwritten.
         """
-        tmp_row = []
+        tmp_row = np.empty((1, 0))
         for value, weight in zip(values, weights):
-            tmp_row.extend(
-                self.cons_fun.build_sys_row(value, weight)
-            )
-        if newrow or len(self.coef_matrix) == 0:
-            self.coef_matrix.append(tmp_row)
+            row_term = self.cons_fun.build_sys_row(value, weight)
+            tmp_row = np.append(tmp_row, row_term)
+        if newrow or self.coef_matrix.size == 0:
+            self.coef_matrix = np.vstack([self.coef_matrix, tmp_row])
         else:
-            self.coef_matrix[-1] = tmp_row
+            # Replace the last line with the new parameters
+            self.coef_matrix[-1, :] = tmp_row
 
     def _find_consequents(self, values, weights, expec_result, newrow=False):
         """ Handle the search for consequent parameters by using LSE and
@@ -210,8 +211,8 @@ class TsukamotoModel(BaseModel):
             added to the linear system. Defaults to false.
         """
         self._build_coefmatrix(values, weights, newrow)
-        if newrow or len(self.expected) == 0:
-            self.expected.append(expec_result)
+        if newrow or self.expected.size == 0:
+            self.expected = np.append(self.expected, expec_result)
         else:
             self.expected[-1] = expec_result
         result = lse_online(self.coef_matrix, self.expected, 0.99999, 1000)
@@ -293,7 +294,7 @@ class TsukamotoModel(BaseModel):
             layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
             last_idx = idx
 
-        layer_2 = []
+        layer_2 = np.empty((1, self._rule_set.size))
         if min_prod:
             layer_2 = self._min_operation(layer_1)
         else:

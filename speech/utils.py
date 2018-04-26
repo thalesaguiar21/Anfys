@@ -21,7 +21,7 @@ def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=10000):
         An approximation of X, the unknown vector
     """
     A = array(coef_matrix)
-    S = eye(len(coef_matrix[0])) * gamma
+    S = eye(coef_matrix.shape[1]) * gamma
     X = zeros((A.shape[1], 1))  # Change for ANFIS with more than 1 output
     B = array(rs_matrix)
     for i in range(len(A[:, 0])):
