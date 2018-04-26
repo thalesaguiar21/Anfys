@@ -1,5 +1,7 @@
 from context import anfis, fuzz
 import unittest2 as unittest
+import numpy as np
+import pdb
 
 
 class TestBaseModel(unittest.TestCase):
@@ -11,10 +13,16 @@ class TestBaseModel(unittest.TestCase):
 
     def test_rules(self):
         self.setUp()
-        expected = [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0),
-                    (1, 0, 1), (1, 1, 0), (1, 1, 1), (2, 0, 0), (2, 0, 1),
-                    (2, 1, 0), (2, 1, 1)]
-        self.assertSequenceEqual(expected, self.anfis._rule_set)
+        expected = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
+                            [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
+                            [2, 0, 0], [2, 0, 1], [2, 1, 0], [2, 1, 1]])
+        num_rules = len(expected)
+        rule_size = len(expected[0])
+        for i in xrange(num_rules):
+            for j in xrange(rule_size):
+                self.assertEqual(
+                    expected[i, j], self.anfis._rule_set[i, j]
+                )
 
     def test_rules_none(self):
         self.prec = [[1, 2], [1, 2], [1, 2], [1, 2]]
@@ -39,7 +47,9 @@ class TestBaseModel(unittest.TestCase):
 
     def test_rules_one(self):
         self.anfis = anfis.BaseModel([2], [[1, 2], [1, 2]], fuzz.BellTwo())
-        self.assertSequenceEqual([(0,), (1,)], self.anfis._rule_set)
+        arr = np.array([[0], [1]])
+        for i in xrange(2):
+            self.assertEqual(arr[i, 0], self.anfis._rule_set[i, 0])
 
     def test_rules_empty(self):
         self.anfis = anfis.BaseModel([], [], fuzz.BellTwo())

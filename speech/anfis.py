@@ -4,8 +4,9 @@ from fuzzy.subsets import FuzzySet
 from speech.utils import lse_online
 from math import sqrt
 
-import pprint
 import pdb
+import time
+import numpy as np
 import sys
 sys.path.append('../')
 
@@ -13,8 +14,8 @@ sys.path.append('../')
 class BaseModel(object):
 
     def __init__(self, sets_size, prec_params, mem_func):
-        self._prec = prec_params
-        self._rule_set = self._create_rules(sets_size)
+        self._prec = np.array(prec_params)
+        self._rule_set = self._create_rules(np.array(sets_size))
 
         if sum(sets_size) != len(prec_params):
             raise ValueError('Invalid number params and membership functions! \
@@ -23,7 +24,7 @@ class BaseModel(object):
         self.subsets = [FuzzySet(mem_func) for i in sets_size]
         self._sets = sets_size
         self._errors = []
-        for i in range(1, len(sets_size)):
+        for i in xrange(1, len(sets_size)):
             self._sets[i] = self._sets[i - 1] + sets_size[i]
 
     def _create_rules(self, sets_size):
@@ -52,10 +53,8 @@ class BaseModel(object):
         for size in sets_size:
             if size <= 0:
                 raise ValueError('Invalid size ' + str(size))
-
         rules_set = [range(num_of_rules) for num_of_rules in sets_size]
-        rules_combinations = [comb for comb in product(*rules_set)]
-        return rules_combinations
+        return np.array([comb for comb in product(*rules_set)])
 
     def _product_operation(self, fuzz_output):
         """ Execute a product operation with the fuzzy values from the first
@@ -242,9 +241,7 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
-                # print '{}-th epoch. Error = {} - {:10.12f} = {:10.12f}'.format(
-                #     (epoch + 1), pair[1], l5, error
-                # )
+                # print '{}-th epoch for entry {}'.format(epoch + 1, pair[0])
                 if newrow:
                     self._errors.append(error ** 2)
                 else:
@@ -259,8 +256,8 @@ class TsukamotoModel(BaseModel):
                 self.backward_pass(pair[0], l1, l5, error)
                 epoch += 1
         # for pair in data:
-        #     l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-        #     print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
+            # l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
+            # print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
