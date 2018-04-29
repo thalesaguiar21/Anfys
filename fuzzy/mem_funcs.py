@@ -1,6 +1,5 @@
 from __future__ import division
 from math import log, exp
-from errors.msg import warn
 
 
 class MembershipFunction:

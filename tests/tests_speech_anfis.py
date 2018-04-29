@@ -58,8 +58,10 @@ class TestBaseModel(unittest.TestCase):
     def test_min_expected(self):
         self.setUp()
         expected = [0.5, 1, 0.5, 1, 0.5, 2, 0.5, 2, 0.5, 2, 0.5, 2]
-        self.assertSequenceEqual(
-            expected, self.anfis._min_operation(self.outputs))
+        rs = self.anfis._min_operation(self.outputs)
+        for i in xrange(rs.size):
+            if expected[i] != rs[i]:
+                self.fail('Error! Difference at element ' + str(i))
 
     def test_min_no_output(self):
         self.setUp()
@@ -73,8 +75,10 @@ class TestBaseModel(unittest.TestCase):
         self.setUp()
         expected = [1.0, 6.0, 1.0, 6.0, 2.0, 12.0,
                     2.0, 12.0, 3.0, 18.0, 3.0, 18.0]
-        self.assertSequenceEqual(
-            expected, self.anfis._product_operation(self.outputs))
+        rs = self.anfis._product_operation(self.outputs)
+        for i in xrange(rs.size):
+            if expected[i] != rs[i]:
+                self.fail('Error! Difference at element ' + str(i))
 
     def test_prod_no_output(self):
         self.setUp()

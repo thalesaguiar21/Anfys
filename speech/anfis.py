@@ -87,7 +87,7 @@ class BaseModel(object):
             for output, label in zip(fuzz_output, rule):
                 prod *= output[label]
             prod_outputs.append(prod)
-        return prod_outputs
+        return np.array(prod_outputs)
 
     def _min_operation(self, fuzz_output):
         """ Execute a min operation with the fuzzy values from the first layer.
@@ -116,11 +116,11 @@ class BaseModel(object):
         minimum_outputs = []
         for rule in self._rule_set:
             minimum = fuzz_output[0][rule[0]]
-            for output, label in zip(fuzz_output, rule):
-                if output[label] < minimum:
-                    minimum = output[label]
+            for i in xrange(rule.size):
+                if fuzz_output[i][rule[i]] < minimum:
+                    minimum = fuzz_output[i][rule[i]]
             minimum_outputs.append(minimum)
-        return minimum_outputs
+        return np.array(minimum_outputs)
 
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         raise NotImplementedError()
@@ -231,7 +231,6 @@ class TsukamotoModel(BaseModel):
         max_epochs : integer
             The maximum number of epochs for each pair. Defaults to 500
         """
-        # pp = pprint.PrettyPrinter()
         for pair in data:
             epoch = 0
             # print 'Input pair is ' + str(pair)
@@ -249,16 +248,16 @@ class TsukamotoModel(BaseModel):
                     self._errors[-1] = error
                 # Verify if the network has converged
                 if abs(error) <= threshold:
-                    # print 'Pair {} Converged at epoch {}'.format(
-                    #     pair, epoch + 1
-                    # )
+                    print 'Pair {} Converged at epoch {}'.format(
+                        pair, epoch + 1
+                    )
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], l1, l5, error)
                 epoch += 1
         # for pair in data:
-            # l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-            # print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
+            l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
+            print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -288,34 +287,34 @@ class TsukamotoModel(BaseModel):
         layer_3 : list of double
             The outputs from layer three
         """
+        qtd_rules = self._rule_set.size
         layer_1 = []
         last_idx = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
             layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
             last_idx = idx
 
-        layer_2 = np.empty((1, self._rule_set.size))
+        layer_2 = np.empty((1, qtd_rules))
         if min_prod:
             layer_2 = self._min_operation(layer_1)
         else:
             layer_2 = self._product_operation(layer_1)
-        denom = sum(layer_2)
 
-        layer_3 = [elm / denom for elm in layer_2]
+        layer_3 = layer_2 * (1.0 / layer_2.sum())
 
         consequents = self._find_consequents(
             layer_2, layer_3, expected, newrow
         )
 
-        cons_membership = []
-        for i in range(len(layer_2)):
+        cons_memb = []
+        for i in xrange(len(layer_2)):
             init = i * 2
             end = init + 2
             mem_value = self.cons_fun.membership_degree(
                 layer_2[i], *consequents[init:end]
             )
-            cons_membership.append(mem_value)
-        layer_4 = [weight * fi for weight, fi in zip(layer_3, cons_membership)]
+            cons_memb.append(mem_value)
+        layer_4 = [cons_memb[i] * layer_3[i] for i in xrange(len(layer_3))]
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3, layer_5
 
@@ -338,20 +337,18 @@ class TsukamotoModel(BaseModel):
         derivs = []
         last_idx = 0
         # Compute the derivative for each membership function, and its params
-        for entry, subset, idx in zip(entries, self.subsets, self._sets):
-            derivs.extend(subset.derivs_at(entry, self._prec[last_idx:idx]))
+        for i in xrange(len(self._sets)):
+            idx = self._sets[i]
+            derivs.extend(
+                self.subsets[i].derivs_at(entries[i], self._prec[last_idx:idx])
+            )
             last_idx = idx
-        # Sum of all derivatives
-        derivs_sum = 0
+        derivs = np.array(derivs)
+        # Sum of derivatives
+        derivs_sqrsum = 0
         for rs in derivs:
-            derivs_sum += sum([x ** 2 for x in rs])
+            derivs_sqrsum += sum([x ** 2 for x in rs])
 
-        eta = k / sqrt(derivs_sum)
-        # Compute the delta for each parameter
-        for i in range(len(derivs)):
-            derivs[i] = [-eta * d_aplha * err for d_aplha in derivs[i]]
+        eta = k / sqrt(derivs_sqrsum)
         # Update the precedent parameters by delta
-        for i in range(len(self._prec)):
-            self._prec[i] = [
-                prec + delta for prec, delta in zip(self._prec[i], derivs[i])
-            ]
+        self._prec = self._prec + (derivs * (-eta * err))
