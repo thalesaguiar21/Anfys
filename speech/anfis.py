@@ -253,7 +253,7 @@ class TsukamotoModel(BaseModel):
                     )
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], l1, l5, error)
+                self.backward_pass(pair[0], error)
                 epoch += 1
         # for pair in data:
             l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
@@ -318,16 +318,12 @@ class TsukamotoModel(BaseModel):
         layer_5 = sum(layer_4)
         return layer_1, layer_2, layer_3, layer_5
 
-    def backward_pass(self, entries, layer_1, layer_5, error, k=0.1):
+    def backward_pass(self, entries, error, k=0.1):
         """
         Parameters
         ----------
         entries : list of double
             The network inputs
-        layer_1 : list of double
-            The outputs from the first layer
-        layer_5 : double
-            The output from the fifth layer (the inference)
         error : double
             The error for the current epoch
         k : double
