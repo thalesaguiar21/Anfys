@@ -215,10 +215,10 @@ class TsukamotoModel(BaseModel):
             added to the linear system. Defaults to false.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = lse_online(self.coef_matrix, self.expected, 0.9999, 10000)
+        result = lse_online(self.coef_matrix, self.expected, 0.9999, 1000)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, threshold=0.000001, max_epochs=500):
+    def learn_hybrid_online(self, data, tol=1e-6, max_epochs=500, prod=False):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -226,27 +226,37 @@ class TsukamotoModel(BaseModel):
         data : list of pars of list and integer
             The training data set. For instance [([2, 3, 4], 10)], where 10 is
             the expected value for [2, 3, 4] entry.
-        threshold : double
+        tol : double
             The error tolerance. Defaults to 1e-10
         max_epochs : integer
             The maximum number of epochs for each pair. Defaults to 500
+        prod : boolean
+            Set this to True to use product T-Norm, otherwise the Min T-Norm
+            will be used. Defaults to False.
         """
         for pair in data:
+            if len(pair[0]) != len(self._sets):
+                raise ValueError('Number of inputs must match number of sets!')
+
+        for pair in data:
             epoch = 0
-            # print 'Input pair is ' + str(pair)
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
-                    pair[0], pair[1], True, newrow
+                    pair[0], pair[1], prod, newrow
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
+                # print '{}-th epoch | {} - {:4.12f} = {:4.12f} | {}'.format(
+                #     epoch + 1, pair[1], l5, error, pair
+                # )
                 # Verify if the network has converged
-                if abs(error) <= threshold:
+                if abs(error) <= tol:
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], error, 0.01)
+                self.backward_pass(pair[0], error, 0.1)
                 epoch += 1
+            print '[ONLINE] Result is {} - {} = {}'.format(pair[1], l5, error)
 
         for pair in data:
             l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
@@ -298,7 +308,7 @@ class TsukamotoModel(BaseModel):
         consequents = self._find_consequents(
             layer_2, layer_3, expected, newrow
         )
-
+        # pdb.set_trace()
         cons_memb = []
         for i in xrange(qtd_rules):
             init = i * 2
@@ -309,6 +319,7 @@ class TsukamotoModel(BaseModel):
             cons_memb.append(mem_value)
         # Multiply, element-wise the consequent membership by the layer_3
         layer_4 = cons_memb * layer_3
+        # pdb.set_trace()
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 
