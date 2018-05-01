@@ -1,4 +1,5 @@
 from numpy import eye, dot, array, zeros
+import pdb
 
 
 def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=10000):
@@ -32,7 +33,7 @@ def lse_online(coef_matrix, rs_matrix, lamb=0.9, gamma=10000):
                 (lamb + dot(a_i, dot(S, a_i.T)))
             )
         )
-        S = dot(S, 1.0 / lamb)
+        S = S * (1.0 / lamb)
         X = X + (dot(S, dot(a_i.T, (B[i] - dot(a_i, X)))))
     return X
 

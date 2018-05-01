@@ -170,7 +170,7 @@ class TsukamotoModel(BaseModel):
         self.coef_matrix = np.empty((0, col))
         self.expected = np.empty((0, 1))
 
-    def _build_coefmatrix(self, values, weights, newrow=False):
+    def _build_coefmatrix(self, values, weights, expec, newrow=False):
         """ Updates the linear system as new equations are available
 
         Parameters
@@ -179,6 +179,8 @@ class TsukamotoModel(BaseModel):
             The inputs to the fourth layer
         weights : list of double
             The outputs from the third layer
+        expec : double
+            The expected result for this line of the system
         newrow : boolean
             Defaults to False. If set to true a new equation is added to the
             system, otherwise the last equation is overwritten.
@@ -189,9 +191,11 @@ class TsukamotoModel(BaseModel):
             tmp_row = np.append(tmp_row, row_term)
         if newrow or self.coef_matrix.size == 0:
             self.coef_matrix = np.vstack([self.coef_matrix, tmp_row])
+            self.expected = np.append(self.expected, expec)
         else:
             # Replace the last line with the new parameters
             self.coef_matrix[-1, :] = tmp_row
+            self.expected[-1] = expec
 
     def _find_consequents(self, values, weights, expec_result, newrow=False):
         """ Handle the search for consequent parameters by using LSE and
@@ -210,15 +214,11 @@ class TsukamotoModel(BaseModel):
             Inform that this epoch is training a new pair, and that should be
             added to the linear system. Defaults to false.
         """
-        self._build_coefmatrix(values, weights, newrow)
-        if newrow or self.expected.size == 0:
-            self.expected = np.append(self.expected, expec_result)
-        else:
-            self.expected[-1] = expec_result
-        result = lse_online(self.coef_matrix, self.expected, 0.99999, 1000)
+        self._build_coefmatrix(values, weights, expec_result, newrow)
+        result = lse_online(self.coef_matrix, self.expected, 0.9999, 10000)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, threshold=0.0001, max_epochs=500):
+    def learn_hybrid_online(self, data, threshold=0.000001, max_epochs=500):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -237,27 +237,20 @@ class TsukamotoModel(BaseModel):
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
-                    pair[0], pair[1], False, newrow
+                    pair[0], pair[1], True, newrow
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
-                # print '{}-th epoch for entry {}'.format(epoch + 1, pair[0])
-                if newrow:
-                    self._errors.append(error ** 2)
-                else:
-                    self._errors[-1] = error
                 # Verify if the network has converged
                 if abs(error) <= threshold:
-                    print 'Pair {} Converged at epoch {}'.format(
-                        pair, epoch + 1
-                    )
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], error)
+                self.backward_pass(pair[0], error, 0.01)
                 epoch += 1
-        # for pair in data:
+
+        for pair in data:
             l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-            print 'For entry {}, the result is {:4.12f}'.format(pair[0], l5)
+            print 'Pair {} resulted in {:4.12f}'.format(pair, l5)
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -287,14 +280,14 @@ class TsukamotoModel(BaseModel):
         layer_3 : list of double
             The outputs from layer three
         """
-        qtd_rules = self._rule_set.size
+        qtd_rules = self._rule_set.shape[0]
         layer_1 = []
         last_idx = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
             layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
             last_idx = idx
 
-        layer_2 = np.empty((1, qtd_rules))
+        layer_2 = np.empty([])
         if min_prod:
             layer_2 = self._min_operation(layer_1)
         else:
@@ -307,19 +300,22 @@ class TsukamotoModel(BaseModel):
         )
 
         cons_memb = []
-        for i in xrange(len(layer_2)):
+        for i in xrange(qtd_rules):
             init = i * 2
             end = init + 2
             mem_value = self.cons_fun.membership_degree(
                 layer_2[i], *consequents[init:end]
             )
             cons_memb.append(mem_value)
-        layer_4 = [cons_memb[i] * layer_3[i] for i in xrange(len(layer_3))]
-        layer_5 = sum(layer_4)
+        # Multiply, element-wise the consequent membership by the layer_3
+        layer_4 = cons_memb * layer_3
+        layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 
     def backward_pass(self, entries, error, k=0.1):
-        """
+        """ Computes the derivative of each membership function in the first
+        layer and update the precedent parameters.
+
         Parameters
         ----------
         entries : list of double
