@@ -187,9 +187,8 @@ class TsukamotoModel(BaseModel):
         """
         tmp_row = np.empty((1, 0))
         for value, weight in zip(values, weights):
-            row_term = self.cons_fun.build_sys_row(value, weight)
+            row_term = self.cons_fun.build_sys_term(value, weight)
             tmp_row = np.append(tmp_row, row_term)
-            pdb.set_trace()
         if newrow or self.coef_matrix.size == 0:
             self.coef_matrix = np.vstack([self.coef_matrix, tmp_row])
             self.expected = np.append(self.expected, expec)
@@ -297,7 +296,6 @@ class TsukamotoModel(BaseModel):
         layer_3 : list of double
             The outputs from layer three
         """
-        qtd_rules = self._rule_set.shape[0]
         layer_1 = []
         last_idx = 0
         for entry, subset, idx in zip(entries, self.subsets, self._sets):
@@ -315,18 +313,8 @@ class TsukamotoModel(BaseModel):
         consequents = self._find_consequents(
             layer_2, layer_3, expected, newrow
         )
-        # pdb.set_trace()
-        cons_memb = []
-        for i in xrange(qtd_rules):
-            init = i * 2
-            end = init + 2
-            mem_value = self.cons_fun.membership_degree(
-                layer_2[i], *consequents[init:end]
-            )
-            cons_memb.append(mem_value)
         # Multiply, element-wise the consequent membership by the layer_3
         layer_4 = self.coef_matrix * consequents
-        pdb.set_trace()
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 

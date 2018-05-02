@@ -1,5 +1,5 @@
 from random import random
-from fuzzy.mem_funcs import BellThree, PiecewiseLogit
+from fuzzy.mem_funcs import BellTwo, PiecewiseLogit
 from speech.anfis import TsukamotoModel
 from sklearn.datasets.samples_generator import make_blobs
 from numpy import array
@@ -39,7 +39,7 @@ data =[([-4.144321636298676, 4.873850296693019, 0.28181350664655547], 1), ([6.27
 sets_size = [3, 3, 3]
 
 prec_params = [
-    [random() + 0.5, random() + 0.5, random() + 0.5]
+    [random() + 0.5, random() + 0.5]
     for i in xrange(sum(sets_size))
 ]
 
@@ -53,7 +53,7 @@ prec_params = [
 #                [0.575638941796, 0.0550909332716],
 #                [1.60538113778, 1.88591105533]]
 
-prec_fun = BellThree()
+prec_fun = BellTwo()
 con_fun = PiecewiseLogit()
 network = TsukamotoModel(sets_size, prec_params, prec_fun, con_fun)
 network.learn_hybrid_online(data, max_epochs=200, prod=True)

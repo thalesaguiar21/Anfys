@@ -297,6 +297,6 @@ class PiecewiseLogit(MembershipFunction):
             return (value + 1.0) / self.__hl
         return result
 
-    def build_sys_row(self, value, weight):
+    def build_sys_term(self, value, weight):
         return [weight * (value - self.__low) / self.__hl,
                 weight * (self.__high - value) / self.__hl]
