@@ -189,6 +189,7 @@ class TsukamotoModel(BaseModel):
         for value, weight in zip(values, weights):
             row_term = self.cons_fun.build_sys_row(value, weight)
             tmp_row = np.append(tmp_row, row_term)
+            pdb.set_trace()
         if newrow or self.coef_matrix.size == 0:
             self.coef_matrix = np.vstack([self.coef_matrix, tmp_row])
             self.expected = np.append(self.expected, expec)
@@ -215,10 +216,11 @@ class TsukamotoModel(BaseModel):
             added to the linear system. Defaults to false.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = lse_online(self.coef_matrix, self.expected, 0.9999, 1000)
+        result = lse_online(self.coef_matrix, self.expected, 0.9999, 1000.)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, tol=1e-6, max_epochs=500, prod=False):
+    def learn_hybrid_online(
+            self, data, tol=0.000001, max_epochs=500, prod=False):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -252,15 +254,20 @@ class TsukamotoModel(BaseModel):
                 # )
                 # Verify if the network has converged
                 if abs(error) <= tol:
+                    print '[CONVERGED]'
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], error, 0.1)
                 epoch += 1
-            print '[ONLINE] Result is {} - {} = {}'.format(pair[1], l5, error)
+            print '[ONLINE] Result is {:4.8f} - {:4.8f} = {:4.8f}'.format(
+                pair[1], l5, error
+            )
 
+        p = 1
         for pair in data:
             l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-            print 'Pair {} resulted in {:4.12f}'.format(pair, l5)
+            print 'Pair {:3} -> {:4.5f} --- {:4.12f}'.format(p, pair[1], l5)
+            p += 1
 
     def forward_pass(self, entries, expected, min_prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -318,12 +325,12 @@ class TsukamotoModel(BaseModel):
             )
             cons_memb.append(mem_value)
         # Multiply, element-wise the consequent membership by the layer_3
-        layer_4 = cons_memb * layer_3
-        # pdb.set_trace()
+        layer_4 = self.coef_matrix * consequents
+        pdb.set_trace()
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 
-    def backward_pass(self, entries, error, k=0.1):
+    def backward_pass(self, entries, error, k=0.01):
         """ Computes the derivative of each membership function in the first
         layer and update the precedent parameters.
 
@@ -334,7 +341,7 @@ class TsukamotoModel(BaseModel):
         error : double
             The error for the current epoch
         k : double
-            A double to be used on the learning rate
+            A double to be used on the learning rate. Defaults to 0.1
         """
         err = -2 * error
         derivs = []
