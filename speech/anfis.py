@@ -241,6 +241,7 @@ class TsukamotoModel(BaseModel):
 
         for pair in data:
             epoch = 0
+            print 'Running pair --> ' + str(pair)
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
@@ -258,8 +259,8 @@ class TsukamotoModel(BaseModel):
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], error, 0.1)
                 epoch += 1
-            print '[ONLINE] Result is {:4.8f} - {:4.8f} = {:4.8f}'.format(
-                pair[1], l5, error
+            print '[ONLINE] {:4} - {:4.8f} - {:4.8f} = {:4.8f}'.format(
+                epoch, pair[1], l5, error
             )
 
         p = 1
@@ -315,6 +316,7 @@ class TsukamotoModel(BaseModel):
         )
         # Multiply, element-wise the consequent membership by the layer_3
         layer_4 = self.coef_matrix * consequents
+        # pdb.set_trace()
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 
@@ -347,6 +349,9 @@ class TsukamotoModel(BaseModel):
         for rs in derivs:
             derivs_sqrsum += sum([x ** 2 for x in rs])
 
-        eta = k / sqrt(derivs_sqrsum)
+        eta = k
+        if derivs_sqrsum != 0:
+            eta = k / sqrt(derivs_sqrsum)
+
         # Update the precedent parameters by delta
         self._prec = self._prec + (derivs * (-eta * err))
