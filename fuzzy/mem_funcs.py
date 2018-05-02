@@ -256,12 +256,11 @@ class PiecewiseLogit(MembershipFunction):
         """
         # a = Pmin, b = Pmax
         mem_degree = 0
-        lin_coef = (b - a) / self.__hl
-        indep = b - lin_coef
         if value <= self.__low:
             mem_degree = a
         elif self.__low < value and self.__high > value:
-            mem_degree = lin_coef * value + indep
+            mem_degree = (value - self.__low) * b + (self.__high - value) * a
+            mem_degree = mem_degree / self.__hl
         elif value >= self.__high:
             mem_degree = b
         return mem_degree
@@ -299,5 +298,5 @@ class PiecewiseLogit(MembershipFunction):
         return result
 
     def build_sys_row(self, value, weight):
-        return [weight * (value - 1.0 - self.__hl) / self.__hl,
-                weight * (1.0 - value) / self.__hl]
+        return [weight * (value - self.__low) / self.__hl,
+                weight * (self.__high - value) / self.__hl]
