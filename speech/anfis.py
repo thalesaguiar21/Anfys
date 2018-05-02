@@ -269,7 +269,7 @@ class TsukamotoModel(BaseModel):
             print 'Pair {:3} -> {:4.5f} --- {:4.12f}'.format(p, pair[1], l5)
             p += 1
 
-    def forward_pass(self, entries, expected, min_prod=False, newrow=False):
+    def forward_pass(self, entries, expected, prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
         layer will be calculated after finding the parameters with a Least
         Square Estimation.
@@ -280,7 +280,7 @@ class TsukamotoModel(BaseModel):
             The inputs to the ANFIS
         expected : double
             The expected value to the given parameters
-        min_prod : boolean
+        prod : boolean
             If set to True the min operation will be used to compute the layer
             2 outputs. Otherwise, the product operation will be used. Defaults
             to False.
@@ -305,10 +305,10 @@ class TsukamotoModel(BaseModel):
             last_idx = idx
 
         layer_2 = np.empty([])
-        if min_prod:
-            layer_2 = self._min_operation(layer_1)
-        else:
+        if prod:
             layer_2 = self._product_operation(layer_1)
+        else:
+            layer_2 = self._min_operation(layer_1)
 
         layer_3 = layer_2 * (1.0 / layer_2.sum())
 
