@@ -2,7 +2,7 @@ from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse_online
-from math import sqrt
+from math import sqrt, isinf
 
 import pdb
 import time
@@ -249,25 +249,22 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
-                # print '{}-th epoch | {} - {:4.12f} = {:4.12f} | {}'.format(
-                #     epoch + 1, pair[1], l5, error, pair
-                # )
                 # Verify if the network has converged
                 if abs(error) <= tol:
-                    print '[CONVERGED]'
+                    # print '[CONVERGED]'
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], error, 0.1)
                 epoch += 1
-            print '[ONLINE] {:4} - {:4.8f} - {:4.8f} = {:4.8f}'.format(
-                epoch, pair[1], l5, error
-            )
+            # print '[ONLINE] {:4} - {:4.8f} - {:4.8f} = {:4.8f}'.format(
+            #     epoch, pair[1], l5, error
+            # )
 
-        p = 1
-        for pair in data:
-            l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-            print 'Pair {:3} -> {:4.5f} --- {:4.12f}'.format(p, pair[1], l5)
-            p += 1
+        # p = 1
+        # for pair in data:
+        #     l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
+        #     print 'Pair {:3} -> {:4.5f} --- {:4.12f}'.format(p, pair[1], l5)
+        #     p += 1
 
     def forward_pass(self, entries, expected, prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -315,8 +312,14 @@ class TsukamotoModel(BaseModel):
             layer_2, layer_3, expected, newrow
         )
         # Multiply, element-wise the consequent membership by the layer_3
-        layer_4 = self.coef_matrix * consequents
-        # pdb.set_trace()
+        n_rules = self._rule_set.shape[0]
+        layer_4 = np.empty(n_rules)
+        for i in xrange(n_rules):
+            k = i * 2
+            fi = self.cons_fun.membership_degree(
+                layer_2[i], *consequents[k: k + 2]
+            )
+            layer_4[i] = fi * layer_3[i]
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_5
 
@@ -344,14 +347,11 @@ class TsukamotoModel(BaseModel):
             )
             last_idx = idx
         derivs = np.array(derivs)
-        # Sum of derivatives
-        derivs_sqrsum = 0
-        for rs in derivs:
-            derivs_sqrsum += sum([x ** 2 for x in rs])
-
+        # Learning rate computation
+        derivs_sum = abs(np.sum(derivs))
         eta = k
-        if derivs_sqrsum != 0:
-            eta = k / sqrt(derivs_sqrsum)
+        if derivs_sum != 0:
+            eta = k / derivs_sum
 
         # Update the precedent parameters by delta
         self._prec = self._prec + (derivs * (-eta * err))
