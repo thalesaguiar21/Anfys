@@ -145,7 +145,7 @@ class TestPiecewiseLogit(unittest.TestCase):
                  9.9199999984, 10, 2]
         for value, e in zip(values, expec):
             self.assertAlmostEqual(
-                e, self.plogit.membership_degree(value, *self.params)
+                e, self.plogit.membership_degree(value, *self.params), 6
             )
 
     def test_derivative(self):

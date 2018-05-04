@@ -123,7 +123,7 @@ class TestTsukamoto(unittest.TestCase):
                     [0.36787944117144233, 0.36787944117144233],
                     [0.1690133154060661, 0.1690133154060661]]
 
-        l1, l2, l3, l5 = self.tsukamoto.forward_pass(entry, 400)
+        l1, l2, l3, l5 = self.tsukamoto.forward_pass(entry, 400, prod=True)
         for line_exp, line_rs in zip(expected, l1):
             for elm, rs in zip(line_exp, line_rs):
                 self.assertAlmostEqual(elm, rs)
