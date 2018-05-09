@@ -219,7 +219,7 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, tol=0.000001, max_epochs=500, prod=False):
+            self, data, tol=0.1, max_epochs=500, prod=False):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -240,8 +240,10 @@ class TsukamotoModel(BaseModel):
                 raise ValueError('Number of inputs must match number of sets!')
 
         for pair in data:
+            errors = []
             epoch = 0
-            print 'Running pair --> ' + str(pair)
+            msg = ''
+            k = 1
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
@@ -249,22 +251,29 @@ class TsukamotoModel(BaseModel):
                 )
                 # Compute the iteration error
                 error = pair[1] - l5
+
+                if len(errors) < 3:
+                    errors.append(error)
+                else:
+                    if(errors[1] > errors[0] or errors[2] > errors[1]):
+                        k *= 0.9
+                    else:
+                        k *= 1.1
+                    del errors[0]
+                    errors.append(error)
+
+                print '{:4}| {:13.12f} | [ERROR] = {:13.12f}'.format(
+                    epoch + 1, pair[1], error)
                 # Verify if the network has converged
                 if abs(error) <= tol:
-                    # print '[CONVERGED]'
+                    msg += '[CONVERGED]'
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], error, 0.1)
+                self.backward_pass(pair[0], error, k)
                 epoch += 1
-            # print '[ONLINE] {:4} - {:4.8f} - {:4.8f} = {:4.8f}'.format(
-            #     epoch, pair[1], l5, error
-            # )
-
-        # p = 1
-        # for pair in data:
-        #     l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], False)
-        #     print 'Pair {:3} -> {:4.5f} --- {:4.12f}'.format(p, pair[1], l5)
-        #     p += 1
+            print ('[ON] {:4} | {:9.8f} - {:9.8f} = {:9.8f} ' + msg).format(
+                epoch, pair[1], l5, error
+            )
 
     def forward_pass(self, entries, expected, prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -311,7 +320,7 @@ class TsukamotoModel(BaseModel):
         consequents = self._find_consequents(
             layer_2, layer_3, expected, newrow
         )
-        # Multiply, element-wise the consequent membership by the layer_3
+        # Compute the membership value of each consequent function
         n_rules = self._rule_set.shape[0]
         layer_4 = np.empty(n_rules)
         for i in xrange(n_rules):
@@ -349,9 +358,10 @@ class TsukamotoModel(BaseModel):
         derivs = np.array(derivs)
         # Learning rate computation
         derivs_sum = abs(np.sum(derivs))
-        eta = k
-        if derivs_sum != 0:
-            eta = k / derivs_sum
+        # Fix derivative for each alpha
+        eta = k / derivs_sum
+        if isinf(eta):
+            eta = k
 
         # Update the precedent parameters by delta
         self._prec = self._prec + (derivs * (-eta * err))
