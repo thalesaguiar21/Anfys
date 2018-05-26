@@ -2,7 +2,8 @@ from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from speech.utils import lse_online
-from math import sqrt, isinf
+from math import sqrt, log
+from random import randint
 
 import pdb
 import time
@@ -219,7 +220,7 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, tol=0.1, max_epochs=500, prod=False):
+            self, data, tol=1e-3, max_epochs=500, prod=False):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -235,45 +236,73 @@ class TsukamotoModel(BaseModel):
             Set this to True to use product T-Norm, otherwise the Min T-Norm
             will be used. Defaults to False.
         """
+        # Cepstrums, Gamma, MemFuncs
+        filename = 'results/F_C{}_GM{}_MF{}_{}.txt'.format(
+            len(data[0][0]), 1000, self._sets[-1], 'PROD' if prod else 'MIN'
+        )
+        result = open(filename, 'w+')
+        result.write('{:<3}\t{:<16}\t{:<12}\n'.format('ep', 'k', 'err'))
         for pair in data:
             if len(pair[0]) != len(self._sets):
                 raise ValueError('Number of inputs must match number of sets!')
 
+        qtd_data = len(data)
+        p = 1
         for pair in data:
-            errors = []
+            errs = []
+            err_reduc = 0
+            err_inc = 0
             epoch = 0
             msg = ''
-            k = 1
+            k = randint(1, 10)
+            print 'Runing pair {} of {} ...'.format(p, qtd_data)
             while epoch < max_epochs:
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
                     pair[0], pair[1], prod, newrow
                 )
-                # Compute the iteration error
-                error = pair[1] - l5
-
-                if len(errors) < 3:
-                    errors.append(error)
+                # Compute the iteration error and update K
+                if len(errs) < 2:
+                    errs.append(pair[1] - l5)
                 else:
-                    if(errors[1] > errors[0] or errors[2] > errors[1]):
-                        k *= 0.9
-                    else:
-                        k *= 1.1
-                    del errors[0]
-                    errors.append(error)
+                    if errs[-1] <= errs[-2]:
+                        err_reduc += 1
+                        err_inc = 0
+                    elif errs[-1] > errs[-2]:
+                        err_inc += 1
+                        err_reduc = 0
+                    if err_reduc == 4:
+                        k *= 1.01
+                        err_reduc = 0
+                    if err_inc == 4:
+                        k *= 0.98
+                        err_inc = 0
+                    del errs[0]
+                    errs.append(pair[1] - l5)
+                errs.append(pair[1] - l5)
+                result.write(
+                    '{:<3}\t{:<16.12f}\t{:<12.12f}\n'.format(
+                        epoch + 1, k, errs[-1]
+                    )
+                )
 
-                print '{:4}| {:13.12f} | [ERROR] = {:13.12f}'.format(
-                    epoch + 1, pair[1], error)
+                emsg = '{:4} | {:13.12f} | [ERROR] = {:13.12f} | k = {:13.12f}'
+                print emsg.format(epoch + 1, pair[1], errs[-1], k)
                 # Verify if the network has converged
-                if abs(error) <= tol:
+                if abs(errs[-1]) <= tol:
                     msg += '[CONVERGED]'
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], error, k)
+                self.backward_pass(pair[0], errs[-1], k)
                 epoch += 1
             print ('[ON] {:4} | {:9.8f} - {:9.8f} = {:9.8f} ' + msg).format(
-                epoch, pair[1], l5, error
+                epoch, pair[1], l5, errs[-1]
             )
+            p += 1
+
+            if p == 100:
+                break
+        result.close()
 
     def forward_pass(self, entries, expected, prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -356,12 +385,11 @@ class TsukamotoModel(BaseModel):
             )
             last_idx = idx
         derivs = np.array(derivs)
-        # Learning rate computation
-        derivs_sum = abs(np.sum(derivs))
-        # Fix derivative for each alpha
-        eta = k / derivs_sum
-        if isinf(eta):
-            eta = k
 
-        # Update the precedent parameters by delta
-        self._prec = self._prec + (derivs * (-eta * err))
+        for i in xrange(derivs.shape[1]):
+            # Learning rate computation
+            d_sum = derivs[:, i].sum() ** 2
+            eta = k / sqrt(d_sum)
+            # Update the precedent parameters
+            del_alpha = derivs[:, i] * (-eta * err)
+            self._prec[:, i] = self._prec[:, i] + del_alpha
