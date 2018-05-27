@@ -4,9 +4,9 @@ from speech.anfis import TsukamotoModel
 from datafiles import data_utils as dutils
 # from sklearn.datasets.samples_generator import make_blobs
 
-qtd_mfs = 3
+qtd_mfs = 2
 
-data = dutils.get_pairs('centroids_fsew0_4F')
+data = dutils.get_pairs('c_4F.txt')
 qtd_inputs = len(data[0][0])
 sets_size = [qtd_mfs for i in range(qtd_inputs)]
 prec_params = [

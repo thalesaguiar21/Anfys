@@ -286,8 +286,8 @@ class TsukamotoModel(BaseModel):
                     )
                 )
 
-                emsg = '{:4} | {:13.12f} | [ERROR] = {:13.12f} | k = {:13.12f}'
-                print emsg.format(epoch + 1, pair[1], errs[-1], k)
+                # emsg = '{:4} | {:13.12f} | [ERROR] = {:13.12f} | k = {:13.12f}'
+                # print emsg.format(epoch + 1, pair[1], errs[-1], k)
                 # Verify if the network has converged
                 if abs(errs[-1]) <= tol:
                     msg += '[CONVERGED]'
@@ -295,13 +295,10 @@ class TsukamotoModel(BaseModel):
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], errs[-1], k)
                 epoch += 1
-            print ('[ON] {:4} | {:9.8f} - {:9.8f} = {:9.8f} ' + msg).format(
-                epoch, pair[1], l5, errs[-1]
-            )
+            # print ('[ON] {:4} | {:9.8f} - {:9.8f} = {:9.8f} ' + msg).format(
+            #     epoch, pair[1], l5, errs[-1]
+            # )
             p += 1
-
-            if p == 100:
-                break
         result.close()
 
     def forward_pass(self, entries, expected, prod=False, newrow=False):

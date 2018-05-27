@@ -1,50 +1,60 @@
-import numpy as np
+# import numpy as np
 from sklearn.cluster import KMeans
-import pdb
+# import pdb
 
 
-def compute_centroids(filename):
-    data = open(filename, 'r')
-    datalines = data.readlines()
-    datainputs = {}
+def compute_centroids(filename1, filename2):
+    data1 = open(filename1, 'r')
+    data2 = open(filename2, 'r')
+    datalines = data1.readlines()
+    datalines.extend(data2.readlines())
+
+    phonemes = []
+    inputs = []
     for l in datalines:
         values = l.strip('\n').split('\t')
-        phn = values[-1]
-        if phn in datainputs:
-            datainputs[phn].append(np.array(values[:-1]).astype(np.float))
-        else:
-            datainputs[phn] = [values[:-1]]
+        if values[-1] not in phonemes:
+            phonemes.append(values[-1])
+        inputs.append([float(i) for i in values[:-1]])
 
-    n_phonemes = len(datainputs)
-    for phn in datainputs:
-        kmeans = KMeans(n_clusters=n_phonemes,
-                        random_state=0
-                        ).fit(datainputs[phn])
-        print kmeans.cluster_centers_
+    print 'Phonemes:\t{}\nDatasize:\t{}'.format(len(phonemes), len(inputs))
 
-    for phn in datainputs:
-        qtddata = len(datainputs[phn])
-        total = 0
-        # pdb.set_trace()
-        for data in datainputs[phn]:
-            total += np.array(data).astype(np.float).sum() / qtddata
-        datainputs[phn] = total / qtddata
+    n_phonemes = len(phonemes)
+    kmeans = KMeans(n_clusters=n_phonemes,
+                    random_state=0
+                    ).fit(inputs)
 
-    filename = filename.split('_r')[0]
-    with open('centroids_' + filename, 'w') as file:
-        for line in datalines:
-            phn = line.strip('\n').split('\t')[-1]
-            no_phn = line.replace(phn, str(datainputs[phn]))
-            file.write(no_phn)
+    sample_centers = kmeans.predict(inputs)
+    print 'Centers: ' + str(len(sample_centers))
+
+    fileprefix = filename1.split('_')[1]
+    with open('c_' + fileprefix + '.txt', 'w') as file:
+        n_line = 0
+        for line, center in zip(datalines, sample_centers):
+            values = line.strip('\n').split('\t')
+            values[-1] = max(kmeans.cluster_centers_[center])
+            values = [float(v) for v in values]
+            qtd_values = len(values)
+            str_lin = ('{:20}\t' * qtd_values).format(*values)
+            file.write(str_lin + '\n')
+            n_line += 1
+
+    print 'Saved results into {}'.format('c_' + fileprefix + '.txt')
 
 
 def get_pairs(filename):
-    my_dir = 'C:\\Users\\thalesaguiar\\Documents\\Dev\\Python\\ANFIS\\datafiles\\'
+    my_dir = 'C:\\Users\\thalesaguiar\\Documents'
+    my_dir += '\\Dev\\Python\\ANFIS\\datafiles\\'
     data = open(my_dir + filename, 'r')
     datalines = data.readlines()
     d_pair_tmp = []
     for line in datalines:
-        d_pair_tmp.append(line.strip('\n').split('\t'))
+        d_pair_tmp.append(
+            [
+                float(i.strip(' '))
+                for i in line.strip('\n').strip('\t').split('\t')
+            ]
+        )
 
     d_pair = []
     for i in xrange(len(d_pair_tmp)):
