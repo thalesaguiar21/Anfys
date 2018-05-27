@@ -104,3 +104,4 @@ ENV/
 Test.py
 /datafiles/*
 !/datafiles/*.py
+/results/*
