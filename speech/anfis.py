@@ -2,8 +2,8 @@ from __future__ import division
 from __future__ import print_function
 from itertools import product
 from fuzzy.subsets import FuzzySet
-from datafiles import file_helper as fhelper
-from speech.utils import lse_online
+from data import file_helper as fhelper
+from speech.utils import lse_online, p_progress
 from math import sqrt, isinf
 
 # import pdb
@@ -217,7 +217,7 @@ class TsukamotoModel(BaseModel):
             added to the linear system.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = lse_online(self.coef_matrix, self.expected, 0.9, 1000.)
+        result = lse_online(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
@@ -269,7 +269,7 @@ class TsukamotoModel(BaseModel):
 
                 # Verify if the network has converged
                 if lcl_error <= tol:
-                    fhelper.w(_file, epoch, k, lcl_error, clock() - start)
+                    fhelper.w(_file, epoch + 1, k, lcl_error, clock() - start)
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], errs[-1], k)
@@ -359,39 +359,19 @@ class TsukamotoModel(BaseModel):
             last_idx = idx
         derivs = np.array(derivs)
 
-        for i in xrange(derivs.shape[1]):
+        for i in xrange(derivs.shape[0]):
             # Learning rate computation
-            d_sum = derivs[:, i].sum() ** 2
+            d_sum = derivs[i, :].sum() ** 2
             if sqrt(d_sum) == 0:
-                eta = k
+                eta = 0.1
             else:
                 eta = sqrt(d_sum)
 
             if isinf(eta):
-                eta = k
+                eta = 0.1
             # Update the precedent parameters
-            del_alpha = derivs[:, i] * (-eta * err)
-            self._prec[:, i] = self._prec[:, i] + del_alpha
-
-
-def p_progress(qtd_data, p, setnum, csymb='#', psymb='-', basis=10):
-    """ Print a progress bar and refresh the line
-
-    qtd_data : int
-        Total number of samples
-    p : int
-        Current sample
-    csymb : charactere, defaults to '#'
-        Symbol to use when complete one basis
-    psymb : charactere, defaults to '-'
-        Symbol to be used on uncompleted basis
-    basis : int, defaults to 10
-        The bar size
-    """
-    todo = int((qtd_data - p) / qtd_data * basis) + 1
-    done = int(p / qtd_data * basis)
-    pbar = '[{}]'.format((csymb * done) + (psymb * todo))
-    print('{} {:4} / {:4}'.format(pbar, p, qtd_data), end='\r')
+            del_alpha = derivs[i, :] * (-eta * err)
+            self._prec[i, :] = self._prec[i, :] + del_alpha
 
 
 def update_k(k, addsub, errors):

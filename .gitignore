@@ -102,6 +102,6 @@ ENV/
 
 # other
 Test.py
-/datafiles/*
-!/datafiles/*.py
+/data/*
+!/data/*.py
 /results/*

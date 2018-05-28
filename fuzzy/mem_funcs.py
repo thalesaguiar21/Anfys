@@ -100,7 +100,7 @@ class BellThree(MembershipFunction):
         if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
-
+        a = max(a, 1)
         denom = 1.0 + (((value - c) / a) ** 2.0) ** b
         return max(1.0 / denom, MembershipFunction.MIN_MEMBERSHIP)
 

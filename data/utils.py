@@ -2,6 +2,11 @@ import numpy as np
 from sklearn.cluster import KMeans
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import os
+import sys
+sys.path.append('../')
+
+or_folder = 'original'
 
 
 def compute_kmeans(filename1, filename2=None):
@@ -29,12 +34,13 @@ def compute_kmeans(filename1, filename2=None):
                     random_state=0
                     ).fit(inputs)
 
-    print 'Predicting...'
-    sample_centers = kmeans.predict(inputs)
-    print 'Phonemes:\t{}'.format(len(phonemes))
-    print 'Datasize:\t{}'.format(len(inputs))
-    print 'Centers: ' + str(len(kmeans.cluster_centers_))
-    return (kmeans, np.array(inputs), filename1, sample_centers, datalines)
+    # print 'Predicting...'
+    # sample_centers = kmeans.predict(inputs)
+    # print 'Phonemes:\t{}'.format(len(phonemes))
+    # print 'Datasize:\t{}'.format(len(inputs))
+    # print 'Centers: ' + str(len(kmeans.cluster_centers_))
+    return (kmeans, datalines)
+    # return (kmeans, np.array(inputs), filename1, sample_centers, datalines)
 
 
 def write_to_file(filename1, filename2=None):
@@ -42,21 +48,80 @@ def write_to_file(filename1, filename2=None):
     kmeans = rs[0]
     # X = rs[1]
     # f1 = rs[2]
-    scenters = rs[3]
-    datalines = rs[4]
-    fileprefix = filename1.split('_')[1]
-    with open('c_' + fileprefix + '.txt', 'w') as file:
-        n_line = 0
-        for line, center in zip(datalines, scenters):
-            values = line.strip('\n').split('\t')
-            values[-1] = kmeans.cluster_centers_[center][0]
-            values = [float(v) for v in values]
-            qtd_values = len(values)
-            str_lin = ('{:20}\t' * qtd_values).format(*values)
-            file.write(str_lin + '\n')
-            n_line += 1
+    # scenters = rs[3]
+    datalines = rs[1]
 
-    print 'Saved results into {}'.format('c_' + fileprefix + '.txt')
+    rsfolder = 'clustered'
+    if not os.path.exists(rsfolder):
+        os.makedirs(rsfolder)
+
+    fileprefix = filename1.split('F')[0]
+    for i in range(1, 461):
+        fnum = next_file(i, 3)
+        fname = fileprefix.split('_')[0] + '_' + fnum + '_ext.txt'
+        # d = os.path.join(os.getcwd() + '\\' + fileprefix, fname)
+        extfile = open(fileprefix + '/' + fname, 'r')
+        extfile_lines = extfile.readlines()
+        inputs = []
+        for line in extfile_lines:
+            inputs.append(
+                [
+                    float(v.strip('\n'))
+                    for v in line.strip('\n').split('\t')[:-1]
+                ]
+            )
+        extfile.close()
+
+        scenters = kmeans.predict(inputs)
+        rs_fpath = rsfolder + '/' + fileprefix + '_' + str(fnum) + '.txt'
+        with open(rs_fpath, 'w+') as file:
+            for line, center in zip(datalines, scenters):
+                values = line.strip('\n').split('\t')
+                values[-1] = kmeans.cluster_centers_[center][0]
+                values = [float(v) for v in values]
+                qtd_values = len(values)
+                str_lin = ('{:20}\t' * qtd_values).format(*values)
+                file.write(str_lin + '\n')
+
+        print 'Saved results into {}'.format(rs_fpath)
+
+
+    # with open('c_' + fileprefix + '.txt', 'w') as file:
+    #     n_line = 0
+    #     for line, center in zip(datalines, scenters):
+    #         values = line.strip('\n').split('\t')
+    #         values[-1] = kmeans.cluster_centers_[center][0]
+    #         values = [float(v) for v in values]
+    #         qtd_values = len(values)
+    #         str_lin = ('{:20}\t' * qtd_values).format(*values)
+    #         file.write(str_lin + '\n')
+    #         n_line += 1
+
+    # print 'Saved results into {}'.format('c_' + fileprefix + '.txt')
+
+
+def extract_numerals(num):
+    div = 1
+    numerals = []
+    while div > 0:
+        div = num / 10
+        numeral = num - div * 10
+        if div == 0:
+            numeral = num
+        numerals.insert(0, str(numeral))
+        num = div
+    return numerals
+
+
+def next_file(index, max_length):
+    numerals = extract_numerals(index)
+    result = ''
+    for num in numerals:
+        result += str(num)
+    if len(result) < max_length:
+        prefix = '0' * (max_length - len(result))
+        result = prefix + result
+    return result
 
 
 def compute_centroids(filename1, filename2):
@@ -145,7 +210,7 @@ def plot_kmeans_3D(filename1, filename2=None, qtd_points=200):
 
 def get_pairs(filename):
     my_dir = 'C:\\Users\\thalesaguiar\\Documents'
-    my_dir += '\\Dev\\Python\\ANFIS\\datafiles\\'
+    my_dir += '\\Dev\\Python\\ANFIS\\data\\clustered\\'
     data = open(my_dir + filename, 'r')
     datalines = data.readlines()
     d_pair_tmp = []
@@ -167,7 +232,10 @@ def get_pairs(filename):
 
 
 def write_all():
-    write_to_file('fsew0_4F_results.txt', 'msak0_4F_results.txt')
-    write_to_file('fsew0_5F_results.txt', 'msak0_5F_results.txt')
-    write_to_file('fsew0_6F_results.txt', 'msak0_6F_results.txt')
-    write_to_file('fsew0_7F_results.txt', 'msak0_7F_results.txt')
+    write_to_file('fsew0_4F_results.txt')
+    write_to_file('fsew0_5F_results.txt')
+    write_to_file('msak0_4F_results.txt')
+    write_to_file('msak0_5F_results.txt')
+
+
+# write_all()
