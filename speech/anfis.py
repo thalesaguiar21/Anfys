@@ -1,12 +1,12 @@
 from __future__ import division
 from itertools import product
 from fuzzy.subsets import FuzzySet
+from datafiles import file_helper as fhelper
 from speech.utils import lse_online
-from math import sqrt, log
-from random import randint
+from math import sqrt, isinf
 
-import pdb
-import time
+# import pdb
+from time import clock
 import numpy as np
 import sys
 sys.path.append('../')
@@ -123,6 +123,9 @@ class BaseModel(object):
             minimum_outputs.append(minimum)
         return np.array(minimum_outputs)
 
+    def update_k():
+        pass
+
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         raise NotImplementedError()
 
@@ -216,11 +219,11 @@ class TsukamotoModel(BaseModel):
             added to the linear system. Defaults to false.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = lse_online(self.coef_matrix, self.expected, 0.9999, 1000.)
+        result = lse_online(self.coef_matrix, self.expected, 0.9, 1000.)
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, tol=1e-3, max_epochs=500, prod=False):
+            self, data, tol=1e-3, max_epochs=500, prod=False, setnum=0):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -228,43 +231,38 @@ class TsukamotoModel(BaseModel):
         data : list of pars of list and integer
             The training data set. For instance [([2, 3, 4], 10)], where 10 is
             the expected value for [2, 3, 4] entry.
-        tol : double
-            The error tolerance. Defaults to 1e-10
-        max_epochs : integer
-            The maximum number of epochs for each pair. Defaults to 500
-        prod : boolean
+        tol : double, defaults to 30%
+            The error tolerance.
+        max_epochs : integer, defaults to 500
+            The maximum number of epochs for each pair.
+        prod : boolean, defaults to False
             Set this to True to use product T-Norm, otherwise the Min T-Norm
-            will be used. Defaults to False.
+            will be used.
         """
-        # Cepstrums, Gamma, MemFuncs
-        filename = 'results/F_C{}_GM{}_MF{}_{}.txt'.format(
-            len(data[0][0]), 1000, self._sets[-1], 'PROD' if prod else 'MIN'
-        )
-        result = open(filename, 'w+')
-        result.write('{:<3}\t{:<16}\t{:<12}\n'.format('ep', 'k', 'err'))
         for pair in data:
             if len(pair[0]) != len(self._sets):
                 raise ValueError('Number of inputs must match number of sets!')
 
         qtd_data = len(data)
         p = 1
+        _file = open(fhelper.f_name(setnum, self, prod), 'w+')
+        fhelper.w(_file, header=True)
         for pair in data:
+            print '{}-SET {:4} / {:4}'.format(setnum, p, qtd_data)
             errs = []
             err_reduc = 0
             err_inc = 0
             epoch = 0
-            msg = ''
-            k = randint(1, 10)
-            print 'Runing pair {} of {} ...'.format(p, qtd_data)
+            k = 1
             while epoch < max_epochs:
+                start = clock()  # Starting time of an epoch
                 newrow = epoch == 0
                 l1, l2, l3, l5 = self.forward_pass(
                     pair[0], pair[1], prod, newrow
                 )
+
                 # Compute the iteration error and update K
-                if len(errs) < 2:
-                    errs.append(pair[1] - l5)
-                else:
+                if epoch > 2:
                     if errs[-1] <= errs[-2]:
                         err_reduc += 1
                         err_inc = 0
@@ -275,31 +273,23 @@ class TsukamotoModel(BaseModel):
                         k *= 1.01
                         err_reduc = 0
                     if err_inc == 4:
-                        k *= 0.98
+                        k *= 0.99
                         err_inc = 0
                     del errs[0]
-                    errs.append(pair[1] - l5)
-                errs.append(pair[1] - l5)
-                result.write(
-                    '{:<3}\t{:<16.12f}\t{:<12.12f}\n'.format(
-                        epoch + 1, k, errs[-1]
-                    )
-                )
 
-                # emsg = '{:4} | {:13.12f} | [ERROR] = {:13.12f} | k = {:13.12f}'
-                # print emsg.format(epoch + 1, pair[1], errs[-1], k)
+                errs.append(pair[1] - l5)
+                lcl_error = abs(errs[-1] / pair[1]) * 100
+
                 # Verify if the network has converged
                 if abs(errs[-1]) <= tol:
-                    msg += '[CONVERGED]'
+                    fhelper.w(_file, epoch, k, lcl_error, clock() - start)
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], errs[-1], k)
                 epoch += 1
-            # print ('[ON] {:4} | {:9.8f} - {:9.8f} = {:9.8f} ' + msg).format(
-            #     epoch, pair[1], l5, errs[-1]
-            # )
+                fhelper.w(_file, epoch, k, lcl_error, clock() - start)
             p += 1
-        result.close()
+        _file.close()
 
     def forward_pass(self, entries, expected, prod=False, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -386,7 +376,13 @@ class TsukamotoModel(BaseModel):
         for i in xrange(derivs.shape[1]):
             # Learning rate computation
             d_sum = derivs[:, i].sum() ** 2
-            eta = k / sqrt(d_sum)
+            if sqrt(d_sum) == 0:
+                eta = k
+            else:
+                eta = sqrt(d_sum)
+
+            if isinf(eta):
+                eta = k
             # Update the precedent parameters
             del_alpha = derivs[:, i] * (-eta * err)
             self._prec[:, i] = self._prec[:, i] + del_alpha

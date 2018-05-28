@@ -1,0 +1,17 @@
+import sys
+sys.path.append('../')
+l_format = '{:<3}\t{:<16}\t{:<16}\t{:<16}\n'
+f_header = ['ep', 'k', 'err', 'time']
+
+
+def f_name(subset, anfis, prod):
+    fname = 'results/{}_{}INP_{}MF_'
+    fname = fname.format(subset, len(anfis._sets), anfis._sets[-1])
+    return fname + ('PROD' if prod else 'MIN') + '.txt'
+
+
+def w(f, ep=0, k=0, err=0, time=0, header=False):
+    if header:
+        f.write(l_format.format(*f_header))
+    else:
+        f.write(l_format.format(ep, k, err, time))
