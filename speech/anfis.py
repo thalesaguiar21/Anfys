@@ -123,9 +123,6 @@ class BaseModel(object):
             minimum_outputs.append(minimum)
         return np.array(minimum_outputs)
 
-    def update_k():
-        pass
-
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         raise NotImplementedError()
 
@@ -185,8 +182,8 @@ class TsukamotoModel(BaseModel):
             The outputs from the third layer
         expec : double
             The expected result for this line of the system
-        newrow : boolean
-            Defaults to False. If set to true a new equation is added to the
+        newrow : boolean, defaults to False
+            If set to true a new equation is added to the
             system, otherwise the last equation is overwritten.
         """
         tmp_row = np.empty((1, 0))
@@ -214,9 +211,9 @@ class TsukamotoModel(BaseModel):
             the values from the third layer are used as weights.
         expec_result : double
             The result expected for the given entries
-        newrow : boolean
+        newrow : boolean, defaults to False
             Inform that this epoch is training a new pair, and that should be
-            added to the linear system. Defaults to false.
+            added to the linear system.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
         result = lse_online(self.coef_matrix, self.expected, 0.9, 1000.)
@@ -250,8 +247,7 @@ class TsukamotoModel(BaseModel):
         for pair in data:
             print '{}-SET {:4} / {:4}'.format(setnum, p, qtd_data)
             errs = []
-            err_reduc = 0
-            err_inc = 0
+            addsub_k = [0, 0]
             epoch = 0
             k = 1
             while epoch < max_epochs:
@@ -261,20 +257,9 @@ class TsukamotoModel(BaseModel):
                     pair[0], pair[1], prod, newrow
                 )
 
-                # Compute the iteration error and update K
+                # Update K from the 3th epoch
                 if epoch > 2:
-                    if errs[-1] <= errs[-2]:
-                        err_reduc += 1
-                        err_inc = 0
-                    elif errs[-1] > errs[-2]:
-                        err_inc += 1
-                        err_reduc = 0
-                    if err_reduc == 4:
-                        k *= 1.01
-                        err_reduc = 0
-                    if err_inc == 4:
-                        k *= 0.99
-                        err_inc = 0
+                    k, addsub_k = update_k(k, addsub_k, errs)
                     del errs[0]
 
                 errs.append(pair[1] - l5)
@@ -302,13 +287,12 @@ class TsukamotoModel(BaseModel):
             The inputs to the ANFIS
         expected : double
             The expected value to the given parameters
-        prod : boolean
+        prod : boolean, defaults to False
             If set to True the min operation will be used to compute the layer
-            2 outputs. Otherwise, the product operation will be used. Defaults
-            to False.
-        newrow : boolean
+            2 outputs. Otherwise, the product operation will be used.
+        newrow : boolean, defaults to False
             Inform that this epoch is training a new pair, and this should be
-            added to the linear system. Defaults to false.
+            added to the linear system.
 
         Returns
         ------
@@ -358,8 +342,8 @@ class TsukamotoModel(BaseModel):
             The network inputs
         error : double
             The error for the current epoch
-        k : double
-            A double to be used on the learning rate. Defaults to 0.1
+        k : double, defaults to 0.1
+            A double to be used on the learning rate. 
         """
         err = -2 * error
         derivs = []
@@ -386,3 +370,38 @@ class TsukamotoModel(BaseModel):
             # Update the precedent parameters
             del_alpha = derivs[:, i] * (-eta * err)
             self._prec[:, i] = self._prec[:, i] + del_alpha
+
+
+def update_k(k, addsub, errors):
+    """ Update the value of k.
+    1 -> If theres four consecutive error increases,
+         then k is increased by 10%.
+    2 -> If theres four consecutive error decreases,
+         then k is increased by 10%.
+
+    Parameters
+    ----------
+    k : double
+        The value to be updated
+    addsub : vector of int with size 2
+        The increase and decrease counters
+    errors : list of double
+        The list of errors
+
+    Returns
+    -------
+    The updated value of 'k' and 'addsub'.
+    """
+    if errors[-1] <= errors[-2]:
+        addsub[0] += 1
+        addsub[1] = 0
+    elif errors[-1] > errors[-2]:
+        addsub[1] += 1
+        addsub[0] = 0
+    if addsub[0] == 4:
+        k *= 1.01
+        addsub[0] = 0
+    if addsub[1] == 4:
+        k *= 0.99
+        addsub[1] = 0
+    return k, addsub
