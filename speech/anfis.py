@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from datafiles import file_helper as fhelper
@@ -220,7 +221,7 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, tol=1e-3, max_epochs=500, prod=False, setnum=0):
+            self, data, tol=10, max_epochs=500, prod=False, setnum=0):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -228,7 +229,7 @@ class TsukamotoModel(BaseModel):
         data : list of pars of list and integer
             The training data set. For instance [([2, 3, 4], 10)], where 10 is
             the expected value for [2, 3, 4] entry.
-        tol : double, defaults to 30%
+        tol : double, defaults to 10%
             The error tolerance.
         max_epochs : integer, defaults to 500
             The maximum number of epochs for each pair.
@@ -245,7 +246,8 @@ class TsukamotoModel(BaseModel):
         _file = open(fhelper.f_name(setnum, self, prod), 'w+')
         fhelper.w(_file, header=True)
         for pair in data:
-            print '{}-SET {:4} / {:4}'.format(setnum, p, qtd_data)
+            p_progress(qtd_data, p, setnum)
+            # os.system('cls')
             errs = []
             addsub_k = [0, 0]
             epoch = 0
@@ -266,7 +268,7 @@ class TsukamotoModel(BaseModel):
                 lcl_error = abs(errs[-1] / pair[1]) * 100
 
                 # Verify if the network has converged
-                if abs(errs[-1]) <= tol:
+                if lcl_error <= tol:
                     fhelper.w(_file, epoch, k, lcl_error, clock() - start)
                     break
                 # Initialize the backpropagation algorithm
@@ -343,7 +345,7 @@ class TsukamotoModel(BaseModel):
         error : double
             The error for the current epoch
         k : double, defaults to 0.1
-            A double to be used on the learning rate. 
+            A double to be used on the learning rate.
         """
         err = -2 * error
         derivs = []
@@ -370,6 +372,13 @@ class TsukamotoModel(BaseModel):
             # Update the precedent parameters
             del_alpha = derivs[:, i] * (-eta * err)
             self._prec[:, i] = self._prec[:, i] + del_alpha
+
+
+def p_progress(qtd_data, p, setnum):
+    todo = int((qtd_data - p) / qtd_data * 10) + 1
+    done = int(p / qtd_data * 10)
+    pbar = '[{}]'.format(('=' * done) + ('-' * todo))
+    print('{} {:4} / {:4}'.format(pbar, p, qtd_data), end='\r')
 
 
 def update_k(k, addsub, errors):

@@ -25,7 +25,6 @@ samp = 1
 for dt in data_splitted:
     print '=' * 50
     print '{}\t{}th 1000 samples'.format(filename, samp)
-    print '=' * 50
     sets_size = [qtd_mfs for i in range(qtd_inputs)]
     prec_params = [
         [random() + 0.5, random() + 0.5, random() + 0.5]
@@ -36,4 +35,5 @@ for dt in data_splitted:
     con_fun = PiecewiseLogit()
     network = TsukamotoModel(sets_size, prec_params, prec_fun, con_fun)
     network.learn_hybrid_online(dt, max_epochs=200, prod=True, setnum=samp)
+    print '=' * 50
     samp += 1
