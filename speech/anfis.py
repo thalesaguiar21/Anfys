@@ -374,10 +374,23 @@ class TsukamotoModel(BaseModel):
             self._prec[:, i] = self._prec[:, i] + del_alpha
 
 
-def p_progress(qtd_data, p, setnum):
-    todo = int((qtd_data - p) / qtd_data * 10) + 1
-    done = int(p / qtd_data * 10)
-    pbar = '[{}]'.format(('=' * done) + ('-' * todo))
+def p_progress(qtd_data, p, setnum, csymb='#', psymb='-', basis=10):
+    """ Print a progress bar and refresh the line
+
+    qtd_data : int
+        Total number of samples
+    p : int
+        Current sample
+    csymb : charactere, defaults to '#'
+        Symbol to use when complete one basis
+    psymb : charactere, defaults to '-'
+        Symbol to be used on uncompleted basis
+    basis : int, defaults to 10
+        The bar size
+    """
+    todo = int((qtd_data - p) / qtd_data * basis) + 1
+    done = int(p / qtd_data * basis)
+    pbar = '[{}]'.format((csymb * done) + (psymb * todo))
     print('{} {:4} / {:4}'.format(pbar, p, qtd_data), end='\r')
 
 

@@ -5,7 +5,7 @@ from datafiles import data_utils as dutils
 # from sklearn.datasets.samples_generator import make_blobs
 
 qtd_mfs = 2
-filename = 'c_5F.txt'
+filename = 'c_4F.txt'
 data = dutils.get_pairs(filename)
 qtd_inputs = len(data[0][0])
 
