@@ -4,7 +4,9 @@ from itertools import product
 from fuzzy.subsets import FuzzySet
 from data import file_helper as fhelper
 from speech.utils import lse_online, p_progress
+from fuzzy.mem_funcs import BellTwo
 from math import sqrt, isinf
+from random import random
 
 # import pdb
 from time import clock
@@ -15,21 +17,29 @@ sys.path.append('../')
 
 class BaseModel(object):
 
-    def __init__(self, sets_size, prec_params, mem_func):
-        self._prec = np.array(prec_params)
-        self._rule_set = self._create_rules(np.array(sets_size))
-
-        if sum(sets_size) != len(prec_params):
-            raise ValueError('Invalid number params and membership functions! \
-                {} != {}'.format(sum(sets_size), len(prec_params)))
-
-        self.subsets = [FuzzySet(mem_func) for i in sets_size]
-        self._sets = sets_size
+    def __init__(self, mf_n, inp_n, mem_func=BellTwo()):
+        self.mf_n = mf_n  # Number of MFs in each set
+        self.inp_n = inp_n  # Number of inputs
+        self.rules_n = mf_n ** inp_n  # Number of network rules
+        self._prec = self.init_prec_params(mem_func)  # Initial prec params
+        self._rule_set = self._create_rules()
+        self.subsets = [FuzzySet(mem_func) for i in xrange(self.inp_n)]
         self._errors = []
-        for i in xrange(1, len(sets_size)):
-            self._sets[i] = self._sets[i - 1] + sets_size[i]
 
-    def _create_rules(self, sets_size):
+    def init_prec_params(self, mf):
+        param_n = len(mf.parameters)
+        prec_params = []
+        params_line = []
+
+        for i in xrange(self.mf_n * self.inp_n):
+            if param_n == 2:
+                params_line = [random() + 0.5, random() + 0.5]
+            elif param_n == 3:
+                params_line = [random() + 0.5, random() + 0.5, random() + 0.5]
+            prec_params.append(params_line)
+        return np.array(prec_params)
+
+    def _create_rules(self):
         """ Create all combinations of the fuzzy labels, that is all the
         precedents rules.
 
@@ -48,15 +58,10 @@ class BaseModel(object):
         ValueError
             On empty parameter, element or negative size
         """
-        if sets_size is None:
-            raise ValueError('Sets size is None!')
-        elif None in sets_size:
-            raise ValueError('Input contains None as size!')
-        for size in sets_size:
-            if size <= 0:
-                raise ValueError('Invalid size ' + str(size))
-        rules_set = [range(num_of_rules) for num_of_rules in sets_size]
-        return np.array([comb for comb in product(*rules_set)])
+        if self.mf_n is not None and self.mf_n > 0:
+            rules_set = [range(self.mf_n) for i in xrange(self.inp_n)]
+            return np.array([comb for comb in product(*rules_set)])
+        return None
 
     def _product_operation(self, fuzz_output):
         """ Execute a product operation with the fuzzy values from the first
@@ -137,38 +142,28 @@ class BaseModel(object):
         raise NotImplementedError()
 
 
-class SugenoModel(BaseModel):
-    pass
-
-
-class MamdaniModel(BaseModel):
-    pass
-
-
 class TsukamotoModel(BaseModel):
     """ Class to represent an Artifical Neural Fuzzy Inference System which
     uses the Tsukamoto Fuzzy Inference System.
     """
 
-    def __init__(self, sets_size, prec_params, prec_fun, cons_fun):
+    def __init__(self, mf_n, inp_n, cons_fun, mem_func=BellTwo()):
         """ Initialize a new Tsukamoto Fuzzy Inference System
 
         Parameters
         ----------
-        sets_size : list of int
+        mf_n : int
             The size of each fuzzy set in the precendents layer
-        prec_params : 2D list of double
-            A matrix with the precedent parameters to be used on the fuzzy sets
-        prec_fun : MembershipFunction
-            A MembershipFcuntion to be used on the precedent layer
+        inp_n : int
+            Number of inputs to the network
         cons_fun : MembershipFunction
-            A MembershipFcuntion to be used on the consequent layer. Note that,
-            to be used in the Hybrid Learning method, this function must allow
-            the system to have its parameters in evidence.
+            A piecewise linear approximation of a monotonic function
+        mem_func : MembershipFunction
+            A MembershipFcuntion to be used on the precedent layer
         """
-        super(TsukamotoModel, self).__init__(sets_size, prec_params, prec_fun)
+        super(TsukamotoModel, self).__init__(mf_n, inp_n, mem_func)
         self.cons_fun = cons_fun
-        col = self._rule_set.shape[0] * len(cons_fun.parameters)
+        col = self.rules_n * len(cons_fun.parameters)
         self.coef_matrix = np.empty((0, col))
         self.expected = np.empty((0, 1))
 
@@ -238,7 +233,7 @@ class TsukamotoModel(BaseModel):
             will be used.
         """
         for pair in data:
-            if len(pair[0]) != len(self._sets):
+            if len(pair[0]) != self.inp_n:
                 raise ValueError('Number of inputs must match number of sets!')
 
         qtd_data = len(data)
@@ -306,19 +301,16 @@ class TsukamotoModel(BaseModel):
             The outputs from layer three
         """
         layer_1 = []
-        last_idx = 0
-        for entry, subset, idx in zip(entries, self.subsets, self._sets):
-            layer_1.append(subset.evaluate(entry, self._prec[last_idx:idx]))
-            last_idx = idx
-
-        layer_2 = np.empty([])
-        if prod:
-            layer_2 = self._product_operation(layer_1)
-        else:
-            layer_2 = self._min_operation(layer_1)
-
+        idx = 0
+        for entry, subset in zip(entries, self.subsets):
+            init = idx * self.mf_n
+            layer_1.append(
+                subset.evaluate(entry, self._prec[init:init + self.mf_n])
+            )
+            idx += 1
+        layer_2 = self._product_operation(layer_1)
+        # layer_2 is an numpy array
         layer_3 = layer_2 * (1.0 / layer_2.sum())
-
         consequents = self._find_consequents(
             layer_2, layer_3, expected, newrow
         )
@@ -347,16 +339,14 @@ class TsukamotoModel(BaseModel):
         k : double, defaults to 0.1
             A double to be used on the learning rate.
         """
-        err = -2 * error
+        dE_dO5 = -2 * error
         derivs = []
-        last_idx = 0
+        idx = 0
         # Compute the derivative for each membership function, and its params
-        for i in xrange(len(self._sets)):
-            idx = self._sets[i]
-            derivs.extend(
-                self.subsets[i].derivs_at(entries[i], self._prec[last_idx:idx])
-            )
-            last_idx = idx
+        for i in xrange(self.inp_n):
+            params = self._prec[idx * i:idx * i + self.mf_n]
+            derivs.extend(self.subsets[i].derivs_at(entries[i], params))
+            idx += 1
         derivs = np.array(derivs)
 
         for i in xrange(derivs.shape[0]):
@@ -370,8 +360,22 @@ class TsukamotoModel(BaseModel):
             if isinf(eta):
                 eta = 0.1
             # Update the precedent parameters
-            del_alpha = derivs[i, :] * (-eta * err)
+            del_alpha = derivs[i, :] * (-eta * dE_dO5)
             self._prec[i, :] = self._prec[i, :] + del_alpha
+
+    def do5_do4(self):
+        """ dO_i/dO_j where i = 4 and j = 5 """
+        return 1.0
+
+    def do4_do3(i, j):
+        """ dO_i/dO_j where i = 3 and j = 4 """
+        pass
+
+    def do3_do2():
+        pass
+
+    def do2_do1():
+        pass
 
 
 def update_k(k, addsub, errors):

@@ -6,7 +6,7 @@ f_header = ['ep', 'k', 'err', 'time']
 
 def f_name(subset, anfis, prod):
     fname = 'results/{}_{}INP_{}MF_'
-    fname = fname.format(subset, len(anfis._sets), anfis._sets[-1])
+    fname = fname.format(subset, anfis.inp_n, anfis.mf_n * anfis.inp_n)
     return fname + ('PROD' if prod else 'MIN') + '.txt'
 
 

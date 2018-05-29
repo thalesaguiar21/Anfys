@@ -6,17 +6,18 @@ from data import utils as dutils
 # import pdb
 # from sklearn.datasets.samples_generator import make_blobs
 
-qtd_mfs = 3
-set_names = {'F4': 'fsew0_4_',
-             'F5': 'fsew0_5_',
-             'M4': 'msak0_4_',
-             'M5': 'msak0_6_'}
-
-
 filename = str(raw_input('Enter a input folder: '))
+
+QTD_MFS = 3
+SET_NAMES = {'F4': ('fsew0_4_', 4),
+             'F5': ('fsew0_5_', 5),
+             'M4': ('msak0_4_', 4),
+             'M5': ('msak0_5_', 5)}
+INP_N = SET_NAMES[filename][1]
+
 data = []
 for i in range(1, 461):
-    fset = set_names[filename]
+    fset = SET_NAMES[filename][0]
     fname = fset + dutils.next_file(i, 3) + '.txt'
     data.append(dutils.get_pairs(fname))
 
@@ -27,14 +28,8 @@ qtd_inputs = len(data[0][0][0])
 samp = 1
 print('{} {} {}'.format('=' * 5, filename, '=' * 5))
 for dt in data:
-    sets_size = [qtd_mfs for i in range(qtd_inputs)]
-    prec_params = [
-        [random() + 0.5, random() + 0.5]
-        for i in xrange(sum(sets_size))
-    ]
-
     prec_fun = BellTwo()
     con_fun = PiecewiseLogit()
-    network = TsukamotoModel(sets_size, prec_params, prec_fun, con_fun)
+    network = TsukamotoModel(QTD_MFS, INP_N, con_fun)  # BellTwo
     network.learn_hybrid_online(dt, max_epochs=500, prod=True, setnum=samp)
     samp += 1
