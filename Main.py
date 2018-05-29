@@ -31,5 +31,5 @@ for dt in data:
     prec_fun = BellTwo()
     con_fun = PiecewiseLogit()
     network = TsukamotoModel(QTD_MFS, INP_N, con_fun)  # BellTwo
-    network.learn_hybrid_online(dt, max_epochs=500, prod=True, setnum=samp)
+    network.learn_hybrid_online(dt, max_epochs=500, setnum=samp)
     samp += 1

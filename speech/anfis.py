@@ -96,39 +96,6 @@ class BaseModel(object):
             prod_outputs.append(prod)
         return np.array(prod_outputs)
 
-    def _min_operation(self, fuzz_output):
-        """ Execute a min operation with the fuzzy values from the first layer.
-        That is also known as t-norm operation.
-
-        Parameters
-        ----------
-        fuzz_output : list of list of double
-            A list with the outputs of each label in the fuzzy sets
-
-        Returns
-        -------
-        minimum_outputs : list of double
-            A list with the minimum output of each precedent rule combination
-
-        Raises
-        ------
-        ValueError
-            On None argument of None element on argument
-        """
-        if fuzz_output is None:
-            raise ValueError('Fuzzy outputs cannot be None!')
-        if None in fuzz_output:
-            raise ValueError('Output has None element!')
-
-        minimum_outputs = []
-        for rule in self._rule_set:
-            minimum = fuzz_output[0][rule[0]]
-            for i in xrange(rule.size):
-                if fuzz_output[i][rule[i]] < minimum:
-                    minimum = fuzz_output[i][rule[i]]
-            minimum_outputs.append(minimum)
-        return np.array(minimum_outputs)
-
     def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
         raise NotImplementedError()
 
@@ -215,8 +182,7 @@ class TsukamotoModel(BaseModel):
         result = lse_online(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(
-            self, data, tol=10, max_epochs=500, prod=False, setnum=0):
+    def learn_hybrid_online(self, data, tol=10, max_epochs=500, setnum=0):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -228,9 +194,6 @@ class TsukamotoModel(BaseModel):
             The error tolerance.
         max_epochs : integer, defaults to 500
             The maximum number of epochs for each pair.
-        prod : boolean, defaults to False
-            Set this to True to use product T-Norm, otherwise the Min T-Norm
-            will be used.
         """
         for pair in data:
             if len(pair[0]) != self.inp_n:
@@ -238,7 +201,7 @@ class TsukamotoModel(BaseModel):
 
         qtd_data = len(data)
         p = 1
-        _file = open(fhelper.f_name(setnum, self, prod), 'w+')
+        _file = open(fhelper.f_name(setnum, self), 'w+')
         fhelper.w(_file, header=True)
         for pair in data:
             p_progress(qtd_data, p, setnum)
@@ -250,10 +213,7 @@ class TsukamotoModel(BaseModel):
             while epoch < max_epochs:
                 start = clock()  # Starting time of an epoch
                 newrow = epoch == 0
-                l1, l2, l3, l5 = self.forward_pass(
-                    pair[0], pair[1], prod, newrow
-                )
-
+                l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], newrow)
                 # Update K from the 3th epoch
                 if epoch > 2:
                     k, addsub_k = update_k(k, addsub_k, errs)
@@ -273,7 +233,7 @@ class TsukamotoModel(BaseModel):
             p += 1
         _file.close()
 
-    def forward_pass(self, entries, expected, prod=False, newrow=False):
+    def forward_pass(self, entries, expected, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
         layer will be calculated after finding the parameters with a Least
         Square Estimation.
@@ -284,9 +244,6 @@ class TsukamotoModel(BaseModel):
             The inputs to the ANFIS
         expected : double
             The expected value to the given parameters
-        prod : boolean, defaults to False
-            If set to True the min operation will be used to compute the layer
-            2 outputs. Otherwise, the product operation will be used.
         newrow : boolean, defaults to False
             Inform that this epoch is training a new pair, and this should be
             added to the linear system.

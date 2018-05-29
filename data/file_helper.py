@@ -4,10 +4,10 @@ l_format = '{:<3}\t{:<16}\t{:<16}\t{:<16}\n'
 f_header = ['ep', 'k', 'err', 'time']
 
 
-def f_name(subset, anfis, prod):
-    fname = 'results/{}_{}INP_{}MF_'
+def f_name(subset, anfis):
+    fname = 'results/{}_{}INP_{}MF'
     fname = fname.format(subset, anfis.inp_n, anfis.mf_n * anfis.inp_n)
-    return fname + ('PROD' if prod else 'MIN') + '.txt'
+    return fname + '.txt'
 
 
 def w(f, ep=0, k=0, err=0, time=0, header=False):
