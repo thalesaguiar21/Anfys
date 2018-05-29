@@ -3,7 +3,7 @@ from __future__ import print_function
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from data import file_helper as fhelper
-from speech.utils import lse_online, p_progress
+from speech import utils as sputils
 from fuzzy.mem_funcs import BellTwo
 from math import sqrt, isinf
 from random import random
@@ -28,16 +28,20 @@ class BaseModel(object):
 
     def init_prec_params(self, mf):
         param_n = len(mf.parameters)
-        prec_params = []
-        params_line = []
+        param_t = self.mf_n * self.inp_n
+        if param_n == 2:
+            return np.array(self.init_twoparam_prec(param_t))
+        elif param_n == 3:
+            return np.array(self.init_threeparam_prec(param_t))
 
-        for i in xrange(self.mf_n * self.inp_n):
-            if param_n == 2:
-                params_line = [random() + 0.5, random() + 0.5]
-            elif param_n == 3:
-                params_line = [random() + 0.5, random() + 0.5, random() + 0.5]
-            prec_params.append(params_line)
-        return np.array(prec_params)
+    def init_twoparam_prec(self, size):
+        return [[random() + 0.5, random() + 0.5] for _ in range(size)]
+
+    def init_threeparam_prec(self, size):
+        return [
+            [random() + 0.5, random() + 0.5, random() + 0.5]
+            for _ in range(size)
+        ]
 
     def _create_rules(self):
         """ Create all combinations of the fuzzy labels, that is all the
@@ -179,10 +183,10 @@ class TsukamotoModel(BaseModel):
             added to the linear system.
         """
         self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = lse_online(self.coef_matrix, self.expected)
+        result = sputils.lse_online(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, tol=10, max_epochs=500, setnum=0):
+    def learn_hybrid_online(self, data, smp, tol=10, max_epochs=500, tsk=None):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -194,6 +198,8 @@ class TsukamotoModel(BaseModel):
             The error tolerance.
         max_epochs : integer, defaults to 500
             The maximum number of epochs for each pair.
+        tsk : string, defaults to None
+            The task name for the inputs
         """
         for pair in data:
             if len(pair[0]) != self.inp_n:
@@ -201,35 +207,34 @@ class TsukamotoModel(BaseModel):
 
         qtd_data = len(data)
         p = 1
-        _file = open(fhelper.f_name(setnum, self), 'w+')
+        _file = open(fhelper.f_name(tsk, self), 'w')
         fhelper.w(_file, header=True)
         for pair in data:
-            p_progress(qtd_data, p, setnum)
-            # os.system('cls')
+            sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
             errs = []
             addsub_k = [0, 0]
-            epoch = 0
+            epoch, lcl_error = [0 for _ in range(2)]
             k = 1
+            start = clock()  # Starting time of an epoch
             while epoch < max_epochs:
-                start = clock()  # Starting time of an epoch
                 newrow = epoch == 0
-                l1, l2, l3, l5 = self.forward_pass(pair[0], pair[1], newrow)
+                layers_out = self.forward_pass(pair[0], pair[1], newrow)
                 # Update K from the 3th epoch
                 if epoch > 2:
                     k, addsub_k = update_k(k, addsub_k, errs)
                     del errs[0]
 
-                errs.append(pair[1] - l5)
+                errs.append(pair[1] - layers_out[4])  # Layer 5
                 lcl_error = abs(errs[-1] / pair[1]) * 100
-
                 # Verify if the network has converged
                 if lcl_error <= tol:
-                    fhelper.w(_file, epoch + 1, k, lcl_error, clock() - start)
                     break
                 # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], errs[-1], k)
+                self.backward_pass(pair[0], errs[-1], layers_out, k)
                 epoch += 1
-                fhelper.w(_file, epoch, k, lcl_error, clock() - start)
+            # Compute elapsed time and save to file
+            ttime = clock() - start
+            fhelper.w(_file, epoch, k, lcl_error, ttime / max(epoch, 1))
             p += 1
         _file.close()
 
@@ -281,9 +286,9 @@ class TsukamotoModel(BaseModel):
             )
             layer_4[i] = fi * layer_3[i]
         layer_5 = layer_4.sum()
-        return layer_1, layer_2, layer_3, layer_5
+        return layer_1, layer_2, layer_3, layer_4, layer_5
 
-    def backward_pass(self, entries, error, k=0.01):
+    def backward_pass(self, entries, error, layers_out, k=0.01):
         """ Computes the derivative of each membership function in the first
         layer and update the precedent parameters.
 
@@ -305,6 +310,9 @@ class TsukamotoModel(BaseModel):
             derivs.extend(self.subsets[i].derivs_at(entries[i], params))
             idx += 1
         derivs = np.array(derivs)
+
+        # Derivative of layer 4 relative to each parameter
+
 
         for i in xrange(derivs.shape[0]):
             # Learning rate computation

@@ -77,7 +77,7 @@ def almost_zero(value, expected, range):
     return abs(value - expected) <= range
 
 
-def p_progress(qtd_data, p, setnum, csymb='#', psymb='-', basis=10):
+def p_progress(qtd_data, p, tsk, csymb='#', psymb='-', basis=10):
     """ Print a progress bar and refresh the line
 
     qtd_data : int
@@ -90,8 +90,10 @@ def p_progress(qtd_data, p, setnum, csymb='#', psymb='-', basis=10):
         Symbol to be used on uncompleted basis
     basis : int, defaults to 10
         The bar size
+    tsk : string
+        The task for wich the pair belongs
     """
     todo = int((qtd_data - p) / qtd_data * basis)
     done = basis - todo
     pbar = '[{}]'.format((csymb * done) + (psymb * todo))
-    print('{} {:4} / {:4} -- {}'.format(pbar, p, qtd_data, setnum), end='\r')
+    print('{} {:<3}/{:<3} || {}'.format(pbar, p, qtd_data, tsk), end='\r')

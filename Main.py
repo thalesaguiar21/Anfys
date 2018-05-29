@@ -1,6 +1,5 @@
 from __future__ import print_function
-from random import random
-from fuzzy.mem_funcs import BellTwo, PiecewiseLogit
+from fuzzy import mem_funcs as mfs
 from speech.anfis import TsukamotoModel
 from data import utils as dutils
 # import pdb
@@ -21,15 +20,11 @@ for i in range(1, 461):
     fname = fset + dutils.next_file(i, 3) + '.txt'
     data.append(dutils.get_pairs(fname))
 
-# pdb.set_trace()
 qtd_inputs = len(data[0][0][0])
 
-# For each 1000 samples compute the outcomes
-samp = 1
-print('{} {} {}'.format('=' * 5, filename, '=' * 5))
+smp = 1
 for dt in data:
-    prec_fun = BellTwo()
-    con_fun = PiecewiseLogit()
-    network = TsukamotoModel(QTD_MFS, INP_N, con_fun)  # BellTwo
-    network.learn_hybrid_online(dt, max_epochs=500, setnum=samp)
-    samp += 1
+    con_fun = mfs.PiecewiseLogit()
+    network = TsukamotoModel(QTD_MFS, INP_N, con_fun, mfs.BellTwo())
+    network.learn_hybrid_online(dt, smp, max_epochs=300, tsk=filename)
+    smp += 1

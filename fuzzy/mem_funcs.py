@@ -100,9 +100,12 @@ class BellThree(MembershipFunction):
         if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
-        a = max(a, 1)
-        denom = 1.0 + (((value - c) / a) ** 2.0) ** b
-        return max(1.0 / denom, MembershipFunction.MIN_MEMBERSHIP)
+        if a == 0:
+            raise ValueError('Parameter a was 0 at MF mem degree')
+
+        tmp1 = (value - c) / a
+        denom = 1.0 + (tmp1 ** 2.0) ** b
+        return 1.0 / denom
 
     def derivative_at(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
@@ -135,18 +138,24 @@ class BellThree(MembershipFunction):
         if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
+        if a == 0:
+            raise ValueError('Parameter a was 0 in MF deriv')
 
-        k = (value - c) ** 2 / a ** 2
+        tmp1 = (value - c) / a
+        tmp2 = (tmp1 ** 2) ** b
+        denom = (1 + tmp2) ** 2
         if var == 'a':
-            result = 2.0 * b * k ** 2
-            result /= a * ((k ** b) + 1) ** 2
+            result = 2.0 * b * tmp2 / (a * denom)
         elif var == 'b':
-            result = (k ** b) * log(k)
-            result /= ((k ** b) + 1) ** 2
-            result = result * (-1)
+            if tmp1 == 0:
+                result = 0.0
+            else:
+                result = -log(tmp1 * tmp2) * tmp2 / denom
         elif var == 'c':
-            result = -2.0 * b * k ** b
-            result /= (c - value) * ((k ** b) + 1) ** 2
+            if value == c:
+                result = 0.0
+            else:
+                result = 2 * b * tmp2 / ((value - c) * denom)
         return result
 
 
@@ -219,6 +228,8 @@ class BellTwo(MembershipFunction):
         elif var == 'b':
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
+        else:
+            print 'BellTwo has no parameter ' + var
         return result / denom
 
 
