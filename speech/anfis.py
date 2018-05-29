@@ -7,6 +7,7 @@ from speech import utils as sputils
 from fuzzy.mem_funcs import BellTwo
 from math import sqrt, isinf
 from random import random
+import pdb
 
 # import pdb
 from time import clock
@@ -210,13 +211,13 @@ class TsukamotoModel(BaseModel):
         _file = open(fhelper.f_name(tsk, self), 'w')
         fhelper.w(_file, header=True)
         for pair in data:
-            sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
+            # sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
             errs = []
             addsub_k = [0, 0]
-            epoch, lcl_error = [0 for _ in range(2)]
+            lcl_error = 0
             k = 1
             start = clock()  # Starting time of an epoch
-            while epoch < max_epochs:
+            for epoch in xrange(1, max_epochs + 1):
                 newrow = epoch == 0
                 layers_out = self.forward_pass(pair[0], pair[1], newrow)
                 # Update K from the 3th epoch
@@ -231,7 +232,6 @@ class TsukamotoModel(BaseModel):
                     break
                 # Initialize the backpropagation algorithm
                 self.backward_pass(pair[0], errs[-1], layers_out, k)
-                epoch += 1
             # Compute elapsed time and save to file
             ttime = clock() - start
             fhelper.w(_file, epoch, k, lcl_error, ttime / max(epoch, 1))
@@ -277,9 +277,8 @@ class TsukamotoModel(BaseModel):
             layer_2, layer_3, expected, newrow
         )
         # Compute the membership value of each consequent function
-        n_rules = self._rule_set.shape[0]
-        layer_4 = np.empty(n_rules)
-        for i in xrange(n_rules):
+        layer_4 = np.empty(self.rules_n)
+        for i in xrange(self.rules_n):
             k = i * 2
             fi = self.cons_fun.membership_degree(
                 layer_2[i], *consequents[k: k + 2]
@@ -300,47 +299,47 @@ class TsukamotoModel(BaseModel):
             The error for the current epoch
         k : double, defaults to 0.1
             A double to be used on the learning rate.
+        layers_out : matrix
+            A matrix with the outputs from each layer in forward pass
         """
-        dE_dO5 = -2 * error
+        dE_total = -2 * error
         derivs = []
-        idx = 0
-        # Compute the derivative for each membership function, and its params
-        for i in xrange(self.inp_n):
+        idx, dE_dO = [0 for _ in range(2)]
+        # Unpack the output of each layer
+        l1, l2, l3, l4, l5 = [l_out for l_out in layers_out]
+
+        # dO5 / dO4
+        dO5_dO4 = 1.0
+        # dO4 / dO3
+        dO4_dO3 = l4[:]
+        for i in xrange(self.rules_n):
+            dE_dO += dO5_dO4 * dO4_dO3[i]
+        # dO3 / dO2
+        l2_sum = l2.sum()
+        dO3_dO2 = [
+            (l2_sum - l2[i]) / l2_sum ** 2 for i in xrange(self.rules_n)
+        ]
+        tmp1 = dE_dO
+        for i in xrange(self.rules_n):
+            dE_dO += tmp1 * dO3_dO2[i]
+
+        # Derivative of MFs for each alpha dO_dAlpha
+        for i in xrange(len(self._prec)):
             params = self._prec[idx * i:idx * i + self.mf_n]
             derivs.extend(self.subsets[i].derivs_at(entries[i], params))
             idx += 1
         derivs = np.array(derivs)
 
-        # Derivative of layer 4 relative to each parameter
+        de_dalpha = derivs * dE_dO
+        eta = sqrt(de_dalpha.sum() ** 2)
 
-
-        for i in xrange(derivs.shape[0]):
-            # Learning rate computation
-            d_sum = derivs[i, :].sum() ** 2
-            if sqrt(d_sum) == 0:
-                eta = 0.1
-            else:
-                eta = sqrt(d_sum)
-
-            if isinf(eta):
-                eta = 0.1
-            # Update the precedent parameters
-            del_alpha = derivs[i, :] * (-eta * dE_dO5)
-            self._prec[i, :] = self._prec[i, :] + del_alpha
-
-    def do5_do4(self):
-        """ dO_i/dO_j where i = 4 and j = 5 """
-        return 1.0
-
-    def do4_do3(i, j):
-        """ dO_i/dO_j where i = 3 and j = 4 """
-        pass
-
-    def do3_do2():
-        pass
-
-    def do2_do1():
-        pass
+        if isinf(eta):
+            eta = 0.1
+        # Update the precedent parameters
+        delta_alpha = -eta * de_dalpha
+        pdb.set_trace()
+        self._prec = self._prec + delta_alpha
+        pdb.set_trace()
 
 
 def update_k(k, addsub, errors):

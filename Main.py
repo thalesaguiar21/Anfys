@@ -7,7 +7,7 @@ from data import utils as dutils
 
 filename = str(raw_input('Enter a input folder: '))
 
-QTD_MFS = 3
+QTD_MFS = 2
 SET_NAMES = {'F4': ('fsew0_4_', 4),
              'F5': ('fsew0_5_', 5),
              'M4': ('msak0_4_', 4),
