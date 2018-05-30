@@ -6,7 +6,7 @@ from data import file_helper as fhelper
 from speech import utils as sputils
 from fuzzy.mem_funcs import BellTwo
 from math import sqrt, isinf
-from random import random
+from random import randint
 import pdb
 
 # import pdb
@@ -36,11 +36,11 @@ class BaseModel(object):
             return np.array(self.init_threeparam_prec(param_t))
 
     def init_twoparam_prec(self, size):
-        return [[random() + 0.5, random() + 0.5] for _ in range(size)]
+        return [[randint(1, 10), randint(1, 10)] for _ in range(size)]
 
     def init_threeparam_prec(self, size):
         return [
-            [random() + 0.5, random() + 0.5, random() + 0.5]
+            [randint(1, 10), randint(1, 10), randint(1, 10)]
             for _ in range(size)
         ]
 
@@ -187,7 +187,8 @@ class TsukamotoModel(BaseModel):
         result = sputils.lse_online(self.coef_matrix, self.expected)
         return [rs[0] for rs in result]
 
-    def learn_hybrid_online(self, data, smp, tol=10, max_epochs=500, tsk=None):
+    def learn_hybrid_online(
+            self, data, smp, tol=0.01, max_epochs=500, tsk=None, r=0):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -208,35 +209,33 @@ class TsukamotoModel(BaseModel):
 
         qtd_data = len(data)
         p = 1
-        _file = open(fhelper.f_name(tsk, self), 'w')
-        fhelper.w(_file, header=True)
-        for pair in data:
-            # sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
-            errs = []
-            addsub_k = [0, 0]
-            lcl_error = 0
-            k = 1
-            start = clock()  # Starting time of an epoch
-            for epoch in xrange(1, max_epochs + 1):
-                newrow = epoch == 0
-                layers_out = self.forward_pass(pair[0], pair[1], newrow)
-                # Update K from the 3th epoch
-                if epoch > 2:
-                    k, addsub_k = update_k(k, addsub_k, errs)
-                    del errs[0]
+        with open(fhelper.f_name(tsk + str(r), self), 'a') as _file:
+            # fhelper.w(_file, header=True)
+            for pair in data:
+                sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
+                errs = []
+                addsub_k = [0, 0]
+                ttime = 0
+                k = 1
+                start = clock()  # Starting time of an epoch
+                for epoch in xrange(1, max_epochs + 1):
+                    newrow = epoch == 0
+                    layers_out = self.forward_pass(pair[0], pair[1], newrow)
+                    # Update K from the 3th epoch
+                    if epoch > 2:
+                        k, addsub_k = update_k(k, addsub_k, errs)
+                        del errs[0]
 
-                errs.append(pair[1] - layers_out[4])  # Layer 5
-                lcl_error = abs(errs[-1] / pair[1]) * 100
-                # Verify if the network has converged
-                if lcl_error <= tol:
-                    break
-                # Initialize the backpropagation algorithm
-                self.backward_pass(pair[0], errs[-1], layers_out, k)
-            # Compute elapsed time and save to file
-            ttime = clock() - start
-            fhelper.w(_file, epoch, k, lcl_error, ttime / max(epoch, 1))
-            p += 1
-        _file.close()
+                    errs.append((pair[1] - layers_out[4]) ** 2)  # Layer 5
+                    # Verify if the network has converged
+                    if errs[-1] <= tol:
+                        break
+                    # Initialize the backpropagation algorithm
+                    self.backward_pass(pair[0], errs[-1], layers_out, k)
+                # Compute elapsed time and save to file
+                p += 1
+                ttime += clock() - start
+                fhelper.w(_file, epoch, k, errs[-1], ttime)
 
     def forward_pass(self, entries, expected, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
@@ -287,7 +286,7 @@ class TsukamotoModel(BaseModel):
         layer_5 = layer_4.sum()
         return layer_1, layer_2, layer_3, layer_4, layer_5
 
-    def backward_pass(self, entries, error, layers_out, k=0.01):
+    def backward_pass(self, entries, error, layers_out, k=0.1):
         """ Computes the derivative of each membership function in the first
         layer and update the precedent parameters.
 
@@ -302,18 +301,16 @@ class TsukamotoModel(BaseModel):
         layers_out : matrix
             A matrix with the outputs from each layer in forward pass
         """
-        dE_total = -2 * error
         derivs = []
         idx, dE_dO = [0 for _ in range(2)]
         # Unpack the output of each layer
         l1, l2, l3, l4, l5 = [l_out for l_out in layers_out]
-
         # dO5 / dO4
         dO5_dO4 = 1.0
         # dO4 / dO3
         dO4_dO3 = l4[:]
         for i in xrange(self.rules_n):
-            dE_dO += dO5_dO4 * dO4_dO3[i]
+            dE_dO += dO5_dO4 * dO4_dO3[i] * l3[i]
         # dO3 / dO2
         l2_sum = l2.sum()
         dO3_dO2 = [
@@ -321,25 +318,26 @@ class TsukamotoModel(BaseModel):
         ]
         tmp1 = dE_dO
         for i in xrange(self.rules_n):
-            dE_dO += tmp1 * dO3_dO2[i]
+            dE_dO += tmp1 * dO3_dO2[i] * l2[i]
 
         # Derivative of MFs for each alpha dO_dAlpha
-        for i in xrange(len(self._prec)):
-            params = self._prec[idx * i:idx * i + self.mf_n]
+        idx = 0
+        for i in xrange(self.inp_n):
+            params = self._prec[i * self.mf_n:i * self.mf_n + self.mf_n]
             derivs.extend(self.subsets[i].derivs_at(entries[i], params))
             idx += 1
         derivs = np.array(derivs)
-
-        de_dalpha = derivs * dE_dO
-        eta = sqrt(de_dalpha.sum() ** 2)
-
+        de_dalpha = derivs * (-2 * sqrt(error)) * dE_dO
+        denom = sqrt(de_dalpha.sum() ** 2)
+        if denom == 0:
+            eta = 0.001
+        else:
+            eta = k / denom
         if isinf(eta):
-            eta = 0.1
+            eta = 0.001
         # Update the precedent parameters
         delta_alpha = -eta * de_dalpha
-        pdb.set_trace()
         self._prec = self._prec + delta_alpha
-        pdb.set_trace()
 
 
 def update_k(k, addsub, errors):
