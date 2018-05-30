@@ -8,18 +8,15 @@ from data import utils as dutils
 # filename = str(raw_input('Enter a input folder: '))
 
 QTD_MFS = 2
-SET_NAMES = {'fsew0_4_': 4,
-             'fsew0_5_': 5,
-             'msak0_4_': 4,
-             'msak0_5_': 5}
+SET_SIZE = 461
+SET_NAMES = {'fsew0_4_': 4, 'fsew0_5_': 5, 'msak0_4_': 4, 'msak0_5_': 5}
 FILE_SETS = ['fsew0_4_', 'msak0_4_', 'fsew0_5_', 'msak0_5_']
-
 
 for fset in FILE_SETS:
     for nrun in range(15):
         data = []
         INP_N = SET_NAMES[fset]
-        for i in range(1, 461):
+        for i in range(1, SET_SIZE):
             fname = fset + dutils.next_file(i, 3) + '.txt'
             data.append(dutils.get_pairs(fname))
 

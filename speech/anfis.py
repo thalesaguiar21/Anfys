@@ -301,34 +301,19 @@ class TsukamotoModel(BaseModel):
         layers_out : matrix
             A matrix with the outputs from each layer in forward pass
         """
-        derivs = []
-        idx, dE_dO = [0 for _ in range(2)]
         # Unpack the output of each layer
-        l1, l2, l3, l4, l5 = [l_out for l_out in layers_out]
-        # dO5 / dO4
-        dO5_dO4 = 1.0
-        # dO4 / dO3
-        dO4_dO3 = l4[:]
-        for i in xrange(self.rules_n):
-            dE_dO += dO5_dO4 * dO4_dO3[i] * l3[i]
-        # dO3 / dO2
-        l2_sum = l2.sum()
-        dO3_dO2 = [
-            (l2_sum - l2[i]) / l2_sum ** 2 for i in xrange(self.rules_n)
-        ]
-        tmp1 = dE_dO
-        for i in xrange(self.rules_n):
-            dE_dO += tmp1 * dO3_dO2[i] * l2[i]
-
+        de_do = self.compute_de_do(*layers_out[:-1])
         # Derivative of MFs for each alpha dO_dAlpha
         idx = 0
+        derivs = []
         for i in xrange(self.inp_n):
             params = self._prec[i * self.mf_n:i * self.mf_n + self.mf_n]
             derivs.extend(self.subsets[i].derivs_at(entries[i], params))
             idx += 1
         derivs = np.array(derivs)
-        de_dalpha = derivs * (-2 * sqrt(error)) * dE_dO
-        denom = sqrt(de_dalpha.sum() ** 2)
+
+        de_dalpha = derivs * (-2 * sqrt(error)) * de_do
+        denom = sqrt((de_dalpha ** 2).sum())
         if denom == 0:
             eta = 0.001
         else:
@@ -338,6 +323,31 @@ class TsukamotoModel(BaseModel):
         # Update the precedent parameters
         delta_alpha = -eta * de_dalpha
         self._prec = self._prec + delta_alpha
+
+    def compute_de_do(self, l1, l2, l3, l4):
+        """ Calculate dE_dO for this epoch
+
+        Parameters
+        ----------
+        l1, l2, l3, l4: list of double
+            The respective layer output
+
+        Returns
+        -------
+        Derivative of E with respect to O*
+        """
+        do5_do4, do4_do3, do3_do2, do2_do1 = [0 for _ in range(4)]
+        l2_sum = l2.sum()
+        for i in xrange(self.rules_n):
+            # Compute do5_do4
+            do5_do4 += 1.0
+            # Compute do4_do3
+            do4_do3 += l4[i] / l3[i]
+            # Compute do3_do2
+            do3_do2 += (l2_sum - l2[i]) ** 2
+            for (prec, mf_set) in zip(self._rule_set[i], range(self.inp_n)):
+                do2_do1 += l2[i] / l1[mf_set][prec]
+        return do5_do4 * do4_do3 * do3_do2 * do2_do1
 
 
 def update_k(k, addsub, errors):
@@ -367,9 +377,9 @@ def update_k(k, addsub, errors):
         addsub[1] += 1
         addsub[0] = 0
     if addsub[0] == 4:
-        k *= 1.01
+        k *= 1.10
         addsub[0] = 0
     if addsub[1] == 4:
-        k *= 0.99
+        k *= 0.9
         addsub[1] = 0
     return k, addsub
