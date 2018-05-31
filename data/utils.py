@@ -1,4 +1,5 @@
 import numpy as np
+import pdb
 from sklearn.cluster import KMeans
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -150,20 +151,6 @@ def compute_centroids(filename1, filename2):
 
     plot_kmeans_3D(kmeans, np.array(inputs))
 
-    # fileprefix = filename1.split('_')[1]
-    # with open('c_' + fileprefix + '.txt', 'w') as file:
-    #     n_line = 0
-    #     for line, center in zip(datalines, sample_centers):
-    #         values = line.strip('\n').split('\t')
-    #         values[-1] = max(kmeans.cluster_centers_[center])
-    #         values = [float(v) for v in values]
-    #         qtd_values = len(values)
-    #         str_lin = ('{:20}\t' * qtd_values).format(*values)
-    #         file.write(str_lin + '\n')
-    #         n_line += 1
-
-    # print 'Saved results into {}'.format('c_' + fileprefix + '.txt')
-
 
 def plot_kmeans(filename1, filename2=None, qtd_points=200):
     rs = compute_kmeans(filename1, filename2)
@@ -238,4 +225,31 @@ def write_all():
     write_to_file('msak0_5F_results.txt')
 
 
-# write_all()
+def compute_statistcs(rs_matrix, ep=1, se=3, t=4):
+    """ Compute the statistics for the given matrix. The mean
+    squared error, mean of epochs and the mean of time
+
+    Parameters
+    ----------
+    rs_matrix : 2D matrix
+        The matrix with the results
+    ep : int, defaults to 1
+        The col with the number of epochs for each sample
+    se : int, defaults to 3
+        The column with the squared error for each sample
+    t : int, defaults to 4
+        The column with the total time for each sample
+    """
+    n_samples = len(rs_matrix)
+    total_epochs, t_sqr_err, t_time = [0 for _ in range(3)]
+
+    for samp in range(n_samples):
+        total_epochs += rs_matrix[samp][:1][0]
+        t_sqr_err += rs_matrix[samp][:3][2]
+        t_time += rs_matrix[samp][:4][3]
+
+    pdb.set_trace()
+    n_samples = float(n_samples)
+    print 'MSE: ' + str(t_sqr_err / n_samples)
+    print 'Mean epochs: ' + str(total_epochs / n_samples)
+    print 'Mean time: ' + str(t_time / n_samples)

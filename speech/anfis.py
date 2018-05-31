@@ -4,7 +4,7 @@ from itertools import product
 from fuzzy.subsets import FuzzySet
 from data import file_helper as fhelper
 from speech import utils as sputils
-from fuzzy.mem_funcs import BellTwo
+from fuzzy import mem_funcs as mfs
 from math import sqrt, isinf
 from random import randint
 import pdb
@@ -18,7 +18,7 @@ sys.path.append('../')
 
 class BaseModel(object):
 
-    def __init__(self, mf_n, inp_n, mem_func=BellTwo()):
+    def __init__(self, mf_n, inp_n, mem_func=mfs.BellTwo()):
         self.mf_n = mf_n  # Number of MFs in each set
         self.inp_n = inp_n  # Number of inputs
         self.rules_n = mf_n ** inp_n  # Number of network rules
@@ -119,7 +119,7 @@ class TsukamotoModel(BaseModel):
     uses the Tsukamoto Fuzzy Inference System.
     """
 
-    def __init__(self, mf_n, inp_n, cons_fun, mem_func=BellTwo()):
+    def __init__(self, mf_n, inp_n, cons_fun, mem_func=mfs.BellTwo()):
         """ Initialize a new Tsukamoto Fuzzy Inference System
 
         Parameters
@@ -188,7 +188,7 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, smp, tol=0.01, max_epochs=500, tsk=None, r=0):
+            self, data, smp, tol=1e-6, max_epochs=250, tsk=None, heurist=True):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -209,24 +209,25 @@ class TsukamotoModel(BaseModel):
 
         qtd_data = len(data)
         p = 1
-        with open(fhelper.f_name(tsk + str(r), self), 'a') as _file:
-            # fhelper.w(_file, header=True)
+        with open('results/' + tsk, 'a') as _file:
             for pair in data:
-                sputils.p_progress(qtd_data, p, tsk + '->' + str(smp))
+                sputils.p_progress(qtd_data, p, tsk[:-1] + ' -> ' + str(smp))
                 errs = []
                 addsub_k = [0, 0]
                 ttime = 0
-                k = 1
+                k = 0.1
+                phn = 0
                 start = clock()  # Starting time of an epoch
                 for epoch in xrange(1, max_epochs + 1):
                     newrow = epoch == 0
                     layers_out = self.forward_pass(pair[0], pair[1], newrow)
                     # Update K from the 3th epoch
-                    if epoch > 2:
+                    if epoch > 2 and heurist:
                         k, addsub_k = update_k(k, addsub_k, errs)
                         del errs[0]
 
                     errs.append((pair[1] - layers_out[4]) ** 2)  # Layer 5
+                    phn = layers_out[4]
                     # Verify if the network has converged
                     if errs[-1] <= tol:
                         break
@@ -235,7 +236,7 @@ class TsukamotoModel(BaseModel):
                 # Compute elapsed time and save to file
                 p += 1
                 ttime += clock() - start
-                fhelper.w(_file, epoch, k, errs[-1], ttime)
+                fhelper.w(_file, epoch, k, errs[-1], ttime, phn)
 
     def forward_pass(self, entries, expected, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth
