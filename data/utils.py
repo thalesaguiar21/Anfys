@@ -29,27 +29,16 @@ def compute_kmeans(filename1, filename2=None):
         inputs.append([float(i) for i in values[:-1]])
 
     print 'Clustering...'
-    # pdb.set_trace()
     n_phonemes = len(phonemes)
     kmeans = KMeans(n_clusters=n_phonemes,
                     random_state=0
                     ).fit(inputs)
-
-    # print 'Predicting...'
-    # sample_centers = kmeans.predict(inputs)
-    # print 'Phonemes:\t{}'.format(len(phonemes))
-    # print 'Datasize:\t{}'.format(len(inputs))
-    # print 'Centers: ' + str(len(kmeans.cluster_centers_))
     return (kmeans, datalines)
-    # return (kmeans, np.array(inputs), filename1, sample_centers, datalines)
 
 
 def write_to_file(filename1, filename2=None):
     rs = compute_kmeans(filename1, filename2)
     kmeans = rs[0]
-    # X = rs[1]
-    # f1 = rs[2]
-    # scenters = rs[3]
     datalines = rs[1]
 
     rsfolder = 'clustered'
@@ -60,7 +49,6 @@ def write_to_file(filename1, filename2=None):
     for i in range(1, 461):
         fnum = next_file(i, 3)
         fname = fileprefix.split('_')[0] + '_' + fnum + '_ext.txt'
-        # d = os.path.join(os.getcwd() + '\\' + fileprefix, fname)
         extfile = open(fileprefix + '/' + fname, 'r')
         extfile_lines = extfile.readlines()
         inputs = []
@@ -85,20 +73,6 @@ def write_to_file(filename1, filename2=None):
                 file.write(str_lin + '\n')
 
         print 'Saved results into {}'.format(rs_fpath)
-
-
-    # with open('c_' + fileprefix + '.txt', 'w') as file:
-    #     n_line = 0
-    #     for line, center in zip(datalines, scenters):
-    #         values = line.strip('\n').split('\t')
-    #         values[-1] = kmeans.cluster_centers_[center][0]
-    #         values = [float(v) for v in values]
-    #         qtd_values = len(values)
-    #         str_lin = ('{:20}\t' * qtd_values).format(*values)
-    #         file.write(str_lin + '\n')
-    #         n_line += 1
-
-    # print 'Saved results into {}'.format('c_' + fileprefix + '.txt')
 
 
 def extract_numerals(num):
@@ -166,7 +140,6 @@ def plot_kmeans(filename1, filename2=None, qtd_points=200):
         c='red',
         label='Centroids'
     )
-    # plt.title('Iris Clusters and Centroids')
     plt.xlabel('Power')
     plt.ylabel('Time(s)')
     plt.legend()
@@ -176,11 +149,7 @@ def plot_kmeans(filename1, filename2=None, qtd_points=200):
 
 def plot_kmeans_3D(filename1, filename2=None, qtd_points=200):
     rs = compute_kmeans(filename1, filename2)
-    # kmeans = rs[0]
     X = rs[1]
-    # f1 = rs[2]
-    # scenters = rs[3]
-    # datalines = rs[4]
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     x = X[:qtd_points, 0]
@@ -248,7 +217,6 @@ def compute_statistcs(rs_matrix, ep=1, se=3, t=4):
         t_sqr_err += rs_matrix[samp][:3][2]
         t_time += rs_matrix[samp][:4][3]
 
-    pdb.set_trace()
     n_samples = float(n_samples)
     print 'MSE: ' + str(t_sqr_err / n_samples)
     print 'Mean epochs: ' + str(total_epochs / n_samples)

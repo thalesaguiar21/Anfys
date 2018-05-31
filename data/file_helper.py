@@ -47,6 +47,6 @@ def result_matrix(fname, phn=False):
         for line in rsline:
             line = line.split('\t') if phn else line.split('\t')[:-1]
             rsmatrix.append(
-                [float(v.strip('\n').strip('\t')) for v in line.split('\t')]
+                [float(v.strip('\n').strip('\t')) for v in line]
             )
         return rsmatrix

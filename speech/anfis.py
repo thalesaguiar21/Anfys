@@ -8,8 +8,6 @@ from fuzzy import mem_funcs as mfs
 from math import sqrt, isinf
 from random import randint
 import pdb
-
-# import pdb
 from time import clock
 import numpy as np
 import sys
