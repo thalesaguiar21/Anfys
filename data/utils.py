@@ -10,6 +10,31 @@ sys.path.append('../')
 or_folder = 'original'
 
 
+def read_phonemes(fname):
+    phonemes = []
+    with open(fname, 'r') as file:
+        lines = file.readlines()
+        values = [v.split('\t') for v in lines]
+        for l in values:
+            phn = l[-1].strip('\t').strip('\n')
+            if phn not in phonemes:
+                phonemes.append(phn)
+    return phonemes
+
+
+def read_centers(fname):
+    centers = []
+    for i in range(1, 461):
+        with open('clustered/' + fname + next_file(i, 3) + '.txt') as file:
+            lines = file.readlines()
+            values = [v.strip('\n').strip('\t').split('\t') for v in lines]
+            for val in values:
+                c = float(val[-1].strip('\t').strip('\n'))
+                if c not in centers:
+                    centers.append(c)
+    return centers
+
+
 def compute_kmeans(filename1, filename2=None):
     print 'Reading file(s)...'
     data1 = open(filename1, 'r')
