@@ -186,7 +186,8 @@ class TsukamotoModel(BaseModel):
         return [rs[0] for rs in result]
 
     def learn_hybrid_online(
-            self, data, smp, tol=1e-6, max_epochs=250, tsk=None, heurist=True):
+            self, data, smp, prompt, tol=1e-6, max_epochs=250, tsk=None,
+            heurist=True):
         """ Train the ANFIS with the given data pairs.
 
         Parameters
@@ -207,6 +208,8 @@ class TsukamotoModel(BaseModel):
 
         qtd_data = len(data)
         p = 1
+        per_file = open('results/' + tsk.split('.')[0] + '.per', 'a')
+        word = []
         with open('results/' + tsk, 'a') as _file:
             for pair in data:
                 sputils.p_progress(qtd_data, p, tsk[:-1] + ' -> ' + str(smp))
@@ -234,7 +237,17 @@ class TsukamotoModel(BaseModel):
                 # Compute elapsed time and save to file
                 p += 1
                 ttime += clock() - start
+                word.append(phn)
                 fhelper.w(_file, epoch, k, errs[-1], ttime, phn)
+            # Compute and write PER
+            pdb.set_trace()
+            word = sputils.get_phn(tsk[:7], *word)
+
+            if len(word) != len(data):
+                raise ValueError('Word is bigger than prompt!')
+
+            per = sputils.levenshtein_distance(prompt, word) / len(word)
+            per_file.write('{:3}\t{:20.20f}\n'.format(smp, per))
 
     def forward_pass(self, entries, expected, newrow=False):
         """ This method will compute the outputs from layers 1 to 4. The fourth

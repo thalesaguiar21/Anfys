@@ -5,7 +5,7 @@ from data import utils as dutils
 import pdb
 # from sklearn.datasets.samples_generator import make_blobs
 
-# filename = str(raw_input('Enter a input folder: '))
+prompts = dutils.get_expected_phns()
 
 QTD_MFS = 2
 SET_SIZE = 461
@@ -30,7 +30,7 @@ rs_fname = '{}{}_{}IN_{}MF_{}RNS.txt'.format(
 # Run the task for N times
 for i in range(n_runs):
     data = []
-    for i in range(1, SET_SIZE):
+    for i in range(1, 2):
         fname = FILE_SETS[f_num] + dutils.next_file(i, 3) + '.txt'
         data.append(dutils.get_pairs(fname))
     smp = 1
@@ -38,6 +38,6 @@ for i in range(n_runs):
         con_fun = mfs.PiecewiseLogit()
         network = TsukamotoModel(QTD_MFS, INP_N, con_fun, mfs.BellTwo())
         network.learn_hybrid_online(
-            dt, smp, tsk=rs_fname, heurist=kh
+            dt, smp, prompts[smp], tsk=rs_fname, heurist=kh
         )
         smp += 1

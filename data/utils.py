@@ -22,6 +22,68 @@ def read_phonemes(fname):
     return phonemes
 
 
+def get_phns_from_run():
+    my_dir = 'C:\\Users\\thalesaguiar\\Documents'
+    my_dir += '\\Dev\\Python\\ANFIS\\data\\fsew0_4\\'
+    mdict = {}
+    indexes = 0
+    pindex = []
+    for i in xrange(1, 461):
+        prompt = []
+        with open(my_dir + 'fsew0_' + next_file(i, 3) + '_ext.txt') as f:
+            lines = f.readlines()
+            values = [v.split('\t') for v in lines]
+            for val in values:
+                prompt.append(val[-1].strip('\t').strip('\n'))
+                indexes += 1
+        mdict[i] = prompt
+        pindex.append(indexes)
+    my_dir = 'C:\\Users\\thalesaguiar\\Documents'
+    my_dir += '\\Dev\\Python\\ANFIS\\results\\fsew0_4_H_4IN_2MF_13RNS.txt'
+    with open(my_dir, 'r') as f:
+        lines = f.readlines()
+        runs = []
+        start, end = [0 for _ in range(2)]
+        for i in range(len(lines) / pindex[-1]):
+            end = start + pindex[-1]
+            testing = []
+            phonemes = []
+            # Get the 12454 phonemes
+            for line in lines[start:end]:
+                phonemes.append(
+                    float(
+                        line.strip('\n').strip('\t').split('\t')[-1].strip('\n').strip('\t')
+                    )
+                )
+            # Join the phonemes into the prompts
+            st = 0
+            jotinha = 1
+            for jay in pindex:
+                testing.append(phonemes[st:jay])
+                st = jay
+                if len(testing[-1]) != len(mdict[jotinha]):
+                    pdb.set_trace()
+                jotinha += 1
+            start = end
+            runs.append(testing)
+    return runs
+
+
+def get_expected_phns():
+    my_dir = 'C:\\Users\\thalesaguiar\\Documents'
+    my_dir += '\\Dev\\Python\\ANFIS\\data\\fsew0_4\\'
+    prompts = {}
+    for i in xrange(1, 461):
+        prompt = []
+        with open(my_dir + 'fsew0_' + next_file(i, 3) + '_ext.txt') as f:
+            lines = f.readlines()
+            values = [v.split('\t') for v in lines]
+            for val in values:
+                prompt.append(val[-1].strip('\t').strip('\n'))
+        prompts[i] = prompt
+    return prompts
+
+
 def read_centers(fname):
     centers = []
     for i in range(1, 461):
@@ -219,7 +281,7 @@ def write_all():
     write_to_file('msak0_5F_results.txt')
 
 
-def compute_statistcs(rs_matrix, ep=1, se=3, t=4):
+def compute_statistics(rs_matrix, ep=1, se=3, t=4):
     """ Compute the statistics for the given matrix. The mean
     squared error, mean of epochs and the mean of time
 
