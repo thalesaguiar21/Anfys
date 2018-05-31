@@ -213,9 +213,9 @@ def compute_statistcs(rs_matrix, ep=1, se=3, t=4):
     total_epochs, t_sqr_err, t_time = [0 for _ in range(3)]
 
     for samp in range(n_samples):
-        total_epochs += rs_matrix[samp][:1][0]
-        t_sqr_err += rs_matrix[samp][:3][2]
-        t_time += rs_matrix[samp][:4][3]
+        total_epochs += rs_matrix[samp][:ep][ep - 1]
+        t_sqr_err += rs_matrix[samp][:se][se - 1]
+        t_time += rs_matrix[samp][:t][t - 1]
 
     n_samples = float(n_samples)
     print 'MSE: ' + str(t_sqr_err / n_samples)

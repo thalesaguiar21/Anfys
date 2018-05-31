@@ -96,3 +96,52 @@ def p_progress(qtd_data, p, tsk, csymb='#', psymb='-', basis=10):
         pbar, p, qtd_data, tsk),
         end='\r'
     )
+
+
+def levenshtein_distance(expected, result, subc=1):
+    """ Compute the levenshtein distance between the given strings
+
+    ld_a_b(i, j) = if min(i, j) == 0, max(i, j)
+                   otherwise, min(
+                       ld_a_b(i - 1, j) + 1,
+                       ld_a_b(i, j - 1) + 1,
+                       ld_a_b(i - 1, j - 1) + sub_cost,
+                   )
+    where i = |a| and j = |b|.
+
+    Parameters
+    ----------
+    expected : list
+        A list with the correct symbols
+    result : list
+        A list with the resulted symbols
+    subc : int, defaults to 1
+        The cost of a substitution
+    """
+    # Matrix with costs
+    expected.insert(0, ' ')
+    result.insert(0, ' ')
+    m = len(expected)
+    n = len(result)
+    dists = zeros((m, n))
+    sub_cost = 0
+
+    for i in xrange(m):
+        dists[i, 0] = i
+
+    for j in xrange(n):
+        dists[0, j] = j
+
+    sub_cost = 0
+    for j in xrange(1, n):
+        for i in xrange(1, m):
+            if expected[i] == result[j]:
+                sub_cost = 0
+            else:
+                sub_cost = subc
+            dists[i, j] = min(
+                dists[i - 1, j] + 1,
+                dists[i, j - 1] + 1,
+                dists[i - 1, j - 1] + sub_cost
+            )
+    return dists[m - 1, n - 1]
