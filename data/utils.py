@@ -39,7 +39,7 @@ def get_phns_from_run():
         mdict[i] = prompt
         pindex.append(indexes)
     my_dir = 'C:\\Users\\thalesaguiar\\Documents'
-    my_dir += '\\Dev\\Python\\ANFIS\\results\\fsew0_4_H_4IN_2MF_13RNS.txt'
+    my_dir += '\\Dev\\Python\\ANFIS\\results\\fsew0_4__4IN_3MF_5RNS.txt'
     with open(my_dir, 'r') as f:
         lines = f.readlines()
         runs = []
