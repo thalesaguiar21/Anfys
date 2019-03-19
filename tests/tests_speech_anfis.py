@@ -18,8 +18,8 @@ class TestBaseModel(unittest.TestCase):
                             [2, 0, 0], [2, 0, 1], [2, 1, 0], [2, 1, 1]])
         num_rules = len(expected)
         rule_size = len(expected[0])
-        for i in xrange(num_rules):
-            for j in xrange(rule_size):
+        for i in range(num_rules):
+            for j in range(rule_size):
                 self.assertEqual(
                     expected[i, j], self.anfis._rule_set[i, j]
                 )
@@ -48,7 +48,7 @@ class TestBaseModel(unittest.TestCase):
     def test_rules_one(self):
         self.anfis = anfis.BaseModel([2], [[1, 2], [1, 2]], fuzz.BellTwo())
         arr = np.array([[0], [1]])
-        for i in xrange(2):
+        for i in range(2):
             self.assertEqual(arr[i, 0], self.anfis._rule_set[i, 0])
 
     def test_rules_empty(self):
@@ -59,7 +59,7 @@ class TestBaseModel(unittest.TestCase):
         self.setUp()
         expected = [0.5, 1, 0.5, 1, 0.5, 2, 0.5, 2, 0.5, 2, 0.5, 2]
         rs = self.anfis._min_operation(self.outputs)
-        for i in xrange(rs.size):
+        for i in range(rs.size):
             if expected[i] != rs[i]:
                 self.fail('Error! Difference at element ' + str(i))
 
@@ -76,7 +76,7 @@ class TestBaseModel(unittest.TestCase):
         expected = [1.0, 6.0, 1.0, 6.0, 2.0, 12.0,
                     2.0, 12.0, 3.0, 18.0, 3.0, 18.0]
         rs = self.anfis._product_operation(self.outputs)
-        for i in xrange(rs.size):
+        for i in range(rs.size):
             if expected[i] != rs[i]:
                 self.fail('Error! Difference at element ' + str(i))
 

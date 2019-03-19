@@ -28,7 +28,7 @@ def get_phns_from_run():
     mdict = {}
     indexes = 0
     pindex = []
-    for i in xrange(1, 461):
+    for i in range(1, 461):
         prompt = []
         with open(my_dir + 'fsew0_' + next_file(i, 3) + '_ext.txt') as f:
             lines = f.readlines()
@@ -73,7 +73,7 @@ def get_expected_phns():
     my_dir = 'C:\\Users\\thalesaguiar\\Documents'
     my_dir += '\\Dev\\Python\\ANFIS\\data\\fsew0_4\\'
     prompts = {}
-    for i in xrange(1, 461):
+    for i in range(1, 461):
         prompt = []
         with open(my_dir + 'fsew0_' + next_file(i, 3) + '_ext.txt') as f:
             lines = f.readlines()
@@ -266,7 +266,7 @@ def get_pairs(filename):
         )
 
     d_pair = []
-    for i in xrange(len(d_pair_tmp)):
+    for i in range(len(d_pair_tmp)):
         inputs = [float(m) for m in d_pair_tmp[i][:-1]]
         output = float(d_pair_tmp[i][-1])
         d_pair.append((inputs, output))

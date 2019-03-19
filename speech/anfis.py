@@ -22,7 +22,7 @@ class BaseModel(object):
         self.rules_n = mf_n ** inp_n  # Number of network rules
         self._prec = self.init_prec_params(mem_func)  # Initial prec params
         self._rule_set = self._create_rules()
-        self.subsets = [FuzzySet(mem_func) for i in xrange(self.inp_n)]
+        self.subsets = [FuzzySet(mem_func) for i in range(self.inp_n)]
         self._errors = []
 
     def init_prec_params(self, mf):
@@ -62,7 +62,7 @@ class BaseModel(object):
             On empty parameter, element or negative size
         """
         if self.mf_n is not None and self.mf_n > 0:
-            rules_set = [range(self.mf_n) for i in xrange(self.inp_n)]
+            rules_set = [range(self.mf_n) for i in range(self.inp_n)]
             return np.array([comb for comb in product(*rules_set)])
         return None
 
@@ -219,7 +219,7 @@ class TsukamotoModel(BaseModel):
                 k = 0.1
                 phn = 0
                 start = clock()  # Starting time of an epoch
-                for epoch in xrange(1, max_epochs + 1):
+                for epoch in range(1, max_epochs + 1):
                     newrow = epoch == 0
                     layers_out = self.forward_pass(pair[0], pair[1], newrow)
                     # Update K from the 3th epoch
@@ -289,7 +289,7 @@ class TsukamotoModel(BaseModel):
         )
         # Compute the membership value of each consequent function
         layer_4 = np.empty(self.rules_n)
-        for i in xrange(self.rules_n):
+        for i in range(self.rules_n):
             k = i * 2
             fi = self.cons_fun.membership_degree(
                 layer_2[i], *consequents[k: k + 2]
@@ -318,7 +318,7 @@ class TsukamotoModel(BaseModel):
         # Derivative of MFs for each alpha dO_dAlpha
         idx = 0
         derivs = []
-        for i in xrange(self.inp_n):
+        for i in range(self.inp_n):
             params = self._prec[i * self.mf_n:i * self.mf_n + self.mf_n]
             derivs.extend(self.subsets[i].derivs_at(entries[i], params))
             idx += 1
@@ -350,7 +350,7 @@ class TsukamotoModel(BaseModel):
         """
         do5_do4, do4_do3, do3_do2, do2_do1 = [0 for _ in range(4)]
         l2_sum = l2.sum()
-        for i in xrange(self.rules_n):
+        for i in range(self.rules_n):
             # Compute do5_do4
             do5_do4 += 1.0
             # Compute do4_do3

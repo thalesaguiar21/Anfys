@@ -183,7 +183,7 @@ def get_phn(task, *values):
     # for val in values:
     #     m_index = 0
     #     m_aux = abs(centers[0] - val)
-    #     for i in xrange(1, len(phonemes)):
+    #     for i in range(1, len(phonemes)):
     #         m_curr = abs(centers[i] - val)
     #         if m_curr < m_aux:
     #             m_aux = m_curr
@@ -222,15 +222,15 @@ def levenshtein_distance(expected, result, subc=1):
     dists = zeros((m, n))
     sub_cost = 0
 
-    for i in xrange(m):
+    for i in range(m):
         dists[i, 0] = i
 
-    for j in xrange(n):
+    for j in range(n):
         dists[0, j] = j
 
     sub_cost = 0
-    for j in xrange(1, n):
-        for i in xrange(1, m):
+    for j in range(1, n):
+        for i in range(1, m):
             if e_tmp[i] == r_tmp[j]:
                 sub_cost = 0
             else:
