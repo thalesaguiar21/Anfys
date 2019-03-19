@@ -2,6 +2,8 @@ from __future__ import division
 from math import log, exp
 import pdb
 
+MIN_MEMBERSHIP = 1e-10
+
 
 class MembershipFunction:
     """ This class represents an interface for Membership Functions. Any
@@ -9,8 +11,6 @@ class MembershipFunction:
     degree of a given value, and to calculate the derivative at a point
     with respect to a variable.
     """
-
-    MIN_MEMBERSHIP = 1e-10
 
     def __init__(self):
         self.parameters = None
@@ -147,15 +147,9 @@ class BellThree(MembershipFunction):
         if var == 'a':
             result = 2.0 * b * tmp2 / (a * denom)
         elif var == 'b':
-            if tmp1 == 0:
-                result = 0.0
-            else:
-                result = -log(tmp1 * tmp2) * tmp2 / denom
+            result = -log(tmp1 * tmp2) * tmp2 / denom
         elif var == 'c':
-            if value == c:
-                result = 0.0
-            else:
-                result = 2 * b * tmp2 / ((value - c) * denom)
+            result = 2 * b * tmp2 / ((value - c) * denom)
         return result
 
 
@@ -229,7 +223,7 @@ class BellTwo(MembershipFunction):
             result = 2 * (value - b) * exp(-k)
             denom = a ** 2
         else:
-            print 'BellTwo has no parameter ' + var
+            raise ValueError('BellTwo has no parameter \'{}\''.format(var))
         return result / denom
 
 

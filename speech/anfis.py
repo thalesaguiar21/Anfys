@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 from itertools import product
 from fuzzy.subsets import FuzzySet
 from data import file_helper as fhelper
@@ -9,107 +7,74 @@ from math import sqrt, isinf
 from random import randint
 import pdb
 from time import clock
-import numpy as np
+from numpy import random, array, zeros
 import sys
 sys.path.append('../')
 
 
-class BaseModel(object):
+class BaseModel:
 
-    def __init__(self, mf_n, inp_n, mem_func=mfs.BellTwo()):
-        self.mf_n = mf_n  # Number of MFs in each set
-        self.inp_n = inp_n  # Number of inputs
-        self.rules_n = mf_n ** inp_n  # Number of network rules
-        self._prec = self.init_prec_params(mem_func)  # Initial prec params
-        self._rule_set = self._create_rules()
-        self.subsets = [FuzzySet(mem_func) for i in range(self.inp_n)]
+    def __init__(self, qtd_mf, qtd_inp, premise_type, consequent_type):
+        self._qtd_mf = qtd_mf
+        self._qtd_inp = qtd_inp
+        self._qtd_rules = qtd_mf ** qtd_inp
         self._errors = []
+        self._premise_type = premise_type
+        self._consequent_type = consequent_type
+        self._premises_params = None
+        self._consequent_params = None
 
-    def init_prec_params(self, mf):
-        param_n = len(mf.parameters)
-        param_t = self.mf_n * self.inp_n
-        if param_n == 2:
-            return np.array(self.init_twoparam_prec(param_t))
-        elif param_n == 3:
-            return np.array(self.init_threeparam_prec(param_t))
+    def premises_per_mf(self):
+        return self.premise_type.qtd_params()
 
-    def init_twoparam_prec(self, size):
-        return [[randint(1, 10), randint(1, 10)] for _ in range(size)]
+    def premises_size(self):
+        return self._qtd_mf * self._qtd_inp
 
-    def init_threeparam_prec(self, size):
-        return [
-            [randint(1, 10), randint(1, 10), randint(1, 10)]
-            for _ in range(size)
-        ]
+    def consequent_per_mf(self):
+        return self.consequent_type.qtd_params()
 
-    def _create_rules(self):
-        """ Create all combinations of the fuzzy labels, that is all the
-        precedents rules.
+    def consequent_size(self):
+        return self._qtd_rules
 
-        Parameters
-        ----------
-        stes_size : list of int
-            A list with the number of labels in each fuzzy set
 
-        Returns
-        -------
-        rules_combination : list of tuples
-            A list of tuples with all combinations of the given fuzzy sets
+def configure(anfis):
+    init_premise_paramters(anfis)
+    create_rules(anfis)
+    init_consequent_parameters(anfis)
 
-        Raises
-        ------
-        ValueError
-            On empty parameter, element or negative size
-        """
-        if self.mf_n is not None and self.mf_n > 0:
-            rules_set = [range(self.mf_n) for i in range(self.inp_n)]
-            return np.array([comb for comb in product(*rules_set)])
-        return None
 
-    def _product_operation(self, fuzz_output):
-        """ Execute a product operation with the fuzzy values from the first
-        layer. That is also known as t-norm operation.
+def init_premise_paramters(anfis):
+    anfis._premises_params = random.rand(
+        anfis.premises_per_mf(), anfis.premises_size())
 
-        Parameters
-        ----------
-        fuzz_output : list of list of double
-            A list with the outputs of each label in the fuzzy sets
 
-        Returns
-        -------
-        prod_outputs : list of double
-            A list with the product of the outputs of each precedent rule
-            combination.
+def create_rules(anfis):
+    if anfis._qtd_mf is not None and anfis._qtd_mf > 0:
+        rules_set = [range(anfis._qtd_mf) for i in range(anfis._qtd_inp)]
+        return array([comb for comb in product(*rules_set)])
+    return None
 
-        Raises
-        ------
-        ValueError
-            On None argument of None element on argument
-        """
-        if fuzz_output is None:
-            raise ValueError('Fuzz outputs cannot be None!')
-        elif None in fuzz_output:
-            raise ValueError('Fuzz outputs has a None element!')
 
-        prod_outputs = []
-        for rule in self._rule_set:
-            prod = 1.0
-            for output, label in zip(fuzz_output, rule):
-                prod *= output[label]
-            prod_outputs.append(prod)
-        return np.array(prod_outputs)
+def init_consequent_parameters(anfis):
+    anfis._consequent_params = zeros(
+        anfis._qtd_rules, anfis.consequent_per_mf())
 
-    def learn_hybrid_online(self, data, threshold=1e-10, max_epochs=500):
-        raise NotImplementedError()
 
-    def _find_consequents(values, weights, new_line=False):
-        raise NotImplementedError()
+def train(anfis, data, max_epochs):
+    for curr_epoch in max_epochs:
+        for pair in data:
+            forward_pass(anfis, pair)
+            backward_pass(anfis)
 
-    def forward_pass(self, entries, expected, min_prod=False, new_row=False):
-        raise NotImplementedError()
 
-    def backward_pass(self, layer_1, layer_2, layer_5, error):
-        raise NotImplementedError()
+def forward_pass(anfis, pair):
+    entry, out = *pair
+
+
+def backward_pass(anfis):
+    pass
+
+
 
 
 class TsukamotoModel(BaseModel):
