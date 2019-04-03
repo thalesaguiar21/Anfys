@@ -3,6 +3,15 @@ class FuzzySet:
 
     def __init__(self, mem_func):
         self.mem_func = mem_func
+        self.begin = None
+        self.end = None
+
+    def define_params_pattern(self, begin, end):
+        self.begin = begin
+        self.end = end
+
+    def param_pattern(self):
+        return self.begin, self.end
 
     def evaluate(self, value, params):
         """ Evaluate the given value in the current subset of membership
@@ -21,12 +30,12 @@ class FuzzySet:
             An array with the membership degree of the given value with respect
             to each membership function in this set.
         """
-        mem_degree = []
+        mem_degrees = []
         for line in params:
-            mem_degree.append(self.mem_func.membership_degree(value, *line))
-        return mem_degree
+            mem_degrees.append(self.mem_func.membership_degree(value, *line))
+        return mem_degrees
 
-    def derivs_at(self, value, params, var=None):
+    def partials(self, value, params):
         """ Compute the derivative of each membership function in this set at
         the given value with respect to a given variable.
 
@@ -50,8 +59,6 @@ class FuzzySet:
         for line in params:
             derivs = []
             for variable in self.mem_func.parameters:
-                derivs.append(
-                    self.mem_func.derivative_at(value, variable, *line)
-                )
-            all_derivs.append(derivs)
+                derivs.append(self.mem_func.partial(value, variable, *line))
+            all_derivs.append(derivs[:])
         return all_derivs

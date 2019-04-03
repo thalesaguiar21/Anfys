@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="200" src="/images/anfys_logo.png">
+</p>
+
 # ANFIS
 This repository contains an Type-1 Artificial Neural Fuzzy Inferece System in Python programming language.
 
@@ -5,6 +9,14 @@ At this moment this project only supports precedent fuzzy with the same number o
 
 For extracting the features from the uttrances, I reccomend the code in the this
 <a href=https://github.com/jameslyons/python_speech_features>repository</a>
+
+### To-do
+
+- [ ] Add Types 2 and 3
+- [ ] Improve Backpropagation implementation
+- [ ] Improve ecanpsulation
+- [ ] Fix project structure
+- [ ] Decouple this project from speech recognition systems
 
 ### Dependencies
 <ol>

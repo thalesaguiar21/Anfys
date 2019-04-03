@@ -4,85 +4,52 @@ from data import file_helper as fhelper
 from speech import utils as sputils
 from fuzzy import mem_funcs as mfs
 from math import sqrt, isinf
-from random import randint
-import pdb
 from time import clock
-from numpy import random, array, zeros
+from numpy import random, array, zeros, empty
 import sys
 sys.path.append('../')
 
 
 class BaseModel:
 
-    def __init__(self, qtd_mf, qtd_inp, premise_type, consequent_type):
+    def __init__(self, qtd_mf, qtd_inp, premise_fun, consequent_fun):
+        self.rules = None
+        self.fuzz_set_patterns = []
         self._qtd_mf = qtd_mf
         self._qtd_inp = qtd_inp
         self._qtd_rules = qtd_mf ** qtd_inp
+        self._premise_fun = premise_fun
+        self._consequent_fun = consequent_fun
+        self._subsets = [FuzzySet(premise_fun) for _ in range(qtd_inp)]
         self._errors = []
-        self._premise_type = premise_type
-        self._consequent_type = consequent_type
         self._premises_params = None
         self._consequent_params = None
 
     def premises_per_mf(self):
-        return self.premise_type.qtd_params()
+        return self.premise_fun.qtd_params
 
     def premises_size(self):
         return self._qtd_mf * self._qtd_inp
 
     def consequent_per_mf(self):
-        return self.consequent_type.qtd_params()
+        return self.consequent_fun.qtd_params
 
     def consequent_size(self):
         return self._qtd_rules
 
+    def qtd_consequent_params(self):
+        return self._qtd_rules * self.consequent_fun.qtd_params
 
-def configure(anfis):
-    init_premise_paramters(anfis)
-    create_rules(anfis)
-    init_consequent_parameters(anfis)
-
-
-def init_premise_paramters(anfis):
-    anfis._premises_params = random.rand(
-        anfis.premises_per_mf(), anfis.premises_size())
+    def qtd_subsets(self):
+        return self._qtd_inp
 
 
-def create_rules(anfis):
-    if anfis._qtd_mf is not None and anfis._qtd_mf > 0:
-        rules_set = [range(anfis._qtd_mf) for i in range(anfis._qtd_inp)]
-        return array([comb for comb in product(*rules_set)])
-    return None
-
-
-def init_consequent_parameters(anfis):
-    anfis._consequent_params = zeros(
-        anfis._qtd_rules, anfis.consequent_per_mf())
-
-
-def train(anfis, data, max_epochs):
-    for curr_epoch in max_epochs:
-        for pair in data:
-            forward_pass(anfis, pair)
-            backward_pass(anfis)
-
-
-def forward_pass(anfis, pair):
-    entry, out = *pair
-
-
-def backward_pass(anfis):
-    pass
-
-
-
-
-class TsukamotoModel(BaseModel):
+class Tsukamoto(BaseModel):
     """ Class to represent an Artifical Neural Fuzzy Inference System which
     uses the Tsukamoto Fuzzy Inference System.
     """
 
-    def __init__(self, mf_n, inp_n, cons_fun, mem_func=mfs.BellTwo()):
+    def __init__(self, qtd_mf, qtd_inp, premise_fun):
         """ Initialize a new Tsukamoto Fuzzy Inference System
 
         Parameters
@@ -91,17 +58,92 @@ class TsukamotoModel(BaseModel):
             The size of each fuzzy set in the precendents layer
         inp_n : int
             Number of inputs to the network
-        cons_fun : MembershipFunction
-            A piecewise linear approximation of a monotonic function
         mem_func : MembershipFunction
             A MembershipFcuntion to be used on the precedent layer
         """
-        super(TsukamotoModel, self).__init__(mf_n, inp_n, mem_func)
-        self.cons_fun = cons_fun
-        col = self.rules_n * len(cons_fun.parameters)
-        self.coef_matrix = np.empty((0, col))
-        self.expected = np.empty((0, 1))
+        super().__init__(qtd_mf, qtd_inp, premise_fun, mfs.PiecewiseLogit())
+        self.coef_matrix = empty((0, self.qtd_consequent_params()))
+        self.expected = empty((0, 1))
 
+    def infer(self, inputs):
+        # Fuzzyfication, inputs membership values
+        layer1 = []
+        for inp, fuzzset in zip(inputs, self._subsets):
+            begin, end = fuzzset.param_pattern()
+            layer1.extend(
+                fuzzset.evaluate(inp, self._premises_params[begin:end, :]))
+        # Apply T-norm operation for every combination (rules)
+        layer2 = []
+        for rule in self.rules:
+            tnorm = 1
+            for p_output in rule:
+                tnorm = tnorm * layer1[p_output]
+            layer2.append(tnorm)
+        # Apply a normalisation
+        denom = sum(layer1)
+        layer3 = [tnorm / denom for tnorm in layer2]
+        # Update consequent parameters
+        layer2 = array(layer2)
+        layer2 = array(layer2)
+        weighted_tnorm = array([layer2 * layer3, -layer2 * layer3])
+        curr_pair = 
+        # Compute Consequent mebership value
+        # Compute network output
+
+
+def configure(anfis):
+    _init_premise_paramters(anfis)
+    _create_rules(anfis)
+    _init_consequent_parameters(anfis)
+    _create_fuzzset_patterns(anfis)
+
+
+def _init_premise_paramters(anfis):
+    # Initialize all mfuncs with 0. mean and std dev 1.
+    preparams = [[1., 0.] for _ in range(anfis.premises_size())]
+    anfis._premises_params = array(preparams)
+
+
+def _create_rules(anfis):
+    if anfis._qtd_mf is not None and anfis._qtd_mf > 0:
+        rules_set = [range(anfis._qtd_mf) for i in range(anfis._qtd_inp)]
+        anfis.rules = array([comb for comb in product(*rules_set)])
+    anfis.rules = None
+
+
+def _init_consequent_parameters(anfis):
+    anfis._consequent_params = zeros(
+        anfis._qtd_rules, anfis.consequent_per_mf())
+
+
+def _create_fuzzset_patterns(anfis):
+    i = 0
+    for fuzzset in anfis._subsets:
+        begin = i * anfis.qtd_mf
+        end = begin + anfis.qtd_mf
+        fuzzset.define_params_pattern(begin, end)
+        i += 1
+
+
+def train(anfis, data, max_epochs):
+    for curr_epoch in max_epochs:
+        for pair in data:
+            inputs, output = pair
+            anfis.infer(inputs, output)
+            backward_pass(anfis)
+
+
+def update_consequent_parameters():
+    pass
+
+
+def backward_pass(anfis):
+    pass
+
+
+###############################################################################
+#                                       OLD                                   #
+###############################################################################
     def _build_coefmatrix(self, values, weights, expec, newrow=False):
         """ Updates the linear system as new equations are available
 
@@ -325,38 +367,3 @@ class TsukamotoModel(BaseModel):
             for (prec, mf_set) in zip(self._rule_set[i], range(self.inp_n)):
                 do2_do1 += l2[i] / l1[mf_set][prec]
         return do5_do4 * do4_do3 * do3_do2 * do2_do1
-
-
-def update_k(k, addsub, errors):
-    """ Update the value of k.
-    1 -> If theres four consecutive error increases,
-         then k is increased by 10%.
-    2 -> If theres four consecutive error decreases,
-         then k is increased by 10%.
-
-    Parameters
-    ----------
-    k : double
-        The value to be updated
-    addsub : vector of int with size 2
-        The increase and decrease counters
-    errors : list of double
-        The list of errors
-
-    Returns
-    -------
-    The updated value of 'k' and 'addsub'.
-    """
-    if errors[-1] <= errors[-2]:
-        addsub[0] += 1
-        addsub[1] = 0
-    elif errors[-1] > errors[-2]:
-        addsub[1] += 1
-        addsub[0] = 0
-    if addsub[0] == 4:
-        k *= 1.10
-        addsub[0] = 0
-    if addsub[1] == 4:
-        k *= 0.9
-        addsub[1] = 0
-    return k, addsub

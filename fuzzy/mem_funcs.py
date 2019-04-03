@@ -1,6 +1,5 @@
 from __future__ import division
 from math import log, exp
-import pdb
 
 MIN_MEMBERSHIP = 1e-10
 
@@ -14,6 +13,7 @@ class MembershipFunction:
 
     def __init__(self):
         self.parameters = None
+        self.qtd_params = 0
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value
@@ -37,7 +37,7 @@ class MembershipFunction:
         """
         raise NotImplementedError()
 
-    def derivative_at(self, value, var, a, b, c=None):
+    def partial(self, value, var, a, b, c=None):
         """ Computes the derivative of the membership function with respect to
         a variable, at the given point.
 
@@ -68,6 +68,7 @@ class BellThree(MembershipFunction):
 
     def __init__(self):
         self.parameters = ['a', 'b', 'c']
+        self.qtd_params = 3
 
     def membership_degree(self, value, a, b, c=None):
         """ This method computes the membership degree of the given value
@@ -107,7 +108,7 @@ class BellThree(MembershipFunction):
         denom = 1.0 + (tmp1 ** 2.0) ** b
         return 1.0 / denom
 
-    def derivative_at(self, value, var, a, b, c=None):
+    def partial(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
         a variable.
 
@@ -158,6 +159,7 @@ class BellTwo(MembershipFunction):
 
     def __init__(self):
         self.parameters = ['a', 'b']
+        self.qtd_params = 2
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value, with respect to
@@ -191,7 +193,7 @@ class BellTwo(MembershipFunction):
         arg = - ((value - b) / a) ** 2
         return max(exp(arg), MembershipFunction.MIN_MEMBERSHIP)
 
-    def derivative_at(self, value, var, a, b, c=None):
+    def partial(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
         a variable.
 
@@ -231,11 +233,13 @@ class PiecewiseLogit(MembershipFunction):
     """ A piecewise linear approximation of logit (inverse of sigmoid) function
     with two parameters (p, q).
     """
+
     def __init__(self):
         self.__low = 1e-8
         self.__high = 1.0 - self.__low
         self.__hl = self.__high - self.__low
         self.parameters = ['a', 'b']
+        self.qtd_params = 2
 
     def membership_degree(self, value, a, b, c=None):
         """ Computes the membership degree of the given value, with respect to
@@ -270,7 +274,7 @@ class PiecewiseLogit(MembershipFunction):
             mem_degree = b
         return mem_degree
 
-    def derivative_at(self, value, var, a, b, c=None):
+    def partial(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
         a variable.
 
