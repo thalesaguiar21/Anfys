@@ -2,7 +2,7 @@
   <img width="200" src="/images/anfys_logo.png">
 </p>
 
-# ANFIS
+# Anfys
 This repository contains an Type-1 Artificial Neural Fuzzy Inferece System in Python programming language.
 
 At this moment this project only supports precedent fuzzy with the same number of labels. Besides, the learning algorithm implemented is the Hybrid Batch Online presented by Jang (1993). This method consists on updating the consequent labels using a Least Square Estimation and the precedent parameters with an Backpropagatino algorithm.
