@@ -5,7 +5,7 @@ from speech import utils as sputils
 from fuzzy import mem_funcs as mfs
 from math import sqrt, isinf
 from time import clock
-from numpy import random, array, zeros, empty
+import numpy as np
 import sys
 sys.path.append('../')
 
@@ -62,8 +62,8 @@ class Tsukamoto(BaseModel):
             A MembershipFcuntion to be used on the precedent layer
         """
         super().__init__(qtd_mf, qtd_inp, premise_fun, mfs.PiecewiseLogit())
-        self.coef_matrix = empty((0, self.qtd_consequent_params()))
-        self.expected = empty((0, 1))
+        self.coef_matrix = np.empty((0, self.qtd_consequent_params()))
+        self.expected = np.empty((0, 1))
 
     def infer(self, inputs):
         # Fuzzyfication, inputs membership values
@@ -83,8 +83,6 @@ class Tsukamoto(BaseModel):
         denom = sum(layer1)
         layer3 = [tnorm / denom for tnorm in layer2]
         # Update consequent parameters
-        layer2 = array(layer2)
-        weighted_tnorm = array([layer2 * layer3, -layer2 * layer3])
         # Compute Consequent mebership value
         # Compute network output
 
@@ -99,18 +97,18 @@ def configure(anfis):
 def _init_premise_paramters(anfis):
     # Initialize all mfuncs with 0. mean and std dev 1.
     preparams = [[1., 0.] for _ in range(anfis.premises_size())]
-    anfis._premises_params = array(preparams)
+    anfis._premises_params = np.array(preparams)
 
 
 def _create_rules(anfis):
     if anfis._qtd_mf is not None and anfis._qtd_mf > 0:
         rules_set = [range(anfis._qtd_mf) for i in range(anfis._qtd_inp)]
-        anfis.rules = array([comb for comb in product(*rules_set)])
+        anfis.rules = np.array([comb for comb in product(*rules_set)])
     anfis.rules = None
 
 
 def _init_consequent_parameters(anfis):
-    anfis._consequent_params = zeros(
+    anfis._consequent_params = np.zeros(
         anfis._qtd_rules, anfis.consequent_per_mf())
 
 

@@ -1,5 +1,4 @@
-from __future__ import division
-from math import log, exp
+import math
 
 MIN_MEMBERSHIP = 1e-10
 
@@ -148,7 +147,7 @@ class BellThree(MembershipFunction):
         if var == 'a':
             result = 2.0 * b * tmp2 / (a * denom)
         elif var == 'b':
-            result = -log(tmp1 * tmp2) * tmp2 / denom
+            result = -math.log(tmp1 * tmp2) * tmp2 / denom
         elif var == 'c':
             result = 2 * b * tmp2 / ((value - c) * denom)
         return result
@@ -191,7 +190,7 @@ class BellTwo(MembershipFunction):
             Case 'a' is zero
         """
         arg = - ((value - b) / a) ** 2
-        return max(exp(arg), MembershipFunction.MIN_MEMBERSHIP)
+        return max(math.exp(arg), MembershipFunction.MIN_MEMBERSHIP)
 
     def partial(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to
@@ -219,10 +218,10 @@ class BellTwo(MembershipFunction):
         denom = 1.0
         k = (value - b) ** 2 / a ** 2
         if var == 'a':
-            result = 2 * ((value - b) ** 2) * exp(-k)
+            result = 2 * ((value - b) ** 2) * math.exp(-k)
             denom = a ** 3
         elif var == 'b':
-            result = 2 * (value - b) * exp(-k)
+            result = 2 * (value - b) * math.exp(-k)
             denom = a ** 2
         else:
             raise ValueError('BellTwo has no parameter \'{}\''.format(var))
