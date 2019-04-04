@@ -49,7 +49,7 @@ class Tsukamoto(BaseModel):
     uses the Tsukamoto Fuzzy Inference System.
     """
 
-    def __init__(self, qtd_mf, qtd_inp, premise_fun):
+    def __init__(self, qtd_mf, qtd_inp, premise_fun, tnorm):
         """ Initialize a new Tsukamoto Fuzzy Inference System
 
         Parameters
@@ -84,9 +84,7 @@ class Tsukamoto(BaseModel):
         layer3 = [tnorm / denom for tnorm in layer2]
         # Update consequent parameters
         layer2 = array(layer2)
-        layer2 = array(layer2)
         weighted_tnorm = array([layer2 * layer3, -layer2 * layer3])
-        curr_pair = 
         # Compute Consequent mebership value
         # Compute network output
 
