@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def lse_online(coef_matrix, rs_matrix, lamb=0.98, gamma=1000):
+def recursive_lse(coef_matrix, rs_matrix, lamb=0.98, gamma=1000):
     """ Computes the Least Square Estimation for the matrices AX = B
 
     Parameters
