@@ -1,4 +1,4 @@
-import unittest2 as unittest
+import unittest
 import tests.tests_mem_funcs as tests_mem_funcs
 import tests.tests_speech_utils as tests_speech_utils
 import tests.tests_speech_anfis as tests_speech_anfis

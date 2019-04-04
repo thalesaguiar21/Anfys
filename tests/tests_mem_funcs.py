@@ -1,11 +1,11 @@
-from context import fuzz
-import unittest2 as unittest
+from .context import memfuncs
+import unittest
 
 
 class TestBellTwo(unittest.TestCase):
 
     def setUp(self):
-        self.bellTwo = fuzz.BellTwo()
+        self.bellTwo = memfuncs.BellTwo()
         self.value = 4
         self.a = 3
         self.b = 2
@@ -74,7 +74,7 @@ class TestBellTwo(unittest.TestCase):
 class TestBellThree(unittest.TestCase):
 
     def setUp(self):
-        self.bellThree = fuzz.BellThree()
+        self.bellThree = memfuncs.BellThree()
         self.value = 4
         self.a = 3
         self.b = 2
@@ -134,7 +134,7 @@ class TestBellThree(unittest.TestCase):
 class TestPiecewiseLogit(unittest.TestCase):
 
     def setUp(self):
-        self.plogit = fuzz.PiecewiseLogit()
+        self.plogit = memfuncs.PiecewiseLogit()
         self.params = [2, 10]
         self.value = 3
 

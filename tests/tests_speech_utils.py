@@ -1,5 +1,5 @@
-from context import utils
-import unittest2 as unittest
+from .context import utils
+import unittest
 
 
 class TestUtils(unittest.TestCase):

@@ -1,7 +1,6 @@
-from context import anfis, fuzz
-import unittest2 as unittest
+from .context import anfis, memfuncs
+import unittest
 import numpy as np
-import pdb
 
 
 class TestBaseModel(unittest.TestCase):
@@ -9,13 +8,13 @@ class TestBaseModel(unittest.TestCase):
     def setUp(self):
         self.outputs = [[1, 2, 3], [2, 2], [0.5, 3]]
         self.prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
-        self.anfis = anfis.BaseModel([3, 2, 2], self.prec, fuzz.BellTwo())
+        self.anfis = anfis.BaseModel([3, 2, 2], self.prec, memfuncs.BellTwo())
 
     def test_rules(self):
         self.setUp()
         expected = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
-                            [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
-                            [2, 0, 0], [2, 0, 1], [2, 1, 0], [2, 1, 1]])
+                             [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
+                             [2, 0, 0], [2, 0, 1], [2, 1, 0], [2, 1, 1]])
         num_rules = len(expected)
         rule_size = len(expected[0])
         for i in range(num_rules):
@@ -27,32 +26,33 @@ class TestBaseModel(unittest.TestCase):
     def test_rules_none(self):
         self.prec = [[1, 2], [1, 2], [1, 2], [1, 2]]
         try:
-            self.anfis = anfis.BaseModel(None, self.prec, fuzz.BellTwo())
+            self.anfis = anfis.BaseModel(None, self.prec, memfuncs.BellTwo())
             self.fail('Rules created with no sets!')
         except ValueError:
             pass
 
         try:
-            self.anfis = anfis.BaseModel([-1, 2, 3], self.prec, fuzz.BellTwo())
+            self.anfis = anfis.BaseModel(
+                [-1, 2, 3], self.prec, memfuncs.BellTwo())
             self.fail('Rules created with negative size!')
         except ValueError:
             pass
 
         try:
             self.anfis = anfis.BaseModel(
-                [-1, 2, None], self.prec, fuzz.BellTwo())
+                [-1, 2, None], self.prec, memfuncs.BellTwo())
             self.fail('Rules created with no sets!')
         except ValueError:
             pass
 
     def test_rules_one(self):
-        self.anfis = anfis.BaseModel([2], [[1, 2], [1, 2]], fuzz.BellTwo())
+        self.anfis = anfis.BaseModel([2], [[1, 2], [1, 2]], memfuncs.BellTwo())
         arr = np.array([[0], [1]])
         for i in range(2):
             self.assertEqual(arr[i, 0], self.anfis._rule_set[i, 0])
 
     def test_rules_empty(self):
-        self.anfis = anfis.BaseModel([], [], fuzz.BellTwo())
+        self.anfis = anfis.BaseModel([], [], memfuncs.BellTwo())
         self.assertSequenceEqual([()], self.anfis._rule_set)
 
     def test_min_expected(self):
@@ -97,7 +97,7 @@ class TestBaseModel(unittest.TestCase):
         prec = [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]]
         sets = [1, 2, 1]
         try:
-            self.anfis = anfis.BaseModel(sets, prec, fuzz.BellTwo())
+            self.anfis = anfis.BaseModel(sets, prec, memfuncs.BellTwo())
             self.fail('Created a model with different number of params and \
                        functions')
         except ValueError:
@@ -110,9 +110,9 @@ class TestTsukamoto(unittest.TestCase):
         sets_size = [3, 2, 2]
         prec_params = [[3, 2], [3, 2], [3, 2], [3, 2],
                        [3, 2], [3, 2], [3, 2]]
-        mem_func = fuzz.BellTwo()
+        mem_func = memfuncs.BellTwo()
         self.tsukamoto = anfis.TsukamotoModel(
-            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
+            sets_size, prec_params, mem_func, memfuncs.PiecewiseLogit()
         )
 
     def test_layer_1(self):
@@ -149,9 +149,9 @@ class TestTsukamoto(unittest.TestCase):
         sets_size = [1, 3]
         prec_params = [[3, 2], [3, 2], [3, 2],
                        [3, 2]]
-        mem_func = fuzz.BellTwo()
+        mem_func = memfuncs.BellTwo()
         self.tsukamoto = anfis.TsukamotoModel(
-            sets_size, prec_params, mem_func, fuzz.PiecewiseLogit()
+            sets_size, prec_params, mem_func, memfuncs.PiecewiseLogit()
         )
         threshold = 3e-1
         values = [1, 2, 3]
