@@ -99,7 +99,7 @@ class TestBellThree(unittest.TestCase):
         self.setUp()
         try:
             self.bellThree.membership_degree(self.value, 0.0, self.b, self.c)
-        except ZeroDivisionError:
+        except ValueError:
             pass
 
     def test_derivative_on_a(self):
