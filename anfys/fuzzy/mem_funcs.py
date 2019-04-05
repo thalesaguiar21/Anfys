@@ -192,7 +192,7 @@ class BellTwo(MembershipFunction):
             Case 'a' is zero
         """
         arg = - ((value - b) / a) ** 2
-        return max(math.exp(arg), MembershipFunction.MIN_MEMBERSHIP)
+        return max(math.exp(arg), MIN_MEMBERSHIP)
 
     def partial(self, value, var, a, b, c=None):
         """ Compute the derivative at the given point (value) with respect to

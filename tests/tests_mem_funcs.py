@@ -13,7 +13,7 @@ class TestBellTwo(unittest.TestCase):
     def test_mem_degree(self):
         self.setUp()
         res = self.bellTwo.membership_degree(self.value, self.a, self.b)
-        self.assertAlmostEqual(res, 0.64118038843, 13)
+        self.assertAlmostEqual(res, 0.64118038842995, 13)
 
     def test_mem_degree_three(self):
         self.setUp()
