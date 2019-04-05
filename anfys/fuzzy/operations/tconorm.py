@@ -7,8 +7,7 @@ def probabilistic_sum(a, b):
 
 
 def bounded_sum(a, b):
-    result = a + b
-    return result if result < 1.0 else 1.0
+    return min(a + b, 1.0)
 
 
 def drastic(a, b):

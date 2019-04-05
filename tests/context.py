@@ -6,3 +6,4 @@ import anfys.neural.utils as utils
 import anfys.regression as reg
 import anfys.neural as anfis
 import anfys.fuzzy.operations.tnorm as tnorm
+import anfys.fuzzy.operations.tconorm as tconorm
