@@ -13,14 +13,18 @@ class TestTnorm(unittest.TestCase):
         self.b = 2
 
     def expect_tnorm(self, fun, a, b, ex):
-        self.assertEqual(ex, fun(a, b))
+        self.set_up(a, b)
+        self.assertEqual(ex, fun(self.a, self.b))
         self.tear_down()
 
     def raising_tnorm(self, fun, a, b, error):
         try:
+            self.set_up(a, b)
             fun(a, b)
         except error:
             pass
+        else:
+            self.tear_down()
 
     def test_fmin_correct(self):
         self.expect_tnorm(tnorm.fmin, 3, 3, 3)
