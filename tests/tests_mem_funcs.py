@@ -55,12 +55,12 @@ class TestBellTwo(unittest.TestCase):
         res = self.bellTwo.partial(self.value, 'b', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.284969061524, 12)
 
-    def test_derivative_on_other(self):
+    def test_derivative_on_c(self):
         self.setUp()
-        res = self.bellTwo.partial(self.value, 'c', self.a, self.b)
-        self.assertAlmostEqual(res, 0.0, 13)
-        res = self.bellTwo.partial(self.value, 'c', self.a, self.b, 40)
-        self.assertAlmostEqual(res, 0.0, 13)
+        try:
+            self.bellTwo.partial(self.value, 'c', self.a, self.b)
+        except ValueError:
+            pass
 
     def test_derivative_none(self):
         self.setUp()
