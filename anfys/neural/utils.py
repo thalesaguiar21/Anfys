@@ -14,14 +14,16 @@ def levenshtein_distance(expected, result, subc=1):
 
     Parameters
     ----------
-    expected : list
+    expected : list or string
         A list with the correct symbols
-    result : list
+    result : list or string
         A list with the resulted symbols
     subc : int, defaults to 1
         The cost of a substitution
     """
     # Matrix with costs
+    expected = str_to_list(expected)
+    result = str_to_list(result)
     e_tmp = expected[:]
     r_tmp = result[:]
     e_tmp.insert(0, ' ')
@@ -50,3 +52,9 @@ def levenshtein_distance(expected, result, subc=1):
                 dists[i - 1, j - 1] + sub_cost
             )
     return dists[m - 1, n - 1]
+
+
+def str_to_list(name):
+    if type(name) is str:
+        return list(name)
+    return name
