@@ -15,8 +15,10 @@ For extracting the features from the uttrances, I reccomend the code in the this
 - [ ] Add Types 2 and 3
 - [ ] Improve Backpropagation implementation
 - [ ] Improve ecanpsulation
-- [ ] Fix project structure
+- [X] Fix project structure
 - [ ] Decouple this project from speech recognition systems
+- [ ] Allow different size fuzzy subsets
+- [ ] Allow different tnorm/tconorm operations
 
 ### Dependencies
 <ol>
