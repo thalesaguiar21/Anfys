@@ -43,29 +43,29 @@ class TestBellTwo(unittest.TestCase):
 
     def test_derivative_on_a(self):
         self.setUp()
-        res = self.bellTwo.derivative_at(self.value, 'a', self.a, self.b)
+        res = self.bellTwo.partial(self.value, 'a', self.a, self.b)
         self.assertAlmostEqual(res, 0.18997937435, 12)
-        res = self.bellTwo.derivative_at(self.value, 'a', self.a, self.b, 40)
+        res = self.bellTwo.partial(self.value, 'a', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.18997937435, 12)
 
     def test_derivative_on_b(self):
         self.setUp()
-        res = self.bellTwo.derivative_at(self.value, 'b', self.a, self.b)
+        res = self.bellTwo.partial(self.value, 'b', self.a, self.b)
         self.assertAlmostEqual(res, 0.284969061524, 12)
-        res = self.bellTwo.derivative_at(self.value, 'b', self.a, self.b, 40)
+        res = self.bellTwo.partial(self.value, 'b', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.284969061524, 12)
 
     def test_derivative_on_other(self):
         self.setUp()
-        res = self.bellTwo.derivative_at(self.value, 'c', self.a, self.b)
+        res = self.bellTwo.partial(self.value, 'c', self.a, self.b)
         self.assertAlmostEqual(res, 0.0, 13)
-        res = self.bellTwo.derivative_at(self.value, 'c', self.a, self.b, 40)
+        res = self.bellTwo.partial(self.value, 'c', self.a, self.b, 40)
         self.assertAlmostEqual(res, 0.0, 13)
 
     def test_derivative_none(self):
         self.setUp()
         try:
-            self.bellTwo.derivative_at(None, None, None, None)
+            self.bellTwo.partial(None, None, None, None)
             self.fail('Mem derivative computed with None')
         except TypeError:
             pass
@@ -104,21 +104,21 @@ class TestBellThree(unittest.TestCase):
 
     def test_derivative_on_a(self):
         self.setUp()
-        res = self.bellThree.derivative_at(
+        res = self.bellThree.partial(
             self.value, 'a', self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.183653948347, 12)
 
     def test_derivative_on_b(self):
         self.setUp()
-        res = self.bellThree.derivative_at(
+        res = self.bellThree.partial(
             self.value, 'b', self.a, self.b, self.c
         )
-        self.assertAlmostEqual(res, 0.111697902032, 12)
+        self.assertAlmostEqual(res, 0.1116979020317, 12)
 
-    def test_derivative_on_other(self):
+    def test_derivative_on_c(self):
         self.setUp()
-        res = self.bellThree.derivative_at(
+        res = self.bellThree.partial(
             self.value, 'c', self.a, self.b, self.c
         )
         self.assertAlmostEqual(res, 0.275480922521, 12)
@@ -126,7 +126,7 @@ class TestBellThree(unittest.TestCase):
     def test_derivative_none(self):
         self.setUp()
         try:
-            self.bellThree.derivative_at(None, None, None, None)
+            self.bellThree.partial(None, None, None, None)
         except ValueError:
             pass
 
@@ -153,6 +153,6 @@ class TestPiecewiseLogit(unittest.TestCase):
         self.value = 0.3
         rs = []
         for variable in ['a', 'b', 'c']:
-            rs.append(self.plogit.derivative_at(
+            rs.append(self.plogit.partial(
                 self.value, variable, *self.params)
             )

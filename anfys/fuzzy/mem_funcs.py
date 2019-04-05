@@ -1,4 +1,5 @@
 import math
+import pdb
 
 MIN_MEMBERSHIP = 1e-10
 
@@ -147,9 +148,10 @@ class BellThree(MembershipFunction):
         if var == 'a':
             result = 2.0 * b * tmp2 / (a * denom)
         elif var == 'b':
-            result = -math.log(tmp1 * tmp2) * tmp2 / denom
+            result = (- tmp2 * math.log(tmp1 ** 2)) / denom
         elif var == 'c':
-            result = 2 * b * tmp2 / ((value - c) * denom)
+            result = 2.0 * b * (value - c) * tmp1 ** (2.0 * b - 2.0)
+            result /= denom * a ** 2.0
         return result
 
 
