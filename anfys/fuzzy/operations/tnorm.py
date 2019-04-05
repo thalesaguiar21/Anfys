@@ -7,9 +7,7 @@ def prod(a, b):
 
 
 def lukasiewicz(a, b):
-    result = a + b - 1
-    result = result if result > 0 else 0
-    return result
+    return max(a + b - 1, 0.0)
 
 
 def drastic(a, b):
