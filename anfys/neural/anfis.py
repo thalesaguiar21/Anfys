@@ -65,7 +65,7 @@ class Tsukamoto(BaseModel):
         self.coef_matrix = np.empty((0, self.qtd_consequent_params()))
         self.expected = np.empty((0, 1))
 
-    def infer(self, inputs):
+    def forward_pass(self, inputs, output):
         # Fuzzyfication, inputs membership values
         layer1 = []
         for inp, fuzzset in zip(inputs, self._subsets):
@@ -80,11 +80,14 @@ class Tsukamoto(BaseModel):
                 tnorm = tnorm * layer1[p_output]
             layer2.append(tnorm)
         # Apply a normalisation
-        denom = sum(layer1)
+        denom = sum(layer2)
         layer3 = [tnorm / denom for tnorm in layer2]
         # Update consequent parameters
+        _find_consequents(layer2, layer3, output)
         # Compute Consequent mebership value
+        layer4 = np.dot(self._consequent_params, layer3)
         # Compute network output
+        layer5 = sum(layer4)
 
 
 def configure(anfis):
@@ -129,18 +132,7 @@ def train(anfis, data, max_epochs):
             backward_pass(anfis)
 
 
-def update_consequent_parameters():
-    pass
-
-
-def backward_pass(anfis):
-    pass
-
-
-###############################################################################
-#                                       OLD                                   #
-###############################################################################
-    def _build_coefmatrix(self, values, weights, expec, newrow=False):
+def _build_coefmatrix(anfis, values, weights, expec, newrow=False):
         """ Updates the linear system as new equations are available
 
         Parameters
@@ -157,36 +149,51 @@ def backward_pass(anfis):
         """
         tmp_row = np.empty((1, 0))
         for value, weight in zip(values, weights):
-            row_term = self.cons_fun.build_sys_term(value, weight)
+            row_term = anfis.cons_fun.build_sys_term(value, weight)
             tmp_row = np.append(tmp_row, row_term)
-        if newrow or self.coef_matrix.size == 0:
-            self.coef_matrix = np.vstack([self.coef_matrix, tmp_row])
-            self.expected = np.append(self.expected, expec)
+        if newrow or anfis.coef_matrix.size == 0:
+            anfis.coef_matrix = np.vstack([anfis.coef_matrix, tmp_row])
+            anfis.expected = np.append(anfis.expected, expec)
         else:
             # Replace the last line with the new parameters
-            self.coef_matrix[-1, :] = tmp_row
-            self.expected[-1] = expec
+            anfis.coef_matrix[-1, :] = tmp_row
+            anfis.expected[-1] = expec
 
-    def _find_consequents(self, values, weights, expec_result, newrow=False):
-        """ Handle the search for consequent parameters by using LSE and
-        expanding the linear system.
 
-        Parameters
-        ----------
-        values : list of double
-            The inputs to the consequent membership functions.
-        weights : list of double
-            The weights used in the outputs of the fourth layer. In this model
-            the values from the third layer are used as weights.
-        expec_result : double
-            The result expected for the given entries
-        newrow : boolean, defaults to False
-            Inform that this epoch is training a new pair, and that should be
-            added to the linear system.
-        """
-        self._build_coefmatrix(values, weights, expec_result, newrow)
-        result = sputils.lse_online(self.coef_matrix, self.expected)
-        return [rs[0] for rs in result]
+def _find_consequents(anfis, values, weights, expec_result, newrow=False):
+    """ Handle the search for consequent parameters by using LSE and
+    expanding the linear system.
+
+    Parameters
+    ----------
+    values : list of double
+        The inputs to the consequent membership functions.
+    weights : list of double
+        The weights used in the outputs of the fourth layer. In this model
+        the values from the third layer are used as weights.
+    expec_result : double
+        The result expected for the given entries
+    newrow : boolean, defaults to False
+        Inform that this epoch is training a new pair, and that should be
+        added to the linear system.
+    """
+    anfis._build_coefmatrix(values, weights, expec_result, newrow)
+    result = sputils.lse_online(anfis.coef_matrix, anfis.expected)
+    return [rs[0] for rs in result]
+
+
+def update_consequent_parameters():
+    pass
+
+
+def backward_pass(anfis):
+    pass
+
+
+###############################################################################
+#                                       OLD                                   #
+###############################################################################
+    
 
     def learn_hybrid_online(
             self, data, smp, prompt, tol=1e-6, max_epochs=250, tsk=None,

@@ -1,5 +1,4 @@
 import math
-import pdb
 
 MIN_MEMBERSHIP = 1e-10
 
