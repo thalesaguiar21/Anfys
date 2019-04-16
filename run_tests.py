@@ -8,19 +8,19 @@ import tests.tests_tconorm as tests_tconorm
 
 
 suite_funcs = unittest.TestLoader().loadTestsFromModule(tests_mem_funcs)
-unittest.TextTestRunner(verbosity=2).run(suite_funcs)
+unittest.TextTestRunner(verbosity=1).run(suite_funcs)
 
 suite_reg = unittest.TestLoader().loadTestsFromModule(tests_regression)
-unittest.TextTestRunner(verbosity=2).run(suite_reg)
+unittest.TextTestRunner(verbosity=1).run(suite_reg)
 
 suite_utils = unittest.TestLoader().loadTestsFromModule(tests_utils)
-unittest.TextTestRunner(verbosity=2).run(suite_utils)
+unittest.TextTestRunner(verbosity=1).run(suite_utils)
 
 suite_tnorm = unittest.TestLoader().loadTestsFromModule(tests_tnorm)
-unittest.TextTestRunner(verbosity=2).run(suite_tnorm)
+unittest.TextTestRunner(verbosity=1).run(suite_tnorm)
 
 suite_tconorm = unittest.TestLoader().loadTestsFromModule(tests_tconorm)
-unittest.TextTestRunner(verbosity=2).run(suite_tconorm)
+unittest.TextTestRunner(verbosity=1).run(suite_tconorm)
 
 # suite_anfis = unittest.TestLoader().loadTestsFromModule(tests_speech_anfis)
 # unittest.TextTestRunner(verbosity=2).run(suite_anfis)
