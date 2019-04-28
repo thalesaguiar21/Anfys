@@ -4,12 +4,10 @@ import tests.tests_lse as tests_lse
 import tests.tests_tnorm as tests_tnorm
 import tests.tests_tconorm as tests_tconorm
 
-# test_units = [tests_mem_funcs,
-#               tests_lse,
-#               tests_tnorm,
-#               tests_tconorm]
-
-test_units = [tests_lse]
+test_units = [tests_mem_funcs,
+              tests_lse,
+              tests_tnorm,
+              tests_tconorm]
 
 for utest in test_units:
     suite = unittest.TestLoader().loadTestsFromModule(utest)

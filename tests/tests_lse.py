@@ -98,6 +98,6 @@ class TestClipping(unittest.TestCase):
         self.cliped_result_is(-50)
 
     def test_clipping_min_bigger(self):
-        self.when_values_are(10, 100, 50)
+        self.when_values_are(10, 100, 1)
         self.do_clip()
         self.cliped_result_is(10)
