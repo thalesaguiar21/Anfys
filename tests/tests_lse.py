@@ -67,16 +67,37 @@ class TestClipping(unittest.TestCase):
         self.do_clip()
         self.cliped_result_is(100)
 
-    def test_clipping_close_max(self):
+    def test_clipping_close_inside_max(self):
         self.when_values_are(100 - 1e-10, 1, 100)
         self.do_clip()
+        self.cliped_result_is(100 - 1e-10)
+
+    def test_clipping_close_outside_max(self):
+        self.when_values_are(100 + 1e-10, 1, 100)
+        self.do_clip()
+        self.cliped_result_is(100)
 
     def test_clipping_outside_min(self):
         self.when_values_are(-10, 1, 100)
         self.do_clip()
         self.cliped_result_is(1)
 
-    def test_clipping_close_min(self):
+    def test_clipping_close_outside_min(self):
         self.when_values_are(1 - 1e-10, 1, 100)
         self.do_clip()
         self.cliped_result_is(1)
+
+    def test_clipping_close_inside_min(self):
+        self.when_values_are(1 + 1e-10, 1, 100)
+        self.do_clip()
+        self.cliped_result_is(1 + 1e-10)
+
+    def test_clipping_negative(self):
+        self.when_values_are(-1, -100, -50)
+        self.do_clip()
+        self.cliped_result_is(-50)
+
+    def test_clipping_min_bigger(self):
+        self.when_values_are(10, 100, 50)
+        self.do_clip()
+        self.cliped_result_is(10)
