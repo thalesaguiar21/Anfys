@@ -52,10 +52,11 @@ class Recursive(_LSE):
         return theta
 
 
-def clip(value, first, second):
-    """ clip a value between first and second """
-    return min(max(value, first), second)
-
+def clip(value, lower, upper):
+    """ clip a value between lower and upper """
+    if upper < lower:
+        lower, upper = upper, lower  # Swap variables
+    return min(max(value, lower), upper)
 
 class Matricial(_LSE):
     """ A simple matricial solver for AX = B linear systems """
