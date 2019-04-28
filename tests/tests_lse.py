@@ -1,4 +1,5 @@
-from .context import lse
+from .context import anfys
+import anfys.lse as lse
 import unittest
 import numpy as np
 

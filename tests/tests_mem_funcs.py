@@ -1,4 +1,5 @@
-from .context import memfuncs
+from .context import anfys
+import anfys.fuzzy.mem_funcs as memfuncs
 import unittest
 
 

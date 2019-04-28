@@ -1,8 +1,5 @@
+import os
 import sys
-sys.path.append('../')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import anfys.fuzzy.mem_funcs as memfuncs
-import anfys.lse as lse
-import anfys.neural as anfis
-import anfys.fuzzy.operations.tnorm as tnorm
-import anfys.fuzzy.operations.tconorm as tconorm
+import anfys

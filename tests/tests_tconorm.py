@@ -1,4 +1,5 @@
-from .context import tconorm
+from .context import anfys
+import anfys.fuzzy.operations.tconorm as tconorm
 import unittest
 
 
