@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.linalg import inv as minverse
 from abc import ABC, abstractmethod
-import pdb
 
 
 class _LSE(ABC):
@@ -45,7 +44,7 @@ class Recursive(_LSE):
             term = covariances.dot(coefs_k)
             denom = coefs_k.T.dot(term) + self.forgetrate
             gain = term / denom
-            theta += gain * (results[k] - coefs_k.T.dot(theta))
+            theta += gain*(results[k] - coefs_k.T.dot(theta))
             covariances -= covariances.dot(
                 coefs_k.dot(coefs_k.T.dot(covariances))) / denom
             covariances *= 1.0 / self.forgetrate
@@ -57,6 +56,7 @@ def clip(value, lower, upper):
     if upper < lower:
         lower, upper = upper, lower  # Swap variables
     return min(max(value, lower), upper)
+
 
 class Matricial(_LSE):
     """ A simple matricial solver for AX = B linear systems """
