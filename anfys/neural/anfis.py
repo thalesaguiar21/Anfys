@@ -107,7 +107,7 @@ def _create_rules(anfis):
     if anfis._qtd_mf is not None and anfis._qtd_mf > 0:
         rules_set = [range(anfis._qtd_mf) for i in range(anfis._qtd_inp)]
         anfis.rules = np.array([comb for comb in product(*rules_set)])
-    anfis.rules = None
+    anfis.rules = []
 
 
 def _init_consequent_parameters(anfis):
