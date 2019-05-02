@@ -149,11 +149,8 @@ class TestPiecewiseLogit(unittest.TestCase):
                 e, self.plogit.membership_degree(value, *self.params), 6
             )
 
-    def test_derivative(self):
+    def test_partial_p_between(self):
         self.setUp()
-        self.value = 0.3
-        rs = []
-        for variable in self.plogit.parameters:
-            rs.append(self.plogit.partial(
-                self.value, variable, *self.params)
-            )
+        p = self.plogit.parameters[0]
+        partial = self.plogit.partial(p, 0.3, None, None)
+        self.assertEqual(0.3, partial)
