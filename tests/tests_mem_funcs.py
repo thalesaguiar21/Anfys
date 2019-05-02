@@ -153,7 +153,7 @@ class TestPiecewiseLogit(unittest.TestCase):
         self.setUp()
         self.value = 0.3
         rs = []
-        for variable in ['a', 'b', 'c']:
+        for variable in self.plogit.parameters:
             rs.append(self.plogit.partial(
                 self.value, variable, *self.params)
             )

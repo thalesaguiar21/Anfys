@@ -1,6 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 import numpy as np
+from anfys.lse import clip
 
 MIN_MEMBERSHIP = 1e-10
 
@@ -35,33 +36,6 @@ class BellThree(MembershipFunction):
         self.qtd_params = 3
 
     def membership_degree(self, value, a, b, c=None):
-        """ This method computes the membership degree of the given value
-        accordingly to the function defined by the parameters.
-
-        Paramaters
-        ----------
-        value : double
-            The value to compute the memebership degree
-        a : double
-            Standard deviation
-        b : double
-            Mean
-        c : double
-            The third parameter. Not used on BellTwo. Defaults to None
-
-        Returns
-        -------
-        degree : double
-            A number between 0 and 1 representing the membership degree of the
-            value in this Fuzzy Subset.
-
-        Raises
-        ------
-        ValueError
-            If any given argument is None
-        ZeroDivisionError
-            If a is 0
-        """
         if value is None or a is None or b is None or c is None:
             raise ValueError("Gaussian three function needs exact three arg \
                 uments, less where given!")
@@ -73,31 +47,6 @@ class BellThree(MembershipFunction):
         return 1.0 / denom
 
     def partial(self, value, var, a, b, c=None):
-        """ Compute the derivative at the given point (value) with respect to
-        a variable.
-
-        Parameters
-        ----------
-        value : double
-            THe value to compute the membership degree
-        a : double
-            The first parameter
-        b : double
-            The second parameter
-        c : double
-            The third parameter. Defaults to None.
-
-        Returns
-        -------
-        deriv : double
-            The result of computing the derivative of the Bell Two function
-            at the given value.
-
-        Raises
-        ------
-        ValueError
-            If any given argument is None
-        """
         result = 0
 
         if value is None or a is None or b is None or c is None:
@@ -127,58 +76,10 @@ class BellTwo(MembershipFunction):
         self.qtd_params = 2
 
     def membership_degree(self, value, a, b, c=None):
-        """ Computes the membership degree of the given value, with respect to
-        this membership function and the given parameters.
-
-        Parameters
-        ----------
-        value : double
-            THe value to compute the membership degree
-        a : double
-            Standard deviation
-        b : double
-            Mean
-        c : double
-            The third parameter. Defaults to None, notice that this is not
-            used in this class, even though you pass any value to it.
-
-        Returns
-        -------
-        degree : double
-            A number between 0 and 1 representing the membership degree of the
-            given value for this fuzzy subset.
-
-        Raises
-        ------
-        TypeError
-            Case an argument, except c, is None
-        ZeroDivisionError
-            Case 'a' is zero
-        """
         arg = - ((value - b) / a) ** 2
         return max(math.exp(arg), MIN_MEMBERSHIP)
 
     def partial(self, value, var, a, b, c=None):
-        """ Compute the derivative at the given point (value) with respect to
-        a variable.
-
-        Parameters
-        ----------
-        value : double
-            THe value to compute the membership degree
-        a : double
-            Standard deviation
-        b : double
-            Mean
-        c : double
-            -c/2b defines the slope
-
-        Returns
-        -------
-        deriv : double
-            The result of computing the derivative of the Bell Two function
-            at the given value.
-        """
         result = 0
         denom = 1.0
         k = (value - b) ** 2 / a ** 2
@@ -212,8 +113,25 @@ class PiecewiseLogit(MembershipFunction):
             mem_degree = q
         return mem_degree
 
-    def partial(self, value, var, a, b, c=None):
-        pass
+    def partial(self, value, var, p, q, c=None):
+        if var in self.parameters:
+            if var == 'a':
+                return self._partial_p(value)
+            else:
+                return self._partial_q(value)
+        else:
+            raise ValueError('piecewise logit invalid parameter')
+
+    def _partial_p(self, value):
+        if value >= 1:
+            return 1
+        elif value < 1 and value > 0:
+            return 1 - value
+        else:
+            return 0
+
+    def _partial_q(self, value):
+        return clip(value, 1, 0)
 
     def coefs(self, value, weight):
         return np.array([self.slope, self.indep, 0.0])
