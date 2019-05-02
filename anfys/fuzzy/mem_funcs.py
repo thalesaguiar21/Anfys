@@ -1,9 +1,10 @@
 import math
+from abc import ABC, abstractmethod
 
 MIN_MEMBERSHIP = 1e-10
 
 
-class MembershipFunction:
+class MembershipFunction(ABC):
     """ This class represents an interface for Membership Functions. Any
     function class must have both methods to calculate the membership
     degree of a given value, and to calculate the derivative at a point
@@ -14,50 +15,13 @@ class MembershipFunction:
         self.parameters = None
         self.qtd_params = 0
 
+    @abstractmethod
     def membership_degree(self, value, a, b, c=None):
-        """ Computes the membership degree of the given value
+        pass
 
-        Parameters
-        ----------
-        value : double
-            The value to be checked
-        a : double
-            The first parameter
-        b : double
-            The second parameter
-        c : double
-            The third parameter. Defaults to None
-
-        Returns
-        -------
-        degree : double
-            A value between 0 and 1 representing the memebership degree of the
-            given value.
-        """
-        raise NotImplementedError()
-
+    @abstractmethod
     def partial(self, value, var, a, b, c=None):
-        """ Computes the derivative of the membership function with respect to
-        a variable, at the given point.
-
-        Parameters
-        ----------
-        value : double
-            The point where the derivative should be computed
-        a : double
-            The first parameter
-        b : double
-            The second parameter
-        c : double
-            The third parameter. Defaults to None.
-
-        Returns
-        -------
-        deriv : double
-            The result of computing the derivative of the Bell Two function
-            at the given value.
-        """
-        raise NotImplementedError()
+        pass
 
 
 class BellThree(MembershipFunction):
@@ -78,9 +42,9 @@ class BellThree(MembershipFunction):
         value : double
             The value to compute the memebership degree
         a : double
-            The fisrt parameter
+            Standard deviation
         b : double
-            The second parameter
+            Mean
         c : double
             The third parameter. Not used on BellTwo. Defaults to None
 
