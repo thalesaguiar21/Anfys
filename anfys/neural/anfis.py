@@ -22,16 +22,16 @@ class Tsukamoto:
         self.cons_params = []
         self.qtd_inputs = 0
 
-    def hybrid_learn(self, entries, max_epochs):
-        self._build_archtecture(entries.shape)
+    def hybrid_learn(self, inputs, outputs, max_epochs):
+        self._build_archtecture(inputs.shape)
         epoch = 1
         while epoch <= max_epochs:
-            for entry in entries:
-                self._forward_pass(entry)
+            for entry, out in zip(inputs, outputs):
+                self._forward_pass(entry, out)
             epoch += 1
 
     def _build_archtecture(self, dimensions):
-        self.qtd_inputs = dimensions[_INPUT_DIMENSION] - 1
+        self.qtd_inputs = dimensions[_INPUT_DIMENSION]
         self.qtd_rules = self.qtd_inputs ** self.qtd_mfs
         self.sets = [FuzzySet(self.prem_mf) for _ in range(self.qtd_inputs)]
         self.build_prem_params()
@@ -43,10 +43,10 @@ class Tsukamoto:
         means = np.array(means.tolist() * self.qtd_inputs)
         self.prem_params = np.vstack((stdevs, means)).T
 
-    def _forward_pass(self, entry):
-        inputs, out = entry[:-1], entry[-1]
-        layer1 = self.layer1_output(inputs)
-        self.layer2_output(layer1)
+    def _forward_pass(self, entry, out):
+        pdb.set_trace()
+        layer1 = self.layer1_output(entry)
+        layer2 = self.layer2_output(layer1)
         return out
 
     def l1_size(self):
@@ -71,7 +71,7 @@ class Tsukamoto:
         for mf in itertools.product(nodes_id, repeat=self.qtd_inputs):
             rule = [inputs[n_set, mf[n_set]] for n_set in range(qtd_sets)]
             layer2.append(np.prod(rule))
-        return layer2
+        return np.array(layer2)
 
     def _backward_pass(self):
         pass
