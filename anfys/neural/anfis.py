@@ -44,8 +44,9 @@ class Tsukamoto:
         self.prem_params = np.vstack((stdevs, means)).T
 
     def _forward_pass(self, entry):
-        inputs, out = entry[:-1], entry[-1]
+        inputs = entry[:-1]
         layer1 = self.layer1_output(inputs)
+        self.layer2_output(layer1)
 
     def l1_size(self):
         return self.qtd_mfs * self.qtd_inputs
@@ -61,11 +62,11 @@ class Tsukamoto:
             i += 1
         return np.array(layer1)
 
+    def layer2_output(self, inputs):
+        nodes_id = np.arange(self.qtd_mfs)
+        # Create every combination for the given
+        for rule in itertools.product(nodes_id, repeat=self.qtd_inputs):
+            pass
+
     def _backward_pass(self):
         pass
-
-
-def create_rules(fuzzy_set_size, qtd_inputs):
-    nodes_id = np.arange(fuzzy_set_size)
-    rules = [x for x in itertools.product(nodes_id, repeat=qtd_inputs)]
-    return np.array(rules)
