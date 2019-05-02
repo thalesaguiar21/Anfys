@@ -100,7 +100,7 @@ class PiecewiseLogit(MembershipFunction):
     """
 
     def __init__(self):
-        self.parameters = ['a', 'b']
+        self.parameters = ['p', 'q']
         self.qtd_params = 2
 
     def membership_degree(self, value, p, q, c=None):
@@ -115,18 +115,18 @@ class PiecewiseLogit(MembershipFunction):
 
     def partial(self, value, var, p, q, c=None):
         if var in self.parameters:
-            if var == 'a':
+            if var == self.parameters[0]:
                 return self._partial_p(value)
             else:
                 return self._partial_q(value)
         else:
-            raise ValueError('piecewise logit invalid parameter')
+            raise ValueError('piecewise logit invalid parameter ', var)
 
     def _partial_p(self, value):
         if value >= 1:
             return 1
         elif value < 1 and value > 0:
-            return 1 - value
+            return 1.0 - value
         else:
             return 0
 

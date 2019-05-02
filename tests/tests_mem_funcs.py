@@ -1,6 +1,7 @@
 from .context import anfys
 import anfys.fuzzy.mem_funcs as memfuncs
 import unittest
+import pdb
 
 
 class TestBellTwo(unittest.TestCase):
@@ -151,6 +152,54 @@ class TestPiecewiseLogit(unittest.TestCase):
 
     def test_partial_p_between(self):
         self.setUp()
-        p = self.plogit.parameters[0]
-        partial = self.plogit.partial(p, 0.3, None, None)
-        self.assertEqual(0.3, partial)
+        param = self.plogit.parameters[0]
+        partial = self.plogit.partial(0.3, param, None, None)
+        self.assertEqual(0.7, partial)
+
+    def test_partial_p_upper_outside(self):
+        self.setUp()
+        param = self.plogit.parameters[0]
+        partial = self.plogit.partial(1 + 1e-10, param, None, None)
+        self.assertEqual(partial, 1.0)
+
+    def test_partial_p_upper_inside(self):
+        self.setUp()
+        param = self.plogit.parameters[0]
+        partial = self.plogit.partial(1 - 1e-10, param, None, None)
+        self.assertAlmostEqual(partial, 1e-10)
+
+    def test_partial_p_lower_inside(self):
+        self.setUp()
+        param = self.plogit.parameters[0]
+        partial = self.plogit.partial(1 - 1e-10, param, None, None)
+        self.assertAlmostEqual(partial, 1e-10)
+
+    def test_partial_q_between(self):
+        self.setUp()
+        param = self.plogit.parameters[1]
+        partial = self.plogit.partial(0.3, param, None, None)
+        self.assertEqual(partial, 0.3)
+
+    def test_partial_q_lower_inside(self):
+        self.setUp()
+        param = self.plogit.parameters[1]
+        partial = self.plogit.partial(1e-10, param, None, None)
+        self.assertEqual(partial, 1e-10)
+
+    def test_partial_q_lower_outside(self):
+        self.setUp()
+        param = self.plogit.parameters[1]
+        partial = self.plogit.partial(-1e-10, param, None, None)
+        self.assertEqual(partial, 0.0)
+
+    def test_partial_q_upper_outside(self):
+        self.setUp()
+        param = self.plogit.parameters[1]
+        partial = self.plogit.partial(1 + 1e-10, param, None, None)
+        self.assertEqual(partial, 1.0)
+
+    def test_partial_q_upper_inside(self):
+        self.setUp()
+        param = self.plogit.parameters[1]
+        partial = self.plogit.partial(1 - 1e-10, param, None, None)
+        self.assertEqual(partial, 1.0 - 1e-10)
