@@ -1,7 +1,6 @@
 from .context import anfys
 import anfys.fuzzy.mem_funcs as memfuncs
 import unittest
-import pdb
 
 
 class TestBellTwo(unittest.TestCase):
