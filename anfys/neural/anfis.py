@@ -31,7 +31,7 @@ class Tsukamoto:
             epoch += 1
 
     def _build_archtecture(self, dimensions):
-        self.qtd_inputs = dimensions[_INPUT_DIMENSION]
+        self.qtd_inputs = dimensions[_INPUT_DIMENSION] - 1
         self.qtd_rules = self.qtd_inputs ** self.qtd_mfs
         self.sets = [FuzzySet(self.prem_mf) for _ in range(self.qtd_inputs)]
         self.build_prem_params()
@@ -44,9 +44,10 @@ class Tsukamoto:
         self.prem_params = np.vstack((stdevs, means)).T
 
     def _forward_pass(self, entry):
-        inputs = entry[:-1]
+        inputs, out = entry[:-1], entry[-1]
         layer1 = self.layer1_output(inputs)
         self.layer2_output(layer1)
+        return out
 
     def l1_size(self):
         return self.qtd_mfs * self.qtd_inputs
@@ -67,7 +68,6 @@ class Tsukamoto:
         qtd_sets = self.qtd_inputs
         # Create every combination for the given
         layer2 = []
-        pdb.set_trace()
         for mf in itertools.product(nodes_id, repeat=self.qtd_inputs):
             rule = [inputs[n_set, mf[n_set]] for n_set in range(qtd_sets)]
             layer2.append(np.prod(rule))
