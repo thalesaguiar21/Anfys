@@ -6,12 +6,13 @@ from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
 
 _INPUT_DIMENSION = 1
 _DATA_LENGTH = 0
+_CONS_MF_NUM = 2
 
 
 class Tsukamoto:
 
     def __init__(self, fuzzy_set_size, prec_mem_function):
-        self.rules = []
+        self.qtd_rules = 0
         self.sets = []
         self.qtd_mfs = fuzzy_set_size
         self.prem_mf = BellTwo()
@@ -30,8 +31,10 @@ class Tsukamoto:
 
     def _build_archtecture(self, dimensions):
         self.qtd_inputs = dimensions[_INPUT_DIMENSION]
+        self.qtd_rules = self.qtd_inputs ** self.qtd_mfs
         self.sets = [FuzzySet(self.prem_mf) for _ in range(self.qtd_inputs)]
         self.build_prem_params()
+        self.cons_params = np.zeros((self.qtd_rules, _CONS_MF_NUM))
 
     def build_prem_params(self, stdev=1.0):
         stdevs = np.ones(self.l1_size()) * stdev
