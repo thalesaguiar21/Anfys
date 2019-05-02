@@ -160,7 +160,7 @@ class TestPiecewiseLogit(unittest.TestCase):
         self.setUp()
         param = self.plogit.parameters[0]
         partial = self.plogit.partial(1 + 1e-10, param, None, None)
-        self.assertEqual(partial, 1.0)
+        self.assertEqual(partial, 0)
 
     def test_partial_p_upper_inside(self):
         self.setUp()

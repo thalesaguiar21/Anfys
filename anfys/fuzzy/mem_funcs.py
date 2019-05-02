@@ -124,11 +124,11 @@ class PiecewiseLogit(MembershipFunction):
 
     def _partial_p(self, value):
         if value >= 1:
-            return 1
+            return 0
         elif value < 1 and value > 0:
             return 1.0 - value
         else:
-            return 0
+            return 1
 
     def _partial_q(self, value):
         return clip(value, 1, 0)
