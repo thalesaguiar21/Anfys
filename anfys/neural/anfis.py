@@ -34,10 +34,10 @@ class Tsukamoto:
         self.qtd_inputs = dimensions[_INPUT_DIMENSION]
         self.qtd_rules = self.qtd_inputs ** self.qtd_mfs
         self.sets = [FuzzySet(self.prem_mf) for _ in range(self.qtd_inputs)]
-        self.build_prem_params()
+        self._build_prem_params()
         self.cons_params = np.zeros((self.qtd_rules, _CONS_MF_NUM))
 
-    def build_prem_params(self, stdev=1.0):
+    def _build_prem_params(self, stdev=1.0):
         stdevs = np.ones(self.l1_size()) * stdev
         means = np.linspace(-1.0, 1.0, self.qtd_mfs)
         means = np.array(means.tolist() * self.qtd_inputs)
@@ -46,7 +46,7 @@ class Tsukamoto:
     def _forward_pass(self, entry, out):
         pdb.set_trace()
         layer1 = self.layer1_output(entry)
-        layer2 = self.layer2_output(layer1)
+        self.layer2_output(layer1)
         return out
 
     def l1_size(self):
