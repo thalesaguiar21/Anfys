@@ -1,5 +1,5 @@
 import numpy as np
-import itertools
+from itertools import product
 from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
 import pdb
@@ -56,22 +56,20 @@ class Tsukamoto:
         return self.qtd_mfs * self.qtd_inputs
 
     def layer1_output(self, inputs):
-        layer1 = []
-        i = 0
+        layer1 = np.zeros((self.l1_size(), self.qtd_mfs))
         param_range = np.arange(0, self.l1_size() + 1, self.qtd_mfs)
-        for feat, subset in zip(inputs, self.sets):
-            at, untill = param_range[i], param_range[i + 1]
+        for feat, subset, out in zip(inputs, self.sets, range(self.l1_size())):
+            at, untill = param_range[out], param_range[out + 1]
             output = subset.evaluate(feat, self.prem_params[at:untill])
-            layer1.append(output)
-            i += 1
-        return np.array(layer1)
+            layer1[out] = output
+        return layer1
 
     def layer2_output(self, inputs):
         nodes_id = np.arange(self.qtd_mfs)
         qtd_sets = self.qtd_inputs
         # Create every combination for the given
         layer2 = []
-        for mf in itertools.product(nodes_id, repeat=self.qtd_inputs):
+        for mf in product(nodes_id, repeat=self.qtd_inputs):
             rule = [inputs[n_set, mf[n_set]] for n_set in range(qtd_sets)]
             layer2.append(np.prod(rule))
         return np.array(layer2)
