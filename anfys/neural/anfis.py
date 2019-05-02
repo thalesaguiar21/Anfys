@@ -1,8 +1,7 @@
 import numpy as np
 import itertools
-import pdb
 from anfys.fuzzy.subsets import FuzzySet
-from anfys.fuzzy.mem_funcs import PiecewiseLogit
+from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
 
 
 _INPUT_DIMENSION = 1
@@ -15,7 +14,7 @@ class Tsukamoto:
         self.rules = []
         self.sets = []
         self.qtd_mfs = fuzzy_set_size
-        self.prem_mf = prec_mem_function
+        self.prem_mf = BellTwo()
         self.cons_mf = PiecewiseLogit()
         self.prem_params = []
         self.cons_params = []
@@ -42,16 +41,20 @@ class Tsukamoto:
 
     def _forward_pass(self, entry):
         inputs, out = entry[:-1], entry[-1]
-        layer1 = []
-        i = 0
-        param_range = np.arange(0, self.l1_size() + 1, self.qtd_mfs)
-        for feat, subset in zip(entry, self.sets):
-            params = self.prem_params[param_range[i]:param_range[i + 1]]
-            layer1.append(subset.evaluate(feat, params))
-            i += 1
+        layer1 = self.layer1_output(inputs)
 
     def l1_size(self):
         return self.qtd_mfs * self.qtd_inputs
+
+    def layer1_output(self, inputs):
+        layer1 = []
+        i = 0
+        param_range = np.arange(0, self.l1_size() + 1, self.qtd_mfs)
+        for feat, subset in zip(inputs, self.sets):
+            at, untill = param_range[i], param_range[i + 1]
+            output = subset.evaluate(feat, self.prem_params[at:untill])
+            layer1.append(output)
+            i += 1
 
     def _backward_pass(self):
         pass
