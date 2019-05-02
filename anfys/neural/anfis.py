@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
+import pdb
 
 
 _INPUT_DIMENSION = 1
@@ -58,6 +59,7 @@ class Tsukamoto:
             output = subset.evaluate(feat, self.prem_params[at:untill])
             layer1.append(output)
             i += 1
+        return np.array(layer1)
 
     def _backward_pass(self):
         pass
