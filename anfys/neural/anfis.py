@@ -12,7 +12,7 @@ _CONS_MF_NUM = 2
 
 class Tsukamoto:
 
-    def __init__(self, fuzzy_set_size, prec_mem_function):
+    def __init__(self, fuzzy_set_size):
         self.qtd_rules = 0
         self.sets = []
         self.qtd_mfs = fuzzy_set_size
@@ -25,10 +25,12 @@ class Tsukamoto:
     def hybrid_learn(self, inputs, outputs, max_epochs):
         self._build_archtecture(inputs.shape)
         epoch = 1
+        layers = (np.array([]) for _ in range(3))
         while epoch <= max_epochs:
             for entry, out in zip(inputs, outputs):
-                self._forward_pass(entry, out)
+                layers = self._forward_pass(entry, out)
             epoch += 1
+        return layers
 
     def _build_archtecture(self, dimensions):
         self.qtd_inputs = dimensions[_INPUT_DIMENSION]
@@ -44,10 +46,11 @@ class Tsukamoto:
         self.prem_params = np.vstack((stdevs, means)).T
 
     def _forward_pass(self, entry, out):
-        pdb.set_trace()
         layer1 = self.layer1_output(entry)
-        self.layer2_output(layer1)
-        return out
+        layer2 = self.layer2_output(layer1)
+        l2sum = layer2.sum()
+        layer3 = np.array([l2_i / l2sum for l2_i in layer2])
+        return layer1, layer2, layer3
 
     def l1_size(self):
         return self.qtd_mfs * self.qtd_inputs
