@@ -170,9 +170,9 @@ class BellTwo(MembershipFunction):
         value : double
             THe value to compute the membership degree
         a : double
-            The first parameter
+            Standard deviation
         b : double
-            The second parameter
+            Mean
         c : double
             The third parameter. Defaults to None, notice that this is not
             used in this class, even though you pass any value to it.
@@ -202,12 +202,11 @@ class BellTwo(MembershipFunction):
         value : double
             THe value to compute the membership degree
         a : double
-            The first parameter
+            Standard deviation
         b : double
-            The second parameter
+            Mean
         c : double
-            The third parameter. Defaults to None, notice that this is not
-            used in this class, even though you pass any value to it.
+            -c/2b defines the slope
 
         Returns
         -------
