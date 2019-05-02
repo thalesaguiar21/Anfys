@@ -64,9 +64,14 @@ class Tsukamoto:
 
     def layer2_output(self, inputs):
         nodes_id = np.arange(self.qtd_mfs)
+        qtd_sets = self.qtd_inputs
         # Create every combination for the given
-        for rule in itertools.product(nodes_id, repeat=self.qtd_inputs):
-            pass
+        layer2 = []
+        pdb.set_trace()
+        for mf in itertools.product(nodes_id, repeat=self.qtd_inputs):
+            rule = [inputs[n_set, mf[n_set]] for n_set in range(qtd_sets)]
+            layer2.append(np.prod(rule))
+        return layer2
 
     def _backward_pass(self):
         pass
