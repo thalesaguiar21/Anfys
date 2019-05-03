@@ -36,25 +36,16 @@ class BellThree(MembershipFunction):
         self.qtd_params = 3
 
     def membership_degree(self, value, a, b, c=None):
-        if value is None or a is None or b is None or c is None:
-            raise ValueError("Gaussian three function needs exact three arg \
-                uments, less where given!")
-        if a == 0:
-            raise ValueError('Parameter a was 0 at MF mem degree')
+        validate_parameters(a, b, c)
 
         tmp1 = (value-c) / a
         denom = 1.0 + (tmp1**2.0)**b
         return 1.0 / denom
 
     def partial(self, value, var, a, b, c=None):
+        validate_parameters(a, b, c)
+
         result = 0
-
-        if value is None or a is None or b is None or c is None:
-            raise ValueError("Gaussian three function needs exact three arg \
-                uments, less where given!")
-        if a == 0:
-            raise ValueError('Parameter a was 0 in MF deriv')
-
         tmp1 = (value-c) / a
         tmp2 = (tmp1**2) ** b
         denom = (1+tmp2) ** 2
@@ -66,6 +57,22 @@ class BellThree(MembershipFunction):
             result = 2.0*b * (value-c) * tmp1**(2.0*b - 2.0)
             result /= denom * a**2.0
         return result
+
+
+def validate_parameters(a, b, c):
+    check_none_parameter(a, b, c)
+    check_zero_division(a)
+
+
+def check_zero_division(a):
+    if a == 0:
+        raise ValueError('Zero passed to bellthree as first parameter result\
+            in zero division')
+
+
+def check_none_parameter(a, b, c):
+    if a is None or b is None or c is None:
+        raise ValueError('None passed as paramter to bellthree')
 
 
 class BellTwo(MembershipFunction):
