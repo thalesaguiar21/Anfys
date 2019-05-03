@@ -33,7 +33,7 @@ class TestBellTwo(unittest.TestCase):
         self.setUp()
         params = [0.022528536199578036, 1.5046653242073884]
         rs = self.bellTwo.membership_degree(0, *params)
-        self.assertEqual(rs, 1e-10)
+        self.assertEqual(rs, 0)
 
     def test_mem_degree_zerodivision(self):
         self.setUp()
