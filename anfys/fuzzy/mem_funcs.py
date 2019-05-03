@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from anfys.lse import clip
 
-MIN_MEMBERSHIP = 1e-10
-
 
 class MembershipFunction(ABC):
     """ This class represents an interface for Membership Functions. Any
@@ -15,7 +13,6 @@ class MembershipFunction(ABC):
 
     def __init__(self):
         self.parameters = None
-        self.qtd_params = 0
 
     @abstractmethod
     def membership_degree(self, value, a, b, c=None):
@@ -29,11 +26,8 @@ class MembershipFunction(ABC):
 class BellThree(MembershipFunction):
     """ This class represents a Bell Shaped function with three parameters """
 
-    min_denom = 1e-15
-
     def __init__(self):
         self.parameters = ['a', 'b', 'c']
-        self.qtd_params = 3
 
     def membership_degree(self, value, a, b, c=None):
         validate_parameters(a, b, c)
@@ -80,7 +74,6 @@ class BellTwo(MembershipFunction):
 
     def __init__(self):
         self.parameters = ['a', 'b']
-        self.qtd_params = 2
 
     def membership_degree(self, value, a, b, c=None):
         arg = - ((value-b) / a)**2
@@ -108,7 +101,6 @@ class PiecewiseLogit(MembershipFunction):
 
     def __init__(self):
         self.parameters = ['p', 'q']
-        self.qtd_params = 2
 
     def membership_degree(self, value, p, q, c=None):
         mem_degree = 0
