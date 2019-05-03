@@ -42,8 +42,8 @@ class BellThree(MembershipFunction):
         if a == 0:
             raise ValueError('Parameter a was 0 at MF mem degree')
 
-        tmp1 = (value - c) / a
-        denom = 1.0 + (tmp1 ** 2.0) ** b
+        tmp1 = (value-c) / a
+        denom = 1.0 + (tmp1**2.0)**b
         return 1.0 / denom
 
     def partial(self, value, var, a, b, c=None):
@@ -55,16 +55,16 @@ class BellThree(MembershipFunction):
         if a == 0:
             raise ValueError('Parameter a was 0 in MF deriv')
 
-        tmp1 = (value - c) / a
-        tmp2 = (tmp1 ** 2) ** b
-        denom = (1 + tmp2) ** 2
+        tmp1 = (value-c) / a
+        tmp2 = (tmp1**2) ** b
+        denom = (1+tmp2) ** 2
         if var == 'a':
-            result = 2.0 * b * tmp2 / (a * denom)
+            result = 2.0*b*tmp2 / (a*denom)
         elif var == 'b':
-            result = (- tmp2 * math.log(tmp1 ** 2)) / denom
+            result = (-tmp2 * math.log(tmp1**2)) / denom
         elif var == 'c':
-            result = 2.0 * b * (value - c) * tmp1 ** (2.0 * b - 2.0)
-            result /= denom * a ** 2.0
+            result = 2.0*b * (value-c) * tmp1**(2.0*b - 2.0)
+            result /= denom * a**2.0
         return result
 
 
@@ -76,18 +76,18 @@ class BellTwo(MembershipFunction):
         self.qtd_params = 2
 
     def membership_degree(self, value, a, b, c=None):
-        arg = - ((value - b) / a) ** 2
+        arg = - ((value-b) / a)**2
         return max(math.exp(arg), MIN_MEMBERSHIP)
 
     def partial(self, value, var, a, b, c=None):
         result = 0
         denom = 1.0
-        k = (value - b) ** 2 / a ** 2
+        k = ((value-b) / a)**2
         if var == 'a':
-            result = 2 * ((value - b) ** 2) * math.exp(-k)
+            result = 2*(value-b)**2 * math.exp(-k)
             denom = a ** 3
         elif var == 'b':
-            result = 2 * (value - b) * math.exp(-k)
+            result = 2*(value-b) * math.exp(-k)
             denom = a ** 2
         else:
             raise ValueError('BellTwo has no parameter \'{}\''.format(var))
