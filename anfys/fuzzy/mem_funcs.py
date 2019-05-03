@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 import numpy as np
-from anfys.lse import clip
+import anfys.lse as lse
 
 
 class MembershipFunction(ABC):
@@ -130,7 +130,7 @@ class PiecewiseLogit(MembershipFunction):
             return 1
 
     def _partial_q(self, value):
-        return clip(value, 1, 0)
+        return lse.clip(value, 1, 0)
 
     def coefs(self, value, weight):
         return np.array([self.slope, self.indep, 0.0])
