@@ -3,15 +3,6 @@ class FuzzySet:
 
     def __init__(self, mem_func):
         self.mem_func = mem_func
-        self.begin = None
-        self.end = None
-
-    def define_params_pattern(self, begin, end):
-        self.begin = begin
-        self.end = end
-
-    def param_pattern(self):
-        return self.begin, self.end
 
     def evaluate(self, value, params):
         """ Evaluate the given value in the current subset of membership
