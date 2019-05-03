@@ -84,7 +84,7 @@ class BellTwo(MembershipFunction):
 
     def membership_degree(self, value, a, b, c=None):
         arg = - ((value-b) / a)**2
-        return max(math.exp(arg), MIN_MEMBERSHIP)
+        return math.exp(arg)
 
     def partial(self, value, var, a, b, c=None):
         result = 0
