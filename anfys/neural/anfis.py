@@ -65,10 +65,6 @@ class ANFIS:
         total_strength = np.sum(fire_strengths)
         return [rstrength / total_strength for rstrength in fire_strengths]
 
-    def _update_consequent_parameters(entry, output):
-        raise NotImplementedError(
-            'Call to _update_consequent_parameters in base class!')
-
 
 class Sugeno(ANFIS):
 
