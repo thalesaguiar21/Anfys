@@ -2,7 +2,6 @@ import numpy as np
 from itertools import product
 from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
-from abc import ABC, abstractmethod
 
 
 _INPUT_DIMENSION = 1
@@ -10,7 +9,7 @@ _DATA_LENGTH = 0
 _CONS_MF_NUM = 2
 
 
-class ANFIS(ABC):
+class ANFIS:
 
     def __init__(self, subset_size):
         self.subset_size = subset_size
@@ -63,11 +62,18 @@ class ANFIS(ABC):
         total_strength = np.sum(fire_strengths)
         return [rstrength / total_strength for rstrength in fire_strengths]
 
+    def _update_consequent_parameters(entry, output):
+        raise NotImplementedError(
+            'Call to _update_consequent_parameters in base class!')
+
 
 class Sugeno(ANFIS):
 
     def __init__(self, subset_size):
         super().__init__(subset_size)
+
+    def _update_consequent_parameters(entry, output):
+        pass
 
 
 class Tsukamoto:
