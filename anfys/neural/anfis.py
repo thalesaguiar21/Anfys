@@ -1,4 +1,4 @@
-import builder
+import anfys.neural.builder as builder
 import numpy as np
 import anfys.lse as regression
 from itertools import product
