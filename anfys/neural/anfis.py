@@ -16,9 +16,10 @@ class ANFIS:
         self.qtd_rules = 0
         self.fuzzysets = []
         self.cons_params = []
-        self.prem_mf = []
+        self.prem_params = []
         self.linsys_coefs = []
         self.linsys_resul = []
+        self.prem_mf = None
         self.regressor = None
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
