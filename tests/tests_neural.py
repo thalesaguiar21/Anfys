@@ -27,3 +27,12 @@ class TestTsukamoto(unittest.TestCase):
         self.when_model_mfs_is(2)
         _, l2, _ = self.hybrid_learn_for_data_shape(0, 0)
         self.assertEqual(l2.size, 0)
+
+
+class TestSugeno(unittest.TestCase):
+
+    def when_model_qtd_of_mf_is(self, qtd_mf):
+        self.model = anfis.Mamdani(qtd_mf)
+
+    def test_setup_arch(self):
+        self.when_model_qtd_of_mf_is(3)

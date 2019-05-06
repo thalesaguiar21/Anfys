@@ -2,7 +2,7 @@ import numpy as np
 from itertools import product
 from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
-import pdb
+from abc import ABC, abstractmethod
 
 
 _INPUT_DIMENSION = 1
@@ -10,12 +10,64 @@ _DATA_LENGTH = 0
 _CONS_MF_NUM = 2
 
 
-class Mamdani:
-    def __init__(self, subset_size, max_epochs):
-        self.subset_size
+class ANFIS(ABC):
+
+    def __init__(self, subset_size):
+        self.subset_size = subset_size
+        self.qtd_rules = 0
+        self.fuzzysets = []
+        self.cons_params = []
+        self.prem_mf = []
+
+    def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
+        self._setup_archtecture(inputs.shape[0])
+        epoch = 1
+        while epoch <= max_epochs:
+            for entry, output in zip(inputs, outputs):
+                l1, l2, l3 = self._half_forward_pass(entry, output)
+                self._update_cons_params(entry, output, l3)
+            epoch += 1
 
     def _setup_archtecture(self, qtd_inputs):
         self.qtd_rules = qtd_inputs ** self.subset_size
+        self.fuzzysets = [FuzzySet(self.prem_mf) for _ in range(qtd_inputs)]
+        self.cons_params = np.zeros((self.qtd_rules, qtd_inputs))
+
+    def _half_forward_pass(self, entry, output):
+        # Forward inputs until the third layer
+        layer1 = self._fuzzysets_membership_degrees(entry)
+        layer2 = self._rules_fire_strength(layer1)
+        layer3 = self._averaged_fire_strength(layer2)
+        return layer1, layer2, layer3
+
+    def _fuzzysets_membership_degrees(self, inputs):
+        layer1 = np.zeros((self.l1_size(), self.qtd_mfs))
+        param_range = np.arange(0, self.l1_size() + 1, self.qtd_mfs)
+        for feat, subset, out in zip(inputs, self.sets, range(self.l1_size())):
+            at, untill = param_range[out], param_range[out + 1]
+            output = subset.evaluate(feat, self.prem_params[at:untill])
+            layer1[out] = output
+        return layer1
+
+    def _rules_fire_strength(self, mdegrees):
+        nodes_id = np.arange(self.qtd_mfs)
+        qtd_sets = self.qtd_inputs
+        # Create every combination for the given
+        layer2 = []
+        for mf in product(nodes_id, repeat=self.qtd_inputs):
+            rule = [mdegrees[n_set, mf[n_set]] for n_set in range(qtd_sets)]
+            layer2.append(np.prod(rule))
+        return np.array(layer2)
+
+    def _averaged_fire_strength(self, fire_strengths):
+        total_strength = np.sum(fire_strengths)
+        return [rstrength / total_strength for rstrength in fire_strengths]
+
+
+class Sugeno(ANFIS):
+
+    def __init__(self, subset_size):
+        super().__init__(subset_size)
 
 
 class Tsukamoto:
