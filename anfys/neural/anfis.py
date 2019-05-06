@@ -1,4 +1,5 @@
 import numpy as np
+import anfys.lse as regression
 from itertools import product
 from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
@@ -17,6 +18,9 @@ class ANFIS:
         self.fuzzysets = []
         self.cons_params = []
         self.prem_mf = []
+        self.linsys_coefs = []
+        self.linsys_resul = []
+        self.regressor = None
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
         self._setup_archtecture(inputs.shape[_FEATURE_VECTOR_DIMENSION])
@@ -65,18 +69,25 @@ class ANFIS:
         total_strength = np.sum(fire_strengths)
         return [rstrength / total_strength for rstrength in fire_strengths]
 
+    def add_linsys_equation(self, coefs, result):
+        self.linsys_coefs.append(coefs)
+        self.linsys_resul.append(result)
+
 
 class Sugeno(ANFIS):
 
     def __init__(self, subset_size):
         super().__init__(subset_size)
 
-    def _update_consequent_parameters(entry, output):
-        pass
-
     def _full_forwardpass_hybrid_learn(self, entry, output):
         l1, l2, l3 = self._half_forward_pass(entry, output)
         self._update_cons_params(entry, output, l3)
+
+    def _update_consequent_parameters(self, entry, output):
+        new_equation = self.build_sys_equation(entry, output)
+        self.add_linsys_equation(new_equation)
+        self.cons_params = regression.solve(
+            self.linsys_coefs, self.linsys_resul)
 
 
 class Tsukamoto:
