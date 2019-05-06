@@ -1,8 +1,7 @@
+import builder
 import numpy as np
 import anfys.lse as regression
 from itertools import product
-from anfys.fuzzy.subsets import FuzzySet
-from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
 
 
 _FEATURE_VECTOR_DIMENSION = 1
@@ -23,17 +22,12 @@ class ANFIS:
         self.regressor = None
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
-        self._setup_archtecture(inputs.shape[_FEATURE_VECTOR_DIMENSION])
+        builder.configure_model(inputs.shape[_FEATURE_VECTOR_DIMENSION])
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
                 self._full_forwardpass_hybrid_learn(entry, output)
             epoch += 1
-
-    def _setup_archtecture(self, qtd_inputs):
-        self.qtd_rules = qtd_inputs ** self.subset_size
-        self.fuzzysets = [FuzzySet(self.prem_mf) for _ in range(qtd_inputs)]
-        self.cons_params = np.zeros((self.qtd_rules, qtd_inputs))
 
     def _full_forwardpass_hybrid_learn(self, entry, output):
         raise NotImplementedError(
