@@ -10,6 +10,14 @@ _DATA_LENGTH = 0
 _CONS_MF_NUM = 2
 
 
+class Mamdani:
+    def __init__(self, subset_size, max_epochs):
+        self.subset_size
+
+    def _setup_archtecture(self, qtd_inputs):
+        self.qtd_rules = qtd_inputs ** self.subset_size
+
+
 class Tsukamoto:
 
     def __init__(self, fuzzy_set_size):
