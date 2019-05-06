@@ -23,14 +23,17 @@ class ANFIS:
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
-                l1, l2, l3 = self._half_forward_pass(entry, output)
-                self._update_cons_params(entry, output, l3)
+                self._full_forwardpass_hybrid_learn(entry, output)
             epoch += 1
 
     def _setup_archtecture(self, qtd_inputs):
         self.qtd_rules = qtd_inputs ** self.subset_size
         self.fuzzysets = [FuzzySet(self.prem_mf) for _ in range(qtd_inputs)]
         self.cons_params = np.zeros((self.qtd_rules, qtd_inputs))
+
+    def _full_forwardpass_hybrid_learn(self, entry, output):
+        raise NotImplementedError(
+            'Call to _full_forwardpass_hybrid_learn in base class!')
 
     def _half_forward_pass(self, entry, output):
         # Forward inputs until the third layer
@@ -74,6 +77,10 @@ class Sugeno(ANFIS):
 
     def _update_consequent_parameters(entry, output):
         pass
+
+    def _full_forwardpass_hybrid_learn(self, entry, output):
+        l1, l2, l3 = self._half_forward_pass(entry, output)
+        self._update_cons_params(entry, output, l3)
 
 
 class Tsukamoto:
