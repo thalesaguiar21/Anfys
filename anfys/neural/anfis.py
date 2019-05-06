@@ -4,7 +4,7 @@ from anfys.fuzzy.subsets import FuzzySet
 from anfys.fuzzy.mem_funcs import PiecewiseLogit, BellTwo
 
 
-_INPUT_DIMENSION = 1
+_FEATURE_VECTOR_DIMENSION = 1
 _DATA_LENGTH = 0
 _CONS_MF_NUM = 2
 
@@ -19,7 +19,7 @@ class ANFIS:
         self.prem_mf = []
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
-        self._setup_archtecture(inputs.shape[0])
+        self._setup_archtecture(inputs.shape[_FEATURE_VECTOR_DIMENSION])
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
