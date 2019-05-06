@@ -83,8 +83,9 @@ class Sugeno(ANFIS):
         l1, l2, l3 = self._half_forward_pass(entry, output)
         self._update_cons_params(entry, output, l3)
 
-    def _update_consequent_parameters(self, entry, output):
-        new_equation = self.build_sys_equation(entry, output)
+    def _update_consequent_parameters(self, entry, output, weights):
+        column_weights = np.array([weights]).T
+        new_equation = column_weights.dot(entry)
         self.add_linsys_equation(new_equation)
         self.cons_params = regression.solve(
             self.linsys_coefs, self.linsys_resul)
