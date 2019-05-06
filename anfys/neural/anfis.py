@@ -69,6 +69,13 @@ class ANFIS:
         total_strength = np.sum(fire_strengths)
         return [rstrength / total_strength for rstrength in fire_strengths]
 
+    def _consequent_membership_degree(self):
+        column_cons_params = self.cons_params.T
+        self.linsys_coefs.dot(column_cons_params)
+
+    def _prediction(self, consequent_memdegree):
+        return np.sum(consequent_memdegree)
+
     def add_linsys_equation(self, coefs, result):
         self.linsys_coefs.append(coefs)
         self.linsys_resul.append(result)
@@ -82,6 +89,9 @@ class Sugeno(ANFIS):
     def _full_forwardpass_hybrid_learn(self, entry, output):
         l1, l2, l3 = self._half_forward_pass(entry, output)
         self._update_cons_params(entry, output, l3)
+        l4 = self._consequent_membership_degrees()
+        l5 = self._prediction(l4)
+        return l5
 
     def _update_consequent_parameters(self, entry, output, weights):
         column_weights = np.array([weights]).T
