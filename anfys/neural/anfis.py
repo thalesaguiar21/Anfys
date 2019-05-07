@@ -19,7 +19,7 @@ class ANFIS:
         self.regressor = None
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
-        builder.configure_model(inputs.shape[_FEATURE_VECTOR_DIMENSION])
+        builder.configure_model(self, inputs.shape[_FEATURE_VECTOR_DIMENSION])
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
