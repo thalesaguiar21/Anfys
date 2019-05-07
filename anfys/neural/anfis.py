@@ -11,6 +11,7 @@ class ANFIS:
     def __init__(self, subset_size):
         self.subset_size = subset_size
         self.qtd_rules = 0
+        self.qtd_inputs = 0
         self.fuzzysets = []
         self.cons_params = []
         self.prem_params = []
@@ -30,6 +31,9 @@ class ANFIS:
     def add_linsys_equation(self, coefs, result):
         self.linsys_coefs.append(coefs)
         self.linsys_resul.append(result)
+
+    def l1sise(self):
+        return self.qtd_mfs * self.qtd_mfs
 
 
 class Sugeno(ANFIS):
