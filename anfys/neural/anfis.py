@@ -1,4 +1,5 @@
 import anfys.neural.builder as builder
+import anfys.neural.learn as learn
 
 
 _FEATURE_VECTOR_DIMENSION = 1
@@ -23,7 +24,7 @@ class ANFIS:
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
-                self._full_forwardpass_hybrid_learn(entry, output)
+                learn.hybrid_online(entry, output)
             epoch += 1
 
     def add_linsys_equation(self, coefs, result):
