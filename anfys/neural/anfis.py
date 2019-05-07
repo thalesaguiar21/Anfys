@@ -64,13 +64,6 @@ class ANFIS:
         total_strength = np.sum(fire_strengths)
         return [rstrength / total_strength for rstrength in fire_strengths]
 
-    def _update_consequent_parameters(self, entry, output, weights):
-        column_weights = np.array([weights]).T
-        new_equation = column_weights.dot(entry)
-        self.add_linsys_equation(new_equation)
-        self.cons_params = regression.solve(
-            self.linsys_coefs, self.linsys_resul)
-
     def _consequent_membership_degree(self):
         column_cons_params = self.cons_params.T
         self.linsys_coefs.dot(column_cons_params)
