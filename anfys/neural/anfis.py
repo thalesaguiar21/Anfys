@@ -2,8 +2,6 @@ import anfys.neural.builder as builder
 
 
 _FEATURE_VECTOR_DIMENSION = 1
-_DATA_LENGTH = 0
-_CONS_MF_NUM = 2
 
 
 class ANFIS:
