@@ -2,11 +2,20 @@ import numpy as np
 from itertools import product
 from anfys.neural.anfis import Sugeno
 import anfys.lse as regression
+from enum import Enum, auto
+
+
+class Layer(Enum):
+    FUZZYFIER = auto()
+    FIRE = auto()
+    NORMALIZER = auto()
+    DEFUZZIFIER = auto()
+    OUTPUT = auto()
 
 
 def hybrid_online(anfis, entry, output):
-    first_three_layers = _half_forward_pass(entry, output)
-    _update_consequent_parameters(anfis, first_three_layers, entry, output)
+    l1tol3 = _half_forward_pass(entry, output)
+    l4 = _update_consequent_parameters(anfis, l1tol3, entry, output)
     l4 = _update_consequent_parameters(anfis)
     l5 = prediction(l4)
     return l5
@@ -46,7 +55,8 @@ def _averaged_fire_strength(fire_strengths):
     return [rstrength / total_strength for rstrength in fire_strengths]
 
 
-def _update_consequent_parameters(anfis, entry, output, weights):
+def _update_consequent_parameters(anfis, layers, entry, output):
+    weights = layers[Layer.NORMALIZER]
     if isinstance(anfis, Sugeno):
         _update_consequent_parameters(anfis, entry, output, weights)
     else:
