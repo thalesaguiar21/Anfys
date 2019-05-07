@@ -2,9 +2,6 @@ import anfys.neural.builder as builder
 import anfys.neural.learn as learn
 
 
-_FEATURE_VECTOR_DIMENSION = 1
-
-
 class ANFIS:
 
     def __init__(self, subset_size):
@@ -20,7 +17,7 @@ class ANFIS:
         self.regressor = None
 
     def fit_by_hybrid_learn(self, inputs, outputs, max_epochs):
-        builder.configure_model(self, inputs.shape[_FEATURE_VECTOR_DIMENSION])
+        builder.configure_model(self, inputs.shape[0])
         epoch = 1
         while epoch <= max_epochs:
             for entry, output in zip(inputs, outputs):
