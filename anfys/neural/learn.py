@@ -16,7 +16,6 @@ class Layer(Enum):
 def hybrid_online(anfis, entry, output):
     l1tol3 = _half_forward_pass(entry, output)
     l4 = _update_consequent_parameters(anfis, l1tol3, entry, output)
-    l4 = _update_consequent_parameters(anfis)
     l5 = prediction(l4)
     return l5
 
