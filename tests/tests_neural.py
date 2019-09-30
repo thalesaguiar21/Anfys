@@ -1,7 +1,6 @@
 from .context import anfys
 import anfys.neural.anfis as anfis
 import unittest
-import numpy as np
 
 
 class TestSugeno(unittest.TestCase):

@@ -1,6 +1,5 @@
 import numpy as np
 from itertools import product
-from anfys.neural.anfis import Sugeno
 import anfys.lse as regression
 from enum import Enum, auto
 
@@ -56,7 +55,7 @@ def _averaged_fire_strength(fire_strengths):
 
 def _update_consequent_parameters(anfis, layers, entry, output):
     weights = layers[Layer.NORMALIZER]
-    if isinstance(anfis, Sugeno):
+    if isinstance(anfis, ):
         _update_consequent_parameters(anfis, entry, output, weights)
     else:
         raise ValueError(
