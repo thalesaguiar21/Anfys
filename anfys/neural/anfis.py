@@ -28,7 +28,7 @@ class ANFIS:
         self.linsys_coefs.append(coefs)
         self.linsys_resul.append(result)
 
-    def l1sise(self):
+    def l1size(self):
         return self.qtd_mfs * self.qtd_mfs
 
 
