@@ -31,14 +31,14 @@ class TestRecursive(unittest.TestCase):
         rs_matrix = np.array([12, 13, 11])
         expected = [12.002992517583628, 12.998997523491125, 10.996013446352867]
         res = lse.Recursive(1.0, 1000).solve(coef_matrix, rs_matrix)
-        assertSequenceAlmostEqual(self, expected, res)
+        assertSequenceAlmostEqual(self, expected, coef_matrix @ res)
 
     def test_recursive_overdetermined(self):
         coef_matrix = np.array([[1, -1], [1, 1], [2, 1]])
         rs_matrix = np.array([2, 4, 8])
         expected = [23 / 7, 8 / 7]
         res = lse.Recursive(1.0, 1000).solve(coef_matrix, rs_matrix)
-        assertSequenceAlmostEqual(self, expected, res)
+        assertSequenceAlmostEqual(self, expected, res, tolerance=2)
 
 def assertSequenceAlmostEqual(testcase, seq1, seq2, tolerance=7):
     for s1, s2 in zip(seq1, seq2):
@@ -102,3 +102,4 @@ class TestClipping(unittest.TestCase):
         self.when_values_are(10, 100, 1)
         self.do_clip()
         self.cliped_result_is(10)
+

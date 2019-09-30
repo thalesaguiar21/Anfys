@@ -41,12 +41,12 @@ class Recursive(_LSE):
         theta = np.zeros(qtd_variables)
         for k in range(qtd_equations):
             coefs_k = np.array([coeficients[k, :]]).T
-            term = covariances.dot(coefs_k)
-            denom = coefs_k.T.dot(term) + self.forgetrate
-            gain = term / denom
-            theta += gain*(results[k] - coefs_k.T.dot(theta))
-            covariances -= covariances.dot(
-                coefs_k.dot(coefs_k.T.dot(covariances))) / denom
+            term = covariances @ coefs_k
+            denom = coefs_k.T @ term + self.forgetrate
+            gain = (term / denom).reshape(qtd_variables, )
+            theta += gain*(results[k] - coefs_k.T@theta)
+            part = covariances @ coefs_k @ coefs_k.T @ covariances
+            covariances -= part / denom
             covariances *= 1.0 / self.forgetrate
         return theta
 
@@ -63,6 +63,6 @@ class Matricial(_LSE):
 
     def solve(self, coeficients, results):
         """ Approximate parameters X, such that AX = B + e """
-        coeficients_pinverse = minverse(coeficients.T.dot(coeficients))
-        prediction = coeficients_pinverse.dot(coeficients.T.dot(results))
+        coeficients_pinverse = minverse(coeficients.T @ coeficients)
+        prediction = coeficients_pinverse @ coeficients.T @ results
         return prediction
